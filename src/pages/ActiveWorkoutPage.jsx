@@ -1,40 +1,120 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useWorkouts } from '../hooks/useWorkouts'
+import { supabase } from '../lib/supabaseClient'
 import ExerciseSection from '../components/ExerciseSection'
 import ConfirmDialog from '../components/ConfirmDialog'
+import Footer from '../components/Footer'
 import './ActiveWorkoutPage.css'
 
 export default function ActiveWorkoutPage() {
     const { id } = useParams()
     const navigate = useNavigate()
-    const { getWorkoutById, updateWorkout, deleteWorkout } = useWorkouts()
     const [workout, setWorkout] = useState(null)
     const [loading, setLoading] = useState(true)
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
     const [showCompleteConfirm, setShowCompleteConfirm] = useState(false)
+    const [showIncompleteWarning, setShowIncompleteWarning] = useState(false)
 
-    const loadWorkout = useCallback(async () => {
-        setLoading(true)
-        const { data, error } = await getWorkoutById(id)
-        if (data) {
-            setWorkout(data)
-        }
-        setLoading(false)
-    }, [id, getWorkoutById])
-
+    // Load workout directly from supabase to avoid hook dependency issues
     useEffect(() => {
+        const loadWorkout = async () => {
+            if (!id) {
+                setLoading(false)
+                return
+            }
+
+            setLoading(true)
+
+            try {
+                const { data, error } = await supabase
+                    .from('workouts')
+                    .select(`
+                        *,
+                        workout_exercises (
+                            id,
+                            order_index,
+                            exercise:exercises (
+                                id,
+                                name,
+                                muscle_group
+                            ),
+                            sets (
+                                id,
+                                weight,
+                                reps,
+                                is_completed,
+                                completed_at,
+                                created_at
+                            )
+                        )
+                    `)
+                    .eq('id', id)
+                    .single()
+
+                if (error) {
+                    console.error('Error loading workout:', error)
+                    setWorkout(null)
+                } else if (data) {
+                    // Sort exercises and sets
+                    data.workout_exercises?.sort((a, b) => a.order_index - b.order_index)
+                    data.workout_exercises?.forEach(we => {
+                        we.sets?.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+                    })
+                    setWorkout(data)
+                }
+            } catch (err) {
+                console.error('Exception loading workout:', err)
+                setWorkout(null)
+            }
+
+            setLoading(false)
+        }
+
         loadWorkout()
-    }, [loadWorkout])
+    }, [id])
+
+    // Calculate set completion stats
+    const getAllSets = () => {
+        if (!workout?.workout_exercises) return []
+        return workout.workout_exercises.flatMap(we => we.sets || [])
+    }
+
+    const allSets = getAllSets()
+    const completedSets = allSets.filter(s => s.is_completed)
+    const totalSets = allSets.length
+    const allSetsComplete = totalSets > 0 && completedSets.length === totalSets
 
     const handleCompleteWorkout = async () => {
-        await updateWorkout(workout.id, { is_completed: !workout.is_completed })
+        const newStatus = !workout.is_completed
+
+        // Update locally immediately
+        setWorkout(prev => ({ ...prev, is_completed: newStatus }))
         setShowCompleteConfirm(false)
-        loadWorkout()
+
+        // Update in database
+        await supabase
+            .from('workouts')
+            .update({ is_completed: newStatus })
+            .eq('id', workout.id)
+    }
+
+    const handleCompleteClick = () => {
+        if (workout.is_completed) {
+            // Allow marking incomplete anytime
+            setShowCompleteConfirm(true)
+        } else if (!allSetsComplete) {
+            // Show popup if trying to complete without all sets done
+            setShowIncompleteWarning(true)
+        } else {
+            setShowCompleteConfirm(true)
+        }
     }
 
     const handleDeleteWorkout = async () => {
-        await deleteWorkout(workout.id)
+        await supabase
+            .from('workouts')
+            .delete()
+            .eq('id', workout.id)
         navigate('/')
     }
 
@@ -115,7 +195,6 @@ export default function ActiveWorkoutPage() {
                         <ExerciseSection
                             key={we.id}
                             workoutExercise={we}
-                            onUpdate={loadWorkout}
                         />
                     ))}
                 </div>
@@ -127,8 +206,8 @@ export default function ActiveWorkoutPage() {
                 )}
 
                 <button
-                    className={`btn btn-lg w-full complete-btn ${workout.is_completed ? 'completed' : ''}`}
-                    onClick={() => setShowCompleteConfirm(true)}
+                    className={`btn btn-lg w-full complete-btn ${workout.is_completed ? 'completed' : ''} ${!workout.is_completed && !allSetsComplete ? 'disabled' : ''}`}
+                    onClick={handleCompleteClick}
                 >
                     {workout.is_completed ? (
                         <>
@@ -143,11 +222,16 @@ export default function ActiveWorkoutPage() {
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <polyline points="20 6 9 17 4 12" />
                             </svg>
-                            Complete Workout
+                            {allSetsComplete
+                                ? 'Complete Workout'
+                                : `Complete Sets (${completedSets.length}/${totalSets})`
+                            }
                         </>
                     )}
                 </button>
             </main>
+
+            <Footer />
 
             <ConfirmDialog
                 isOpen={showDeleteConfirm}
@@ -168,6 +252,15 @@ export default function ActiveWorkoutPage() {
                 confirmText={workout.is_completed ? "Mark Incomplete" : "Complete"}
                 onConfirm={handleCompleteWorkout}
                 onCancel={() => setShowCompleteConfirm(false)}
+            />
+
+            <ConfirmDialog
+                isOpen={showIncompleteWarning}
+                title="Incomplete Sets"
+                message={`Complete all sets first! You've finished ${completedSets.length} of ${totalSets} sets.`}
+                confirmText="Got it"
+                onConfirm={() => setShowIncompleteWarning(false)}
+                onCancel={() => setShowIncompleteWarning(false)}
             />
         </div>
     )

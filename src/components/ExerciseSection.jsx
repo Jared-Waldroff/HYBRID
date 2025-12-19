@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSets } from '../hooks/useSets'
 import { useExercises } from '../hooks/useExercises'
@@ -17,12 +17,17 @@ export default function ExerciseSection({
     const [showHistory, setShowHistory] = useState(false)
     const [deleteConfirm, setDeleteConfirm] = useState({ open: false, setId: null })
     const [isExpanded, setIsExpanded] = useState(true)
+    const debounceTimers = useRef({})
 
     const exercise = workoutExercise.exercise
 
+    // Only update sets from props on initial load or when set count changes
     useEffect(() => {
-        setSets(workoutExercise.sets || [])
-    }, [workoutExercise.sets])
+        const propSets = workoutExercise.sets || []
+        if (propSets.length !== sets.length) {
+            setSets(propSets)
+        }
+    }, [workoutExercise.sets?.length])
 
     const loadHistory = async () => {
         if (!showHistory && history.length === 0) {
@@ -34,15 +39,30 @@ export default function ExerciseSection({
         setShowHistory(!showHistory)
     }
 
-    const handleSetChange = async (setId, field, value) => {
-        // Update locally first for responsiveness
+    // Debounced update to prevent spam on every keystroke
+    const debouncedUpdateSet = useCallback((setId, field, value) => {
+        // Clear existing timer for this set/field combination
+        const timerKey = `${setId}-${field}`
+        if (debounceTimers.current[timerKey]) {
+            clearTimeout(debounceTimers.current[timerKey])
+        }
+
+        // Set new timer
+        debounceTimers.current[timerKey] = setTimeout(async () => {
+            await updateSet(setId, { [field]: parseFloat(value) || 0 })
+            delete debounceTimers.current[timerKey]
+        }, 500) // 500ms debounce
+    }, [updateSet])
+
+    const handleSetChange = (setId, field, value) => {
+        // Update locally immediately for responsiveness
         setSets(prev => prev.map(s =>
             s.id === setId ? { ...s, [field]: value } : s
         ))
 
-        // Then update in database
-        await updateSet(setId, { [field]: parseFloat(value) || 0 })
-        onUpdate?.()
+        // Debounce the database update
+        debouncedUpdateSet(setId, field, value)
+        // Don't call onUpdate here - it causes full refresh and input focus loss
     }
 
     const handleToggleComplete = async (set) => {
@@ -50,7 +70,7 @@ export default function ExerciseSection({
             s.id === set.id ? { ...s, is_completed: !s.is_completed } : s
         ))
         await toggleSetComplete(set.id, set.is_completed)
-        onUpdate?.()
+        // Only call onUpdate for toggle, not for input changes
     }
 
     const handleAddSet = async () => {
@@ -58,7 +78,6 @@ export default function ExerciseSection({
         const { data } = await duplicateSet(workoutExercise.id, lastSet)
         if (data) {
             setSets(prev => [...prev, data])
-            onUpdate?.()
         }
     }
 
@@ -67,13 +86,19 @@ export default function ExerciseSection({
             await deleteSet(deleteConfirm.setId)
             setSets(prev => prev.filter(s => s.id !== deleteConfirm.setId))
             setDeleteConfirm({ open: false, setId: null })
-            onUpdate?.()
         }
     }
 
     const handleExerciseClick = () => {
         navigate(`/exercise/${exercise.id}`)
     }
+
+    // Cleanup timers on unmount
+    useEffect(() => {
+        return () => {
+            Object.values(debounceTimers.current).forEach(timer => clearTimeout(timer))
+        }
+    }, [])
 
     return (
         <div className="exercise-section glass-subtle">
@@ -105,15 +130,17 @@ export default function ExerciseSection({
                                 <span className="set-col-num">{index + 1}</span>
                                 <input
                                     type="number"
+                                    inputMode="decimal"
                                     className="set-input set-col-weight"
-                                    value={set.weight || ''}
+                                    value={set.weight ?? ''}
                                     onChange={(e) => handleSetChange(set.id, 'weight', e.target.value)}
                                     placeholder="0"
                                 />
                                 <input
                                     type="number"
+                                    inputMode="numeric"
                                     className="set-input set-col-reps"
-                                    value={set.reps || ''}
+                                    value={set.reps ?? ''}
                                     onChange={(e) => handleSetChange(set.id, 'reps', e.target.value)}
                                     placeholder="0"
                                 />

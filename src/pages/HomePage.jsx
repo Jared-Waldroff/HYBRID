@@ -10,10 +10,10 @@ import GlassCard from '../components/GlassCard'
 import './HomePage.css'
 
 // Generate array of dates around a center date
-function generateDateRange(centerDate, daysBefore = 7, daysAfter = 7) {
+function generateDateRange(centerDate, daysBefore = 14, daysAfter = 14) {
     const dates = []
     const center = new Date(centerDate)
-    center.setHours(12, 0, 0, 0)
+    center.setHours(0, 0, 0, 0)
 
     for (let i = -daysBefore; i <= daysAfter; i++) {
         const d = new Date(center)
@@ -24,7 +24,15 @@ function generateDateRange(centerDate, daysBefore = 7, daysAfter = 7) {
 }
 
 function formatDateKey(date) {
-    return date.toISOString().split('T')[0]
+    const d = new Date(date)
+    const year = d.getFullYear()
+    const month = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+}
+
+function getTodayKey() {
+    return formatDateKey(new Date())
 }
 
 function formatDisplayDate(date) {
@@ -47,7 +55,15 @@ function formatDisplayDate(date) {
     })
 }
 
-// Day Section Component with sticky header
+function isPastDate(date) {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const compareDate = new Date(date)
+    compareDate.setHours(0, 0, 0, 0)
+    return compareDate.getTime() < today.getTime()
+}
+
+// Day Section Component
 function DaySection({
     date,
     workouts,
@@ -55,19 +71,22 @@ function DaySection({
     onCreateWorkout,
     onDeleteCF,
     onShuffleCF,
-    isFirst,
-    isLast
+    onRefresh,
+    isPast
 }) {
     const dateKey = formatDateKey(date)
     const hasContent = workouts.length > 0 || crossfitWorkout
 
     return (
-        <div className="day-section" data-date={dateKey}>
+        <div className={`day-section ${isPast ? 'past-day' : ''}`} data-date={dateKey}>
             <div className="day-header">
-                <span className="day-title">{formatDisplayDate(date)}</span>
-                <span className="day-date-full">
-                    {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                </span>
+                <div className="day-header-left">
+                    <span className="day-title">{formatDisplayDate(date)}</span>
+                    <span className="day-date-full">
+                        {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </span>
+                </div>
+                {isPast && <span className="past-badge">Past</span>}
             </div>
 
             <div className="day-content">
@@ -81,7 +100,7 @@ function DaySection({
                             />
                         )}
                         {workouts.map(workout => (
-                            <WorkoutCard key={workout.id} workout={workout} />
+                            <WorkoutCard key={workout.id} workout={workout} onDelete={onRefresh} />
                         ))}
                     </div>
                 ) : (
@@ -111,13 +130,13 @@ function DaySection({
 export default function HomePage() {
     const navigate = useNavigate()
     const location = useLocation()
-    const { workouts, loading } = useWorkouts()
-    const [dates, setDates] = useState(() => generateDateRange(new Date(), 7, 7))
+    const { workouts, loading, fetchWorkouts } = useWorkouts()
+    const [dates, setDates] = useState(() => generateDateRange(new Date(), 14, 14))
     const [crossfitWorkouts, setCrossfitWorkouts] = useState({})
-    const [activeDate, setActiveDate] = useState(formatDateKey(new Date()))
+    const [activeDate, setActiveDate] = useState(getTodayKey())
     const scrollContainerRef = useRef(null)
-    const headerObserverRef = useRef(null)
     const loadingMoreRef = useRef(false)
+    const initialScrollDone = useRef(false)
 
     // Load CrossFit workouts from localStorage
     useEffect(() => {
@@ -127,53 +146,67 @@ export default function HomePage() {
         }
     }, [])
 
-    // Handle date from calendar navigation
+    // Scroll to today when page loads
     useEffect(() => {
-        if (location.state?.date) {
-            const targetDate = new Date(location.state.date + 'T12:00:00')
-            setDates(generateDateRange(targetDate, 7, 7))
-            setActiveDate(location.state.date)
-            navigate(location.pathname, { replace: true, state: {} })
-
-            // Scroll to the target date after render
+        if (!loading) {
+            const todayKey = getTodayKey()
             setTimeout(() => {
-                const element = document.querySelector(`[data-date="${location.state.date}"]`)
+                const element = document.querySelector(`[data-date="${todayKey}"]`)
                 if (element) {
                     element.scrollIntoView({ behavior: 'auto', block: 'start' })
                 }
             }, 100)
         }
+    }, [loading])
+
+    // Handle date from calendar navigation
+    useEffect(() => {
+        if (location.state?.date) {
+            const targetDateStr = location.state.date
+            const targetDate = new Date(targetDateStr + 'T00:00:00')
+            setDates(generateDateRange(targetDate, 14, 14))
+            setActiveDate(targetDateStr)
+            navigate(location.pathname, { replace: true, state: {} })
+
+            // Scroll to the target date after render
+            setTimeout(() => {
+                const element = document.querySelector(`[data-date="${targetDateStr}"]`)
+                if (element) {
+                    element.scrollIntoView({ behavior: 'auto', block: 'start' })
+                }
+            }, 150)
+        }
     }, [location.state, navigate, location.pathname])
 
-    // Setup intersection observer for sticky headers
+    // Setup intersection observer for tracking active date
     useEffect(() => {
-        const container = scrollContainerRef.current
-        if (!container) return
+        if (loading) return
 
         const observer = new IntersectionObserver(
             (entries) => {
+                // Find the section whose header is at or just below the sticky position
                 entries.forEach(entry => {
-                    const dateKey = entry.target.getAttribute('data-date')
-                    if (entry.isIntersecting && entry.intersectionRatio > 0.1) {
-                        setActiveDate(dateKey)
+                    if (entry.isIntersecting) {
+                        const dateKey = entry.target.getAttribute('data-date')
+                        if (dateKey) {
+                            setActiveDate(dateKey)
+                        }
                     }
                 })
             },
             {
-                root: container,
-                rootMargin: '-60px 0px -80% 0px',
-                threshold: [0.1, 0.5]
+                root: null, // Use viewport since document scrolls
+                rootMargin: '-75px 0px -85% 0px', // Trigger when section reaches sticky header area
+                threshold: 0
             }
         )
 
-        headerObserverRef.current = observer
-
         // Observe all day sections
-        const sections = container.querySelectorAll('.day-section')
+        const sections = document.querySelectorAll('.day-section')
         sections.forEach(section => observer.observe(section))
 
         return () => observer.disconnect()
-    }, [dates])
+    }, [dates, loading])
 
     // Infinite scroll - load more dates
     const loadMoreDates = useCallback((direction) => {
@@ -185,14 +218,14 @@ export default function HomePage() {
 
             if (direction === 'past') {
                 const firstDate = new Date(prevDates[0])
-                for (let i = 7; i >= 1; i--) {
+                for (let i = 14; i >= 1; i--) {
                     const d = new Date(firstDate)
                     d.setDate(d.getDate() - i)
                     newDates.unshift(d)
                 }
             } else {
                 const lastDate = new Date(prevDates[prevDates.length - 1])
-                for (let i = 1; i <= 7; i++) {
+                for (let i = 1; i <= 14; i++) {
                     const d = new Date(lastDate)
                     d.setDate(d.getDate() + i)
                     newDates.push(d)
@@ -204,7 +237,7 @@ export default function HomePage() {
 
         setTimeout(() => {
             loadingMoreRef.current = false
-        }, 500)
+        }, 300)
     }, [])
 
     // Handle scroll for infinite loading
@@ -215,12 +248,12 @@ export default function HomePage() {
         const clientHeight = container.clientHeight
 
         // Load more past dates when near top
-        if (scrollTop < 200) {
+        if (scrollTop < 300) {
             loadMoreDates('past')
         }
 
         // Load more future dates when near bottom
-        if (scrollHeight - scrollTop - clientHeight < 200) {
+        if (scrollHeight - scrollTop - clientHeight < 300) {
             loadMoreDates('future')
         }
     }, [loadMoreDates])
@@ -266,8 +299,15 @@ export default function HomePage() {
 
     // Scroll to today
     const scrollToToday = () => {
-        const todayKey = formatDateKey(new Date())
-        setDates(generateDateRange(new Date(), 7, 7))
+        const todayKey = getTodayKey()
+
+        // Check if today is in current dates array
+        const todayInDates = dates.some(d => formatDateKey(d) === todayKey)
+
+        if (!todayInDates) {
+            setDates(generateDateRange(new Date(), 14, 14))
+        }
+
         setActiveDate(todayKey)
 
         setTimeout(() => {
@@ -278,19 +318,25 @@ export default function HomePage() {
         }, 100)
     }
 
+    // Get display text for active date
+    const getActiveDateDisplay = () => {
+        try {
+            const date = new Date(activeDate + 'T00:00:00')
+            return formatDisplayDate(date)
+        } catch {
+            return 'Today'
+        }
+    }
+
+    const isNotToday = activeDate !== getTodayKey()
+
     return (
         <div className="home-page">
             <Header />
 
-            <div className="sticky-date-indicator" onClick={scrollToToday}>
-                <span className="indicator-text">{formatDisplayDate(new Date(activeDate + 'T12:00:00'))}</span>
-                <span className="indicator-hint">tap to go to today</span>
-            </div>
-
             <main
                 className="home-content infinite-scroll"
                 ref={scrollContainerRef}
-                onScroll={handleScroll}
             >
                 {loading ? (
                     <div className="loading-container">
@@ -299,6 +345,13 @@ export default function HomePage() {
                     </div>
                 ) : (
                     <div className="days-container">
+                        <button
+                            className="load-more-btn"
+                            onClick={() => loadMoreDates('past')}
+                        >
+                            Load Earlier Days
+                        </button>
+
                         {dates.map((date, index) => {
                             const dateKey = formatDateKey(date)
                             return (
@@ -310,11 +363,18 @@ export default function HomePage() {
                                     onCreateWorkout={() => navigate('/create-workout', { state: { date: dateKey } })}
                                     onDeleteCF={() => removeCrossFitWorkout(dateKey)}
                                     onShuffleCF={() => shuffleCrossFitWorkout(dateKey)}
-                                    isFirst={index === 0}
-                                    isLast={index === dates.length - 1}
+                                    onRefresh={fetchWorkouts}
+                                    isPast={isPastDate(date)}
                                 />
                             )
                         })}
+
+                        <button
+                            className="load-more-btn"
+                            onClick={() => loadMoreDates('future')}
+                        >
+                            Load More Days
+                        </button>
                     </div>
                 )}
             </main>

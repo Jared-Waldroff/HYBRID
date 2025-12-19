@@ -6,78 +6,104 @@
     padding-bottom: 80px;
 }
 
-/* Sticky date indicator at top */
-.sticky-date-indicator {
+/* Go to today bar - only shows when not viewing today */
+.go-to-today-bar {
     position: sticky;
     top: 60px;
     z-index: 30;
     display: flex;
-    flex-direction: column;
     align-items: center;
+    justify-content: space-between;
     padding: var(--space-sm) var(--space-md);
-    background: linear-gradient(180deg, var(--bg-primary) 0%, rgba(var(--bg-primary-rgb), 0.95) 80%, transparent 100%);
-    backdrop-filter: blur(8px);
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--divider);
     cursor: pointer;
-    transition: all var(--transition-fast);
 }
 
-.sticky-date-indicator:hover {
-    background: linear-gradient(180deg, var(--bg-secondary) 0%, rgba(var(--bg-primary-rgb), 0.95) 80%, transparent 100%);
+.go-to-today-bar span {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
 }
 
-.indicator-text {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--accent-secondary);
-}
-
-.indicator-hint {
-    font-size: 0.65rem;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-/* Infinite scroll content area */
+/* Content area - NO overflow, let document scroll */
 .home-content.infinite-scroll {
     flex: 1;
-    padding: 0 var(--space-md);
-    padding-bottom: var(--space-2xl);
+    padding: var(--space-sm) var(--space-md) var(--space-2xl);
     max-width: 600px;
     margin: 0 auto;
     width: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-    scroll-behavior: smooth;
 }
 
 .days-container {
     display: flex;
     flex-direction: column;
+    padding-top: 0px;
+    /* Match sticky header top position */
+}
+
+/* Load more buttons */
+.load-more-btn {
+    width: 100%;
+    padding: var(--space-md);
+    margin: var(--space-md) 0;
+    background: var(--input-bg);
+    border: 1px dashed var(--input-border);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.load-more-btn:hover {
+    background: var(--glass-bg);
+    border-color: var(--accent-secondary);
+    color: var(--text-primary);
 }
 
 /* Day section */
 .day-section {
-    min-height: 120px;
-    padding-bottom: var(--space-lg);
+    min-height: 100px;
+    padding-bottom: var(--space-md);
     border-bottom: 1px solid var(--divider);
+    scroll-margin-top: 74px;
+    /* Offset for header when scrolling into view */
 }
 
 .day-section:last-child {
     border-bottom: none;
+    padding-bottom: var(--space-xl);
 }
 
+/* Past day styling - greyed out */
+.day-section.past-day {
+    opacity: 0.6;
+}
+
+.day-section.past-day .day-header {
+    background: var(--bg-tertiary);
+}
+
+/* Sticky day header */
 .day-header {
     position: sticky;
-    top: 0;
+    top: 74px;
+    /* Account for main header height + small gap */
     z-index: 20;
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
-    padding: var(--space-md) 0;
+    padding: var(--space-sm) var(--space-md);
+    margin: 0 calc(-1 * var(--space-md));
     background: var(--bg-primary);
-    margin-bottom: var(--space-sm);
+    border-bottom: 1px solid var(--divider);
+}
+
+.day-header-left {
+    display: flex;
+    flex-direction: column;
 }
 
 .day-title {
@@ -87,12 +113,22 @@
 }
 
 .day-date-full {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: var(--text-muted);
 }
 
+.past-badge {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--input-bg);
+    border-radius: var(--radius-sm);
+}
+
 .day-content {
-    padding: 0;
+    padding: var(--space-md) 0;
 }
 
 .day-workouts {
@@ -195,15 +231,4 @@
     .fab.cf-fab {
         right: calc(50% - 300px + var(--space-md) + 64px);
     }
-}
-
-/* Hide the old swipe styles */
-.swipe-hint,
-.date-display,
-.date-nav-btn,
-.current-date-text,
-.workout-container,
-.empty-day,
-.empty-card {
-    display: none;
 }

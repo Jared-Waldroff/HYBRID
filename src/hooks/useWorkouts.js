@@ -198,7 +198,8 @@ export function useWorkouts() {
 
             if (deleteError) throw deleteError
 
-            await fetchWorkouts()
+            // Remove from local state immediately (no refetch = no scroll jump)
+            setWorkouts(prev => prev.filter(w => w.id !== id))
             return { error: null }
         } catch (err) {
             console.error('Error deleting workout:', err)

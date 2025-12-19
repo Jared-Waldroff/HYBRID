@@ -119,26 +119,19 @@ Rest 1 minute
         rxWeights: { male: '135 lb / 20 lb WB', female: '95 lb / 14 lb WB' }
     },
     {
-        id: '23.2A',
+        id: '23.2',
         year: 2023,
-        name: '23.2A',
-        subtitle: 'Burpee Pull-ups & Shuttles',
-        format: '15-minute AMRAP',
-        description: `5 Burpee Pull-ups
+        name: '23.2',
+        subtitle: 'Burpee Pull-ups + Max Thruster',
+        format: '15-minute AMRAP + 5-minute window',
+        description: `PART A (15-minute AMRAP):
+5 Burpee Pull-ups
 10 Shuttle Runs (1 rep = 50 ft total)
+Add 5 Burpee Pull-ups after each round of Shuttle Runs.
 
-Add 5 Burpee Pull-ups after each round of Shuttle Runs.`,
-        rxWeights: { male: 'Bodyweight', female: 'Bodyweight' }
-    },
-    {
-        id: '23.2B',
-        year: 2023,
-        name: '23.2B',
-        subtitle: 'Max Thruster',
-        format: '5-minute window',
-        description: `Immediately following 23.2A:
-Establish a 1-rep-max Thruster`,
-        rxWeights: { male: 'Max Load', female: 'Max Load' }
+PART B (Immediately following):
+5 minutes to establish a 1-rep-max Thruster`,
+        rxWeights: { male: 'Bodyweight + Max Load', female: 'Bodyweight + Max Load' }
     },
     {
         id: '23.3',
@@ -235,38 +228,28 @@ If completed, time extends. Weights increase to 185/125 and 225/155, reps drop t
         rxWeights: { male: '50 lb DB', female: '35 lb DB' }
     },
     {
-        id: '21.3',
+        id: '21.3/21.4',
         year: 2021,
-        name: '21.3',
-        subtitle: 'Complex Finale Part 1',
-        format: 'For Time (15-minute cap)',
-        description: `15 Front Squats (95/65 lb)
+        name: '21.3/21.4',
+        subtitle: 'Complex Finale',
+        format: 'For Time (15-min cap) + 7-minute window',
+        description: `PART A - 21.3 (For Time, 15-minute cap):
+15 Front Squats (95/65 lb)
 30 Toes-to-bars
 15 Thrusters (95/65 lb)
-
 Rest 1 minute
-
 15 Front Squats
 30 Chest-to-bar Pull-ups
 15 Thrusters
-
 Rest 1 minute
-
 15 Front Squats
 30 Bar Muscle-ups
-15 Thrusters`,
-        rxWeights: { male: '95 lb', female: '65 lb' }
-    },
-    {
-        id: '21.4',
-        year: 2021,
-        name: '21.4',
-        subtitle: 'Complex Finale Part 2',
-        format: '7-minute window',
-        description: `Immediately following 21.3:
-Find max load of:
+15 Thrusters
+
+PART B - 21.4 (Immediately following):
+7 minutes to find max load of:
 1 Deadlift + 1 Clean + 1 Hang Clean + 1 Jerk`,
-        rxWeights: { male: 'Max Load', female: 'Max Load' }
+        rxWeights: { male: '95 lb + Max Load', female: '65 lb + Max Load' }
     },
 
     // 2020 Workouts
