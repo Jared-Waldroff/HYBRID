@@ -29,7 +29,7 @@
 /* Content area - NO overflow, let document scroll */
 .home-content.infinite-scroll {
     flex: 1;
-    padding: var(--space-sm) var(--space-md) var(--space-2xl);
+    padding: var(--space-sm) var(--space-md) var(--space-sm);
     max-width: 600px;
     margin: 0 auto;
     width: 100%;
