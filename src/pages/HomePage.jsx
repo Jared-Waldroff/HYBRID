@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useWorkouts } from '../hooks/useWorkouts'
+import { useTheme } from '../context/ThemeContext'
 import { getRandomCrossFitWorkout } from '../data/crossfitWorkouts'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import WorkoutCard from '../components/WorkoutCard'
 import CrossFitWorkoutCard from '../components/CrossFitWorkoutCard'
-import GlassCard from '../components/GlassCard'
 import './HomePage.css'
 
 // Generate array of dates around a center date
@@ -69,10 +69,12 @@ function DaySection({
     workouts,
     crossfitWorkout,
     onCreateWorkout,
+    onAddCF,
     onDeleteCF,
     onShuffleCF,
     onRefresh,
-    isPast
+    isPast,
+    showCFButton
 }) {
     const dateKey = formatDateKey(date)
     const hasContent = workouts.length > 0 || crossfitWorkout
@@ -86,7 +88,24 @@ function DaySection({
                         {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </span>
                 </div>
-                {isPast && <span className="past-badge">Past</span>}
+                <div className="day-header-actions">
+                    {showCFButton && (
+                        <button
+                            className="btn btn-cf-inline btn-sm"
+                            onClick={onAddCF}
+                            title="Add random CrossFit workout"
+                        >
+                            CF
+                        </button>
+                    )}
+                    <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={onCreateWorkout}
+                    >
+                        + Add Workout
+                    </button>
+                    {isPast && <span className="past-badge">Past</span>}
+                </div>
             </div>
 
             <div className="day-content">
@@ -114,12 +133,6 @@ function DaySection({
                             </svg>
                             <span>Rest Day</span>
                         </div>
-                        <button
-                            className="btn btn-secondary btn-sm"
-                            onClick={onCreateWorkout}
-                        >
-                            + Add Workout
-                        </button>
                     </div>
                 )}
             </div>
@@ -131,6 +144,7 @@ export default function HomePage() {
     const navigate = useNavigate()
     const location = useLocation()
     const { workouts, loading, fetchWorkouts } = useWorkouts()
+    const { showCF } = useTheme()
     const [dates, setDates] = useState(() => generateDateRange(new Date(), 14, 14))
     const [crossfitWorkouts, setCrossfitWorkouts] = useState({})
     const [activeDate, setActiveDate] = useState(getTodayKey())
@@ -270,15 +284,6 @@ export default function HomePage() {
         return workouts.filter(w => w.scheduled_date === dateStr)
     }
 
-    const addRandomCrossFitWorkout = () => {
-        const workout = getRandomCrossFitWorkout()
-        const newWorkouts = {
-            ...crossfitWorkouts,
-            [activeDate]: workout
-        }
-        saveCrossfitWorkouts(newWorkouts)
-    }
-
     const removeCrossFitWorkout = (dateKey) => {
         const newWorkouts = { ...crossfitWorkouts }
         delete newWorkouts[dateKey]
@@ -362,10 +367,12 @@ export default function HomePage() {
                                     workouts={getWorkoutsForDate(date)}
                                     crossfitWorkout={crossfitWorkouts[dateKey]}
                                     onCreateWorkout={() => navigate('/create-workout', { state: { date: dateKey } })}
+                                    onAddCF={() => shuffleCrossFitWorkout(dateKey)}
                                     onDeleteCF={() => removeCrossFitWorkout(dateKey)}
                                     onShuffleCF={() => shuffleCrossFitWorkout(dateKey)}
                                     onRefresh={fetchWorkouts}
                                     isPast={isPastDate(date)}
+                                    showCFButton={showCF}
                                 />
                             )
                         })}
@@ -379,27 +386,6 @@ export default function HomePage() {
                     </div>
                 )}
             </main>
-
-            {/* CF Button */}
-            <button
-                className="fab cf-fab"
-                onClick={addRandomCrossFitWorkout}
-                aria-label="Add CrossFit Open workout"
-            >
-                <span className="cf-fab-text">CF</span>
-            </button>
-
-            {/* Plus Button */}
-            <button
-                className="fab"
-                onClick={handleCreateWorkout}
-                aria-label="Create workout"
-            >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-            </button>
 
             <Footer />
         </div>

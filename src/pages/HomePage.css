@@ -66,10 +66,14 @@
 /* Day section */
 .day-section {
     min-height: 100px;
-    padding-bottom: var(--space-md);
+    padding-bottom: var(--space-sm);
     border-bottom: 1px solid var(--divider);
     scroll-margin-top: 74px;
     /* Offset for header when scrolling into view */
+    margin-left: calc(-1 * var(--space-md));
+    margin-right: calc(-1 * var(--space-md));
+    padding-left: var(--space-md);
+    padding-right: var(--space-md);
 }
 
 .day-section:last-child {
@@ -127,8 +131,14 @@
     border-radius: var(--radius-sm);
 }
 
+.day-header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
 .day-content {
-    padding: var(--space-md) 0;
+    padding: var(--space-md) 0 var(--space-sm) 0;
 }
 
 .day-workouts {
@@ -162,6 +172,39 @@
 .empty-day-content span {
     font-size: 0.875rem;
     font-weight: 500;
+}
+
+/* Day actions - buttons shown below workouts or next to rest day */
+.day-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-sm);
+    margin-top: var(--space-sm);
+}
+
+.day-actions-empty {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+/* CF inline button style */
+.btn-cf-inline {
+    background: linear-gradient(135deg, #1e3a5f 0%, #0a141f 100%);
+    border: 2px solid #c9a227;
+    color: #c9a227;
+    font-weight: 800;
+    letter-spacing: -0.05em;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-cf-inline:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 12px rgba(201, 162, 39, 0.3);
 }
 
 .btn-sm {

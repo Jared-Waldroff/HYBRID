@@ -199,6 +199,49 @@ export function useExercises() {
         }
     }, [user])
 
+    // Get the most recent sets for an exercise (from the latest workout containing it)
+    const getLatestExerciseSets = useCallback(async (exerciseId) => {
+        if (!user) return { data: null, error: 'Not authenticated' }
+
+        try {
+            // Find the most recent workout_exercise for this exercise
+            const { data: workoutExercise, error: weError } = await supabase
+                .from('workout_exercises')
+                .select(`
+                    id,
+                    workout:workouts!inner (
+                        user_id,
+                        scheduled_date
+                    ),
+                    sets (
+                        weight,
+                        reps,
+                        created_at
+                    )
+                `)
+                .eq('exercise_id', exerciseId)
+                .eq('workout.user_id', user.id)
+                .order('workout(scheduled_date)', { ascending: false })
+                .limit(1)
+                .single()
+
+            if (weError && weError.code !== 'PGRST116') throw weError // Ignore "no rows" error
+
+            if (workoutExercise?.sets && workoutExercise.sets.length > 0) {
+                // Sort by created_at and return
+                const sortedSets = workoutExercise.sets.sort(
+                    (a, b) => new Date(a.created_at) - new Date(b.created_at)
+                )
+                return { data: sortedSets, error: null }
+            }
+
+            return { data: null, error: null }
+        } catch (err) {
+            console.error('Error fetching latest exercise sets:', err)
+            return { data: null, error: err.message }
+        }
+    }, [user])
+
     // Group exercises by muscle group
     const groupedExercises = exercises.reduce((acc, exercise) => {
         const group = exercise.muscle_group || 'Other'
@@ -227,6 +270,7 @@ export function useExercises() {
         updateExercise,
         deleteExercise,
         getExerciseStats,
-        getExerciseHistory
+        getExerciseHistory,
+        getLatestExerciseSets
     }
 }

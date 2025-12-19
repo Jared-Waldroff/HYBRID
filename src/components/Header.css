@@ -4,6 +4,7 @@
     z-index: 50;
     padding: var(--space-md);
     border-bottom: 1px solid var(--glass-border);
+    border-radius: 0;
 }
 
 .header-content {

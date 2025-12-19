@@ -25,7 +25,7 @@ export default function CreateWorkoutPage() {
     const initialDate = location.state?.date || new Date().toISOString().split('T')[0]
 
     const { createWorkout, workouts, getWorkoutById } = useWorkouts()
-    const { exercises, createExercise } = useExercises()
+    const { exercises, createExercise, getLatestExerciseSets } = useExercises()
 
     const [name, setName] = useState('')
     const [date, setDate] = useState(initialDate)
@@ -37,6 +37,7 @@ export default function CreateWorkoutPage() {
     const [error, setError] = useState('')
     const [visibleCount, setVisibleCount] = useState(10)
     const [copiedSets, setCopiedSets] = useState(null)
+    const [copiedWorkoutId, setCopiedWorkoutId] = useState(null)
 
     // Sort workouts by date descending for the recent list
     const sortedWorkouts = [...workouts].sort((a, b) => new Date(b.scheduled_date) - new Date(a.scheduled_date))
@@ -63,12 +64,17 @@ export default function CreateWorkoutPage() {
                     // Store sets for copying
                     const setsMap = {}
                     data.workout_exercises.forEach(we => {
-                        if (we.exercise_id && we.sets && we.sets.length > 0) {
-                            setsMap[we.exercise_id] = we.sets
+                        const exerciseId = we.exercise?.id
+                        if (exerciseId && we.sets && we.sets.length > 0) {
+                            setsMap[exerciseId] = we.sets
                         }
                     })
                     setCopiedSets(setsMap)
                 }
+
+                // Show copied feedback
+                setCopiedWorkoutId(workout.id)
+                setTimeout(() => setCopiedWorkoutId(null), 2000)
             }
         } catch (err) {
             console.error('Error copying workout:', err)
@@ -95,10 +101,25 @@ export default function CreateWorkoutPage() {
         setError('')
 
         try {
+            // Build the sets map - start with copied sets, then fill in from history
+            const finalSetsMap = { ...copiedSets }
+
+            // For exercises without copied sets, fetch their most recent history
+            const exercisesNeedingHistory = selectedExerciseIds.filter(id => !finalSetsMap[id])
+
+            await Promise.all(
+                exercisesNeedingHistory.map(async (exerciseId) => {
+                    const { data: latestSets } = await getLatestExerciseSets(exerciseId)
+                    if (latestSets && latestSets.length > 0) {
+                        finalSetsMap[exerciseId] = latestSets
+                    }
+                })
+            )
+
             const { error: createError } = await createWorkout(
                 { name: name.trim(), scheduled_date: date, color },
                 selectedExerciseIds,
-                copiedSets // Pass the copied sets map
+                finalSetsMap // Pass the combined sets map
             )
 
             if (createError) throw new Error(createError)
@@ -183,28 +204,46 @@ export default function CreateWorkoutPage() {
                         <GlassCard className="form-section recent-workouts-section">
                             <h3 className="section-title">Copy Previous</h3>
                             <div className="recent-workouts-list">
-                                {visibleWorkouts.map(workout => (
-                                    <div key={workout.id} className="recent-workout-card" onClick={() => handleCopyWorkout(workout)}>
-                                        <div className="recent-workout-header">
-                                            <span className="recent-workout-name">{workout.name}</span>
-                                            <span className="recent-workout-date">{new Date(workout.scheduled_date + 'T00:00:00').toLocaleDateString()}</span>
-                                        </div>
+                                {visibleWorkouts.map(workout => {
+                                    const isCopied = copiedWorkoutId === workout.id
+                                    return (
                                         <div
-                                            className="workout-color-pip"
-                                            style={{ background: workout.color }}
-                                        />
-                                        <div className="recent-workout-exercises">
-                                            {workout.workout_exercises?.map(we => we.exercise?.name).join(', ')}
+                                            key={workout.id}
+                                            className={`recent-workout-card ${isCopied ? 'copied' : ''}`}
+                                            onClick={() => !isCopied && handleCopyWorkout(workout)}
+                                        >
+                                            <div className="recent-workout-header">
+                                                <span className="recent-workout-name">{workout.name}</span>
+                                                <span className="recent-workout-date">{new Date(workout.scheduled_date + 'T00:00:00').toLocaleDateString()}</span>
+                                            </div>
+                                            <div
+                                                className="workout-color-pip"
+                                                style={{ background: workout.color }}
+                                            />
+                                            <div className="recent-workout-exercises">
+                                                {workout.workout_exercises?.map(we => we.exercise?.name).join(', ')}
+                                            </div>
+                                            <div className={`copy-overlay ${isCopied ? 'copied' : ''}`}>
+                                                {isCopied ? (
+                                                    <>
+                                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                                                            <polyline points="20 6 9 17 4 12" />
+                                                        </svg>
+                                                        Copied!
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                                                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                                                        </svg>
+                                                        Copy
+                                                    </>
+                                                )}
+                                            </div>
                                         </div>
-                                        <div className="copy-overlay">
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                                            </svg>
-                                            Copy
-                                        </div>
-                                    </div>
-                                ))}
+                                    )
+                                })}
                             </div>
                             {visibleCount < sortedWorkouts.length && (
                                 <button
@@ -221,14 +260,16 @@ export default function CreateWorkoutPage() {
                     <GlassCard className="form-section">
                         <div className="section-header">
                             <h3 className="section-title">Select Exercises</h3>
-                            <button
-                                type="button"
-                                className="btn btn-sm btn-secondary"
-                                onClick={() => handleCreateExercise('')}
-                                style={{ padding: '4px 12px', fontSize: '0.75rem' }}
-                            >
-                                + New Exercise
-                            </button>
+                            <div className="section-actions">
+                                <button
+                                    type="button"
+                                    className="btn btn-sm btn-secondary"
+                                    onClick={() => handleCreateExercise('')}
+                                    style={{ padding: '4px 12px', fontSize: '0.75rem' }}
+                                >
+                                    + New Exercise
+                                </button>
+                            </div>
                         </div>
                         <ExerciseSelector
                             exercises={exercises}

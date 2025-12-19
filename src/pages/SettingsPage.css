@@ -8,7 +8,7 @@
 .settings-content {
     flex: 1;
     padding: var(--space-md);
-    padding-bottom: 80px;
+    padding-bottom: 100px;
     max-width: 600px;
     margin: 0 auto;
     width: 100%;
@@ -110,7 +110,7 @@
 
 .about-section {
     text-align: center;
-    margin-bottom: var(--space-lg);
+    margin-bottom: 0px;
 }
 
 .about-text {
@@ -123,4 +123,81 @@
     font-size: 0.75rem;
     color: var(--text-muted);
     margin: 0;
+}
+
+/* Feature Toggle Styling */
+.feature-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm) 0;
+}
+
+.feature-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.feature-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.feature-description {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+}
+
+/* Switch Component */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 2px;
+    bottom: 2px;
+    background-color: var(--text-tertiary);
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked+.slider {
+    background-color: var(--accent-primary);
+    border-color: var(--accent-primary);
+}
+
+input:checked+.slider:before {
+    transform: translateX(20px);
+    background-color: white;
+}
+
+.slider.round {
+    border-radius: 34px;
 }

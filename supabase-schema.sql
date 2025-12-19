@@ -58,12 +58,13 @@ CREATE TABLE IF NOT EXISTS sets (
 
 -- User preferences (theme, colors, customization)
 CREATE TABLE IF NOT EXISTS user_preferences (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE UNIQUE NOT NULL,
+  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   theme TEXT DEFAULT 'dark',
   accent_color TEXT DEFAULT '#1e3a5f',
   secondary_color TEXT DEFAULT '#c9a227',
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  show_cf_feature BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- =============================================

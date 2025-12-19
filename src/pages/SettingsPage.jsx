@@ -12,7 +12,7 @@ import './SettingsPage.css'
 export default function SettingsPage() {
     const navigate = useNavigate()
     const { user, signOut } = useAuth()
-    const { theme, colors, updateTheme, updateColors } = useTheme()
+    const { theme, colors, showCF, updateTheme, updateColors, updateShowCF } = useTheme()
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
     const handleLogout = async () => {
@@ -89,6 +89,23 @@ export default function SettingsPage() {
                         Workout helps you plan and track your fitness journey.
                     </p>
                     <p className="version">Version 1.0.0</p>
+                </GlassCard>
+
+                <GlassCard className="settings-section">
+                    <div className="feature-row">
+                        <div className="feature-info">
+                            <span className="feature-label">CrossFit Button</span>
+                            <span className="feature-description">Show the CF button on home page</span>
+                        </div>
+                        <label className="switch">
+                            <input
+                                type="checkbox"
+                                checked={showCF}
+                                onChange={(e) => updateShowCF(e.target.checked)}
+                            />
+                            <span className="slider round"></span>
+                        </label>
+                    </div>
                 </GlassCard>
             </main>
 

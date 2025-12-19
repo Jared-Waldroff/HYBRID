@@ -66,6 +66,38 @@
     margin: 0;
 }
 
+.section-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.btn-cf {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1e3a5f 0%, #0a141f 100%);
+    border: 1px solid #c9a227;
+    border-radius: var(--radius-full);
+    color: #c9a227;
+    font-size: 0.65rem;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: all var(--transition-fast);
+}
+
+.btn-cf:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.btn-cf:active {
+    transform: translateY(0);
+}
+
 .color-options {
     display: flex;
     gap: var(--space-sm);
@@ -135,8 +167,19 @@ input[type="date"] {
 }
 
 .recent-workout-card:hover {
-    border-color: var(--text-muted);
+    border-color: var(--accent-primary);
     transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.recent-workout-card:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.recent-workout-card.copied {
+    border-color: #10b981;
+    pointer-events: none;
 }
 
 .recent-workout-header {
@@ -177,7 +220,7 @@ input[type="date"] {
 .copy-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.7);
+    background: var(--accent-primary);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -187,10 +230,41 @@ input[type="date"] {
     font-size: 0.75rem;
     font-weight: 600;
     opacity: 0;
-    transition: opacity var(--transition-fast);
+    transition: opacity var(--transition-fast), background var(--transition-fast);
     backdrop-filter: blur(2px);
 }
 
 .recent-workout-card:hover .copy-overlay {
+    opacity: 0.92;
+}
+
+.recent-workout-card:active .copy-overlay {
+    background: var(--accent-secondary);
+    opacity: 0.95;
+}
+
+/* Copied state */
+.copy-overlay.copied {
     opacity: 1;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.9) 0%, rgba(5, 150, 105, 0.9) 100%);
+}
+
+.copy-overlay.copied svg {
+    animation: checkmark-pop 0.3s ease-out;
+}
+
+@keyframes checkmark-pop {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+
+    50% {
+        transform: scale(1.2);
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }

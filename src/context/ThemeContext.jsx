@@ -15,6 +15,7 @@ export function ThemeProvider({ children }) {
     const { user } = useAuth()
     const [theme, setTheme] = useState('dark')
     const [colors, setColors] = useState(DEFAULT_COLORS)
+    const [showCF, setShowCF] = useState(true)
     const [loading, setLoading] = useState(true)
 
     // Load preferences from Supabase when user changes
@@ -26,6 +27,7 @@ export function ThemeProvider({ children }) {
             setTheme('dark')
             setColors(DEFAULT_COLORS)
             applyColors(DEFAULT_COLORS)
+            setShowCF(true)
             setLoading(false)
         }
     }, [user])
@@ -51,6 +53,10 @@ export function ThemeProvider({ children }) {
                 }
                 setColors(newColors)
                 applyColors(newColors)
+                // Use bracket notation if show_cf_feature isn't camelCased in returned object (Supabase usually preserves case but snake case in DB)
+                // Actually supabase-js converts to object as-is unless transformed.
+                // Safest to check both or assume DB column name matches
+                setShowCF(data.show_cf_feature !== false) // Default to true if null/undefined
             }
         } catch (err) {
             console.error('Error loading preferences:', err)
@@ -88,6 +94,16 @@ export function ThemeProvider({ children }) {
         }
     }
 
+    const updateShowCF = async (show) => {
+        setShowCF(show)
+        if (user) {
+            await supabase
+                .from('user_preferences')
+                .update({ show_cf_feature: show })
+                .eq('user_id', user.id)
+        }
+    }
+
     const toggleTheme = () => {
         updateTheme(theme === 'dark' ? 'light' : 'dark')
     }
@@ -95,9 +111,11 @@ export function ThemeProvider({ children }) {
     const value = {
         theme,
         colors,
+        showCF,
         loading,
         updateTheme,
         updateColors,
+        updateShowCF,
         toggleTheme
     }
 
