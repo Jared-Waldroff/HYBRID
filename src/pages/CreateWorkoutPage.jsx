@@ -187,7 +187,7 @@ export default function CreateWorkoutPage() {
                                     <div key={workout.id} className="recent-workout-card" onClick={() => handleCopyWorkout(workout)}>
                                         <div className="recent-workout-header">
                                             <span className="recent-workout-name">{workout.name}</span>
-                                            <span className="recent-workout-date">{new Date(workout.scheduled_date).toLocaleDateString()}</span>
+                                            <span className="recent-workout-date">{new Date(workout.scheduled_date + 'T00:00:00').toLocaleDateString()}</span>
                                         </div>
                                         <div
                                             className="workout-color-pip"

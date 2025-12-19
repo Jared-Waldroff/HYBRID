@@ -137,6 +137,7 @@ export default function HomePage() {
     const scrollContainerRef = useRef(null)
     const loadingMoreRef = useRef(false)
     const initialScrollDone = useRef(false)
+    const shouldScrollToToday = useRef(!location.state?.date)
 
     // Load CrossFit workouts from localStorage
     useEffect(() => {
@@ -148,7 +149,7 @@ export default function HomePage() {
 
     // Scroll to today when page loads
     useEffect(() => {
-        if (!loading) {
+        if (!loading && shouldScrollToToday.current) {
             const todayKey = getTodayKey()
             setTimeout(() => {
                 const element = document.querySelector(`[data-date="${todayKey}"]`)
