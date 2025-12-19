@@ -1,0 +1,106 @@
+.exercise-selector {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.selector-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.selector-search svg {
+    position: absolute;
+    left: var(--space-md);
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.selector-search .input {
+    padding-left: calc(var(--space-md) + 24px);
+}
+
+.exercise-groups {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.exercise-group {
+    margin-bottom: var(--space-md);
+}
+
+.group-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: var(--space-xs) 0;
+    margin-bottom: var(--space-xs);
+    border-bottom: 1px solid var(--divider);
+}
+
+.exercise-option {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.exercise-option:hover {
+    background: var(--input-bg);
+}
+
+.exercise-option.selected {
+    background: rgba(99, 102, 241, 0.1);
+}
+
+.exercise-checkbox {
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--input-border);
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+    transition: all var(--transition-fast);
+}
+
+.exercise-checkbox.checked {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: white;
+}
+
+.exercise-option-name {
+    flex: 1;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+}
+
+.no-results {
+    text-align: center;
+    padding: var(--space-lg);
+}
+
+.no-results p {
+    color: var(--text-tertiary);
+    margin-bottom: var(--space-md);
+}
+
+.selection-count {
+    position: sticky;
+    bottom: 0;
+    background: var(--bg-secondary);
+    padding: var(--space-sm);
+    text-align: center;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--accent-primary);
+    border-radius: var(--radius-md);
+}

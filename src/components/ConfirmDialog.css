@@ -1,0 +1,29 @@
+.confirm-dialog {
+    padding: var(--space-lg);
+    text-align: center;
+}
+
+.confirm-dialog-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-sm);
+}
+
+.confirm-dialog-message {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-lg);
+    line-height: 1.5;
+}
+
+.confirm-dialog-actions {
+    display: flex;
+    gap: var(--space-sm);
+    justify-content: center;
+}
+
+.confirm-dialog-actions .btn {
+    flex: 1;
+    max-width: 140px;
+}

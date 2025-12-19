@@ -1,0 +1,174 @@
+import { useState, useEffect, useCallback } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { useWorkouts } from '../hooks/useWorkouts'
+import ExerciseSection from '../components/ExerciseSection'
+import ConfirmDialog from '../components/ConfirmDialog'
+import './ActiveWorkoutPage.css'
+
+export default function ActiveWorkoutPage() {
+    const { id } = useParams()
+    const navigate = useNavigate()
+    const { getWorkoutById, updateWorkout, deleteWorkout } = useWorkouts()
+    const [workout, setWorkout] = useState(null)
+    const [loading, setLoading] = useState(true)
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+    const [showCompleteConfirm, setShowCompleteConfirm] = useState(false)
+
+    const loadWorkout = useCallback(async () => {
+        setLoading(true)
+        const { data, error } = await getWorkoutById(id)
+        if (data) {
+            setWorkout(data)
+        }
+        setLoading(false)
+    }, [id, getWorkoutById])
+
+    useEffect(() => {
+        loadWorkout()
+    }, [loadWorkout])
+
+    const handleCompleteWorkout = async () => {
+        await updateWorkout(workout.id, { is_completed: !workout.is_completed })
+        setShowCompleteConfirm(false)
+        loadWorkout()
+    }
+
+    const handleDeleteWorkout = async () => {
+        await deleteWorkout(workout.id)
+        navigate('/')
+    }
+
+    const formatDate = (dateStr) => {
+        const date = new Date(dateStr + 'T00:00:00')
+        return date.toLocaleDateString('en-US', {
+            weekday: 'long',
+            month: 'long',
+            day: 'numeric'
+        })
+    }
+
+    if (loading) {
+        return (
+            <div className="active-workout-page">
+                <div className="loading-container">
+                    <div className="spinner" />
+                    <p>Loading workout...</p>
+                </div>
+            </div>
+        )
+    }
+
+    if (!workout) {
+        return (
+            <div className="active-workout-page">
+                <div className="error-container">
+                    <p>Workout not found</p>
+                    <button className="btn btn-primary" onClick={() => navigate('/')}>
+                        Go Home
+                    </button>
+                </div>
+            </div>
+        )
+    }
+
+    return (
+        <div className="active-workout-page">
+            <header className="workout-header glass safe-top">
+                <button className="btn btn-ghost btn-icon" onClick={() => navigate(-1)}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                </button>
+                <div className="workout-header-info">
+                    <h1 className="workout-title">{workout.name}</h1>
+                    <span className="workout-date">{formatDate(workout.scheduled_date)}</span>
+                </div>
+                <button
+                    className="btn btn-ghost btn-icon"
+                    onClick={() => setShowDeleteConfirm(true)}
+                >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    </svg>
+                </button>
+            </header>
+
+            <main className="workout-content">
+                <div
+                    className="workout-color-bar"
+                    style={{ background: workout.color }}
+                />
+
+                {workout.is_completed && (
+                    <div className="workout-completed-banner">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                            <polyline points="22 4 12 14.01 9 11.01" />
+                        </svg>
+                        <span>Workout Completed!</span>
+                    </div>
+                )}
+
+                <div className="exercises-list">
+                    {workout.workout_exercises?.map(we => (
+                        <ExerciseSection
+                            key={we.id}
+                            workoutExercise={we}
+                            onUpdate={loadWorkout}
+                        />
+                    ))}
+                </div>
+
+                {workout.workout_exercises?.length === 0 && (
+                    <div className="empty-exercises glass-subtle">
+                        <p>No exercises in this workout</p>
+                    </div>
+                )}
+
+                <button
+                    className={`btn btn-lg w-full complete-btn ${workout.is_completed ? 'completed' : ''}`}
+                    onClick={() => setShowCompleteConfirm(true)}
+                >
+                    {workout.is_completed ? (
+                        <>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                                <path d="M3 3v5h5" />
+                            </svg>
+                            Mark as Incomplete
+                        </>
+                    ) : (
+                        <>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                            Complete Workout
+                        </>
+                    )}
+                </button>
+            </main>
+
+            <ConfirmDialog
+                isOpen={showDeleteConfirm}
+                title="Delete Workout"
+                message="Are you sure you want to delete this workout? This action cannot be undone."
+                confirmText="Delete"
+                variant="danger"
+                onConfirm={handleDeleteWorkout}
+                onCancel={() => setShowDeleteConfirm(false)}
+            />
+
+            <ConfirmDialog
+                isOpen={showCompleteConfirm}
+                title={workout.is_completed ? "Mark Incomplete" : "Complete Workout"}
+                message={workout.is_completed
+                    ? "Mark this workout as incomplete?"
+                    : "Mark this workout as completed?"}
+                confirmText={workout.is_completed ? "Mark Incomplete" : "Complete"}
+                onConfirm={handleCompleteWorkout}
+                onCancel={() => setShowCompleteConfirm(false)}
+            />
+        </div>
+    )
+}
