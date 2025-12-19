@@ -15,6 +15,7 @@ import {
 import { useExercises } from '../hooks/useExercises'
 import { supabase } from '../lib/supabaseClient'
 import GlassCard from '../components/GlassCard'
+import Footer from '../components/Footer'
 import './ExerciseDetailPage.css'
 
 ChartJS.register(
@@ -270,6 +271,9 @@ export default function ExerciseDetailPage() {
                     )}
                 </GlassCard>
             </main>
+
+
+            <Footer />
         </div>
     )
 }

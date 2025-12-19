@@ -19,7 +19,11 @@ CREATE TABLE IF NOT EXISTS exercises (
   muscle_group TEXT,
   is_default BOOLEAN DEFAULT FALSE,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  CONSTRAINT exercises_integrity CHECK (
+    (is_default = true AND user_id IS NULL) OR
+    (is_default = false AND user_id IS NOT NULL)
+  )
 );
 
 -- Workouts table (scheduled workout sessions)

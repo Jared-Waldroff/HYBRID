@@ -31,6 +31,7 @@
 .create-content {
     flex: 1;
     padding: var(--space-md);
+    padding-bottom: 100px;
     max-width: 600px;
     margin: 0 auto;
     width: 100%;
@@ -49,13 +50,20 @@
     margin-bottom: 0;
 }
 
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-md);
+}
+
 .section-title {
     font-size: 0.875rem;
     font-weight: 600;
     color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    margin: 0 0 var(--space-md) 0;
+    margin: 0;
 }
 
 .color-options {
@@ -99,4 +107,90 @@ input[type="date"] {
 
 [data-theme="light"] input[type="date"] {
     color-scheme: light;
+}
+
+/* Recent Workouts Section */
+.recent-workouts-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: var(--space-sm);
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 4px;
+    /* Space for scrollbar */
+}
+
+.recent-workout-card {
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    overflow: hidden;
+}
+
+.recent-workout-card:hover {
+    border-color: var(--text-muted);
+    transform: translateY(-2px);
+}
+
+.recent-workout-header {
+    display: flex;
+    flex-direction: column;
+}
+
+.recent-workout-name {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.recent-workout-date {
+    font-size: 0.6875rem;
+    color: var(--text-tertiary);
+}
+
+.workout-color-pip {
+    height: 3px;
+    border-radius: var(--radius-full);
+    width: 100%;
+}
+
+.recent-workout-exercises {
+    font-size: 0.6875rem;
+    color: var(--text-secondary);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.3;
+}
+
+.copy-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+    backdrop-filter: blur(2px);
+}
+
+.recent-workout-card:hover .copy-overlay {
+    opacity: 1;
 }

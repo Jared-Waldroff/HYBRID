@@ -31,7 +31,7 @@ export function useExercises() {
         }
     }, [])
 
-    const createExercise = async (exercise) => {
+    const createExercise = useCallback(async (exercise) => {
         if (!user) return { error: 'Not authenticated' }
 
         try {
@@ -55,9 +55,9 @@ export function useExercises() {
             console.error('Error creating exercise:', err)
             return { data: null, error: err.message }
         }
-    }
+    }, [user, fetchExercises])
 
-    const updateExercise = async (id, updates) => {
+    const updateExercise = useCallback(async (id, updates) => {
         try {
             const { data, error: updateError } = await supabase
                 .from('exercises')
@@ -78,9 +78,9 @@ export function useExercises() {
             console.error('Error updating exercise:', err)
             return { data: null, error: err.message }
         }
-    }
+    }, [fetchExercises])
 
-    const deleteExercise = async (id) => {
+    const deleteExercise = useCallback(async (id) => {
         try {
             const { error: deleteError } = await supabase
                 .from('exercises')
@@ -95,9 +95,9 @@ export function useExercises() {
             console.error('Error deleting exercise:', err)
             return { error: err.message }
         }
-    }
+    }, [fetchExercises])
 
-    const getExerciseStats = async (exerciseId) => {
+    const getExerciseStats = useCallback(async (exerciseId) => {
         if (!user) return { data: null, error: 'Not authenticated' }
 
         try {
@@ -162,9 +162,9 @@ export function useExercises() {
             console.error('Error fetching exercise stats:', err)
             return { data: null, error: err.message }
         }
-    }
+    }, [user])
 
-    const getExerciseHistory = async (exerciseId, limit = 20) => {
+    const getExerciseHistory = useCallback(async (exerciseId, limit = 20) => {
         if (!user) return { data: null, error: 'Not authenticated' }
 
         try {
@@ -197,7 +197,7 @@ export function useExercises() {
             console.error('Error fetching exercise history:', err)
             return { data: null, error: err.message }
         }
-    }
+    }, [user])
 
     // Group exercises by muscle group
     const groupedExercises = exercises.reduce((acc, exercise) => {

@@ -5,6 +5,7 @@ import { useExercises } from '../hooks/useExercises'
 import ExerciseSelector from '../components/ExerciseSelector'
 import ExerciseForm from '../components/ExerciseForm'
 import GlassCard from '../components/GlassCard'
+import Footer from '../components/Footer'
 import './CreateWorkoutPage.css'
 
 const WORKOUT_COLORS = [
@@ -23,7 +24,7 @@ export default function CreateWorkoutPage() {
     const location = useLocation()
     const initialDate = location.state?.date || new Date().toISOString().split('T')[0]
 
-    const { createWorkout } = useWorkouts()
+    const { createWorkout, workouts } = useWorkouts()
     const { exercises, createExercise } = useExercises()
 
     const [name, setName] = useState('')
@@ -34,6 +35,19 @@ export default function CreateWorkoutPage() {
     const [newExerciseName, setNewExerciseName] = useState('')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
+    const [visibleCount, setVisibleCount] = useState(10)
+
+    // Sort workouts by date descending for the recent list
+    const sortedWorkouts = [...workouts].sort((a, b) => new Date(b.scheduled_date) - new Date(a.scheduled_date))
+    const visibleWorkouts = sortedWorkouts.slice(0, visibleCount)
+
+    const handleCopyWorkout = (workout) => {
+        setName(workout.name)
+        setColor(workout.color)
+        if (workout.workout_exercises) {
+            setSelectedExerciseIds(workout.workout_exercises.map(we => we.exercise?.id).filter(Boolean))
+        }
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -134,8 +148,58 @@ export default function CreateWorkoutPage() {
                         </div>
                     </GlassCard>
 
+                    {/* Recent Workouts Section */}
+                    {sortedWorkouts.length > 0 && (
+                        <GlassCard className="form-section recent-workouts-section">
+                            <h3 className="section-title">Copy Previous</h3>
+                            <div className="recent-workouts-list">
+                                {visibleWorkouts.map(workout => (
+                                    <div key={workout.id} className="recent-workout-card" onClick={() => handleCopyWorkout(workout)}>
+                                        <div className="recent-workout-header">
+                                            <span className="recent-workout-name">{workout.name}</span>
+                                            <span className="recent-workout-date">{new Date(workout.scheduled_date).toLocaleDateString()}</span>
+                                        </div>
+                                        <div
+                                            className="workout-color-pip"
+                                            style={{ background: workout.color }}
+                                        />
+                                        <div className="recent-workout-exercises">
+                                            {workout.workout_exercises?.map(we => we.exercise?.name).join(', ')}
+                                        </div>
+                                        <div className="copy-overlay">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                                            </svg>
+                                            Copy
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            {visibleCount < sortedWorkouts.length && (
+                                <button
+                                    type="button"
+                                    className="btn btn-ghost w-full mt-sm"
+                                    onClick={() => setVisibleCount(prev => prev + 10)}
+                                >
+                                    Load More
+                                </button>
+                            )}
+                        </GlassCard>
+                    )}
+
                     <GlassCard className="form-section">
-                        <h3 className="section-title">Select Exercises</h3>
+                        <div className="section-header">
+                            <h3 className="section-title">Select Exercises</h3>
+                            <button
+                                type="button"
+                                className="btn btn-sm btn-secondary"
+                                onClick={() => handleCreateExercise('')}
+                                style={{ padding: '4px 12px', fontSize: '0.75rem' }}
+                            >
+                                + New Exercise
+                            </button>
+                        </div>
                         <ExerciseSelector
                             exercises={exercises}
                             selectedIds={selectedExerciseIds}
@@ -176,6 +240,8 @@ export default function CreateWorkoutPage() {
                     setNewExerciseName('')
                 }}
             />
+
+            <Footer />
         </div>
     )
 }
