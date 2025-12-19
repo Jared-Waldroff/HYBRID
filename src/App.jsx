@@ -1,7 +1,9 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import ProtectedRoute from './components/ProtectedRoute'
+import { supabase } from './lib/supabaseClient'
 
 // Pages
 import LoginPage from './pages/LoginPage'
@@ -13,56 +15,89 @@ import CreateWorkoutPage from './pages/CreateWorkoutPage'
 import ActiveWorkoutPage from './pages/ActiveWorkoutPage'
 import ExerciseDetailPage from './pages/ExerciseDetailPage'
 
+function AppContent() {
+  // Handle app visibility changes (screen lock/unlock)
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === 'visible') {
+        // App became visible - refresh the session to reconnect
+        console.log('App became visible - refreshing session...')
+        try {
+          const { data: { session }, error } = await supabase.auth.getSession()
+          if (error) {
+            console.error('Session refresh error:', error)
+          } else if (session) {
+            // Trigger a session refresh to ensure the connection is active
+            await supabase.auth.refreshSession()
+            console.log('Session refreshed successfully')
+          }
+        } catch (err) {
+          console.error('Error refreshing session:', err)
+        }
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [])
+
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+
+      <Route path="/" element={
+        <ProtectedRoute>
+          <HomePage />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/calendar" element={
+        <ProtectedRoute>
+          <CalendarPage />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/exercises" element={
+        <ProtectedRoute>
+          <ExercisesPage />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/settings" element={
+        <ProtectedRoute>
+          <SettingsPage />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/create-workout" element={
+        <ProtectedRoute>
+          <CreateWorkoutPage />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/workout/:id" element={
+        <ProtectedRoute>
+          <ActiveWorkoutPage />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/exercise/:id" element={
+        <ProtectedRoute>
+          <ExerciseDetailPage />
+        </ProtectedRoute>
+      } />
+    </Routes>
+  )
+}
+
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <ThemeProvider>
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-
-            <Route path="/" element={
-              <ProtectedRoute>
-                <HomePage />
-              </ProtectedRoute>
-            } />
-
-            <Route path="/calendar" element={
-              <ProtectedRoute>
-                <CalendarPage />
-              </ProtectedRoute>
-            } />
-
-            <Route path="/exercises" element={
-              <ProtectedRoute>
-                <ExercisesPage />
-              </ProtectedRoute>
-            } />
-
-            <Route path="/settings" element={
-              <ProtectedRoute>
-                <SettingsPage />
-              </ProtectedRoute>
-            } />
-
-            <Route path="/create-workout" element={
-              <ProtectedRoute>
-                <CreateWorkoutPage />
-              </ProtectedRoute>
-            } />
-
-            <Route path="/workout/:id" element={
-              <ProtectedRoute>
-                <ActiveWorkoutPage />
-              </ProtectedRoute>
-            } />
-
-            <Route path="/exercise/:id" element={
-              <ProtectedRoute>
-                <ExerciseDetailPage />
-              </ProtectedRoute>
-            } />
-          </Routes>
+          <AppContent />
         </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>

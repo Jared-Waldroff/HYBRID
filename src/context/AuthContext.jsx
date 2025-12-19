@@ -33,8 +33,8 @@ export function AuthProvider({ children }) {
                         await supabase.from('user_preferences').insert({
                             user_id: session.user.id,
                             theme: 'dark',
-                            accent_color: '#6366f1',
-                            secondary_color: '#8b5cf6'
+                            accent_color: '#1e3a5f',
+                            secondary_color: '#c9a227'
                         })
                     }
                 }

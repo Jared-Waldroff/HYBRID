@@ -8,6 +8,7 @@ export default function LoginPage() {
     const [isLogin, setIsLogin] = useState(true)
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [confirmPassword, setConfirmPassword] = useState('')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
     const [message, setMessage] = useState('')
@@ -20,6 +21,19 @@ export default function LoginPage() {
         e.preventDefault()
         setError('')
         setMessage('')
+
+        // Password confirmation check for signup
+        if (!isLogin) {
+            if (password !== confirmPassword) {
+                setError('Passwords do not match')
+                return
+            }
+            if (password.length < 6) {
+                setError('Password must be at least 6 characters')
+                return
+            }
+        }
+
         setLoading(true)
 
         try {
@@ -67,7 +81,7 @@ export default function LoginPage() {
                             <path d="M6.5 6.5h11M6.5 17.5h11M4 12h16M2 6.5a2.5 2.5 0 0 1 2.5-2.5h0a2.5 2.5 0 0 1 2.5 2.5v11a2.5 2.5 0 0 1-2.5 2.5h0A2.5 2.5 0 0 1 2 17.5v-11zM17 6.5a2.5 2.5 0 0 1 2.5-2.5h0a2.5 2.5 0 0 1 2.5 2.5v11a2.5 2.5 0 0 1-2.5 2.5h0a2.5 2.5 0 0 1-2.5-2.5v-11z" />
                         </svg>
                     </div>
-                    <h1 className="login-title">Workout Tracker</h1>
+                    <h1 className="login-title">Workout</h1>
                     <p className="login-subtitle">
                         {isLogin ? 'Welcome back!' : 'Create your account'}
                     </p>
@@ -100,6 +114,22 @@ export default function LoginPage() {
                             minLength={6}
                         />
                     </div>
+
+                    {!isLogin && (
+                        <div className="input-group">
+                            <label className="input-label">Confirm Password</label>
+                            <input
+                                type="password"
+                                className="input"
+                                placeholder="••••••••"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                required
+                                autoComplete="new-password"
+                                minLength={6}
+                            />
+                        </div>
+                    )}
 
                     {error && (
                         <p className="login-error">{error}</p>
@@ -143,6 +173,7 @@ export default function LoginPage() {
                                 setIsLogin(!isLogin)
                                 setError('')
                                 setMessage('')
+                                setConfirmPassword('')
                             }}
                         >
                             {isLogin ? 'Sign Up' : 'Sign In'}

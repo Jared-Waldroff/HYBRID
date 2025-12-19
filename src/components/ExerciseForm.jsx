@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './ExerciseForm.css'
 
-const MUSCLE_GROUPS = [
+const DEFAULT_MUSCLE_GROUPS = [
     'Chest',
     'Back',
     'Shoulders',
@@ -18,12 +18,35 @@ export default function ExerciseForm({
     onSave,
     onClose
 }) {
-    const [name, setName] = useState(exercise?.name || '')
-    const [muscleGroup, setMuscleGroup] = useState(exercise?.muscle_group || 'Other')
+    const [name, setName] = useState('')
+    const [description, setDescription] = useState('')
+    const [muscleGroup, setMuscleGroup] = useState('Other')
+    const [customMuscleGroup, setCustomMuscleGroup] = useState('')
+    const [showCustomInput, setShowCustomInput] = useState(false)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
 
-    const isEdit = !!exercise
+    const isEdit = !!exercise?.id
+
+    // Reset form when exercise changes
+    useEffect(() => {
+        if (isOpen) {
+            setName(exercise?.name || '')
+            setDescription(exercise?.description || '')
+            const group = exercise?.muscle_group || 'Other'
+            // Check if the muscle group is custom (not in default list)
+            if (group && !DEFAULT_MUSCLE_GROUPS.includes(group)) {
+                setShowCustomInput(true)
+                setCustomMuscleGroup(group)
+                setMuscleGroup('')
+            } else {
+                setShowCustomInput(false)
+                setMuscleGroup(group)
+                setCustomMuscleGroup('')
+            }
+            setError('')
+        }
+    }, [isOpen, exercise])
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -33,13 +56,23 @@ export default function ExerciseForm({
             return
         }
 
+        const finalMuscleGroup = showCustomInput && customMuscleGroup.trim()
+            ? customMuscleGroup.trim()
+            : muscleGroup
+
+        if (!finalMuscleGroup) {
+            setError('Please select or enter a muscle group')
+            return
+        }
+
         setLoading(true)
         setError('')
 
         try {
             await onSave({
                 name: name.trim(),
-                muscle_group: muscleGroup
+                description: description.trim() || null,
+                muscle_group: finalMuscleGroup
             })
             onClose()
         } catch (err) {
@@ -47,6 +80,17 @@ export default function ExerciseForm({
         } finally {
             setLoading(false)
         }
+    }
+
+    const handleMuscleGroupClick = (group) => {
+        setMuscleGroup(group)
+        setShowCustomInput(false)
+        setCustomMuscleGroup('')
+    }
+
+    const handleAddCustomClick = () => {
+        setShowCustomInput(true)
+        setMuscleGroup('')
     }
 
     if (!isOpen) return null
@@ -73,19 +117,47 @@ export default function ExerciseForm({
                     </div>
 
                     <div className="input-group">
+                        <label className="input-label">Description <span className="optional-label">(optional)</span></label>
+                        <textarea
+                            className="input description-input"
+                            placeholder="Add notes, form tips, or instructions..."
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            rows={3}
+                        />
+                    </div>
+
+                    <div className="input-group">
                         <label className="input-label">Muscle Group</label>
                         <div className="muscle-group-grid">
-                            {MUSCLE_GROUPS.map(group => (
+                            {DEFAULT_MUSCLE_GROUPS.map(group => (
                                 <button
                                     key={group}
                                     type="button"
-                                    className={`muscle-option ${muscleGroup === group ? 'selected' : ''}`}
-                                    onClick={() => setMuscleGroup(group)}
+                                    className={`muscle-option ${muscleGroup === group && !showCustomInput ? 'selected' : ''}`}
+                                    onClick={() => handleMuscleGroupClick(group)}
                                 >
                                     {group}
                                 </button>
                             ))}
+                            <button
+                                type="button"
+                                className={`muscle-option add-custom ${showCustomInput ? 'selected' : ''}`}
+                                onClick={handleAddCustomClick}
+                            >
+                                + Custom
+                            </button>
                         </div>
+
+                        {showCustomInput && (
+                            <input
+                                type="text"
+                                className="input custom-muscle-input"
+                                placeholder="Enter custom muscle group..."
+                                value={customMuscleGroup}
+                                onChange={(e) => setCustomMuscleGroup(e.target.value)}
+                            />
+                        )}
                     </div>
 
                     {error && (

@@ -9,11 +9,11 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icons/*.png'],
       manifest: {
-        name: 'Workout Tracker',
+        name: 'Workout',
         short_name: 'Workouts',
         description: 'Track your workouts and progress',
         theme_color: '#1e3a5f',
-        background_color: '#0f0a1e',
+        background_color: '#0a141f',
         display: 'standalone',
         orientation: 'portrait',
         scope: '/',

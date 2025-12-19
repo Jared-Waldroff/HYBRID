@@ -1,5 +1,7 @@
 .exercise-form {
     padding: var(--space-lg);
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 .form-title {
@@ -14,9 +16,21 @@
     margin-bottom: var(--space-md);
 }
 
+.optional-label {
+    font-weight: 400;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+.description-input {
+    resize: vertical;
+    min-height: 80px;
+    font-family: var(--font-sans);
+}
+
 .muscle-group-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: var(--space-xs);
 }
 
@@ -26,13 +40,13 @@
     border: 1px solid var(--input-border);
     border-radius: var(--radius-sm);
     color: var(--text-secondary);
-    font-size: 0.875rem;
+    font-size: 0.8rem;
     cursor: pointer;
     transition: all var(--transition-fast);
 }
 
 .muscle-option:hover {
-    border-color: var(--accent-primary);
+    border-color: var(--accent-secondary);
     color: var(--text-primary);
 }
 
@@ -40,6 +54,26 @@
     background: var(--accent-primary);
     border-color: var(--accent-primary);
     color: white;
+}
+
+.muscle-option.add-custom {
+    border-style: dashed;
+    color: var(--accent-secondary);
+}
+
+.muscle-option.add-custom:hover {
+    background: rgba(201, 162, 39, 0.1);
+}
+
+.muscle-option.add-custom.selected {
+    background: var(--accent-secondary);
+    border-color: var(--accent-secondary);
+    color: white;
+    border-style: solid;
+}
+
+.custom-muscle-input {
+    margin-top: var(--space-sm);
 }
 
 .form-error {

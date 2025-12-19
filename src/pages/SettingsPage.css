@@ -3,12 +3,13 @@
     min-height: 100dvh;
     display: flex;
     flex-direction: column;
-    padding-bottom: 80px;
+    padding-bottom: 100px;
 }
 
 .settings-content {
     flex: 1;
     padding: var(--space-md);
+    padding-bottom: var(--space-2xl);
     max-width: 600px;
     margin: 0 auto;
     width: 100%;
@@ -54,8 +55,8 @@
 }
 
 .theme-option.active {
-    border-color: var(--accent-primary);
-    background: rgba(99, 102, 241, 0.1);
+    border-color: var(--accent-secondary);
+    background: rgba(30, 58, 95, 0.15);
 }
 
 .theme-preview {
@@ -68,13 +69,13 @@
 }
 
 .theme-preview.dark {
-    background: #1a1230;
-    color: #fff;
+    background: #0a141f;
+    color: #c9a227;
 }
 
 .theme-preview.light {
-    background: #f0f4ff;
-    color: #1a1a2e;
+    background: #f8f9fc;
+    color: #1e3a5f;
 }
 
 .theme-option span {
@@ -105,10 +106,12 @@
     font-size: 0.875rem;
     color: var(--text-primary);
     font-weight: 500;
+    word-break: break-all;
 }
 
 .about-section {
     text-align: center;
+    margin-bottom: var(--space-lg);
 }
 
 .about-text {

@@ -1,38 +1,25 @@
 import { useTheme } from '../context/ThemeContext'
-import { useLocation } from 'react-router-dom'
 import './Header.css'
 
-export default function Header({ title, showDate = false, date = new Date() }) {
+export default function Header() {
     const { theme, toggleTheme } = useTheme()
-    const location = useLocation()
-
-    const formatDate = (d) => {
-        return d.toLocaleDateString('en-US', {
-            weekday: 'long',
-            month: 'long',
-            day: 'numeric'
-        })
-    }
-
-    const isToday = (d) => {
-        const today = new Date()
-        return d.toDateString() === today.toDateString()
-    }
 
     return (
         <header className="header glass safe-top">
             <div className="header-content">
                 <div className="header-left">
-                    <h1 className="header-title">Workout Tracker</h1>
+                    {/* Spacer for balance */}
+                    <div style={{ width: 40 }} />
                 </div>
 
-                {showDate && (
-                    <div className="header-center">
-                        <span className="header-date">
-                            {isToday(date) ? 'Today' : formatDate(date)}
-                        </span>
+                <div className="header-center">
+                    <div className="header-logo">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M6.5 6.5h11M6.5 17.5h11M4 12h16M2 6.5a2.5 2.5 0 0 1 2.5-2.5h0a2.5 2.5 0 0 1 2.5 2.5v11a2.5 2.5 0 0 1-2.5 2.5h0A2.5 2.5 0 0 1 2 17.5v-11zM17 6.5a2.5 2.5 0 0 1 2.5-2.5h0a2.5 2.5 0 0 1 2.5 2.5v11a2.5 2.5 0 0 1-2.5 2.5h0a2.5 2.5 0 0 1-2.5-2.5v-11z" />
+                        </svg>
                     </div>
-                )}
+                    <h1 className="header-title">Workout</h1>
+                </div>
 
                 <div className="header-right">
                     <button

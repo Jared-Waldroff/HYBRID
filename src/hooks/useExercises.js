@@ -39,6 +39,7 @@ export function useExercises() {
                 .from('exercises')
                 .insert({
                     name: exercise.name,
+                    description: exercise.description || null,
                     muscle_group: exercise.muscle_group,
                     is_default: false,
                     user_id: user.id
@@ -62,6 +63,7 @@ export function useExercises() {
                 .from('exercises')
                 .update({
                     name: updates.name,
+                    description: updates.description || null,
                     muscle_group: updates.muscle_group
                 })
                 .eq('id', id)

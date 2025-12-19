@@ -86,7 +86,7 @@ export default function SettingsPage() {
                 <GlassCard className="settings-section about-section">
                     <h3 className="section-title">About</h3>
                     <p className="about-text">
-                        Workout Tracker helps you plan and track your fitness journey.
+                        Workout helps you plan and track your fitness journey.
                     </p>
                     <p className="version">Version 1.0.0</p>
                 </GlassCard>

@@ -114,7 +114,7 @@ export function useWorkouts() {
                     user_id: user.id,
                     name: workout.name,
                     scheduled_date: workout.scheduled_date,
-                    color: workout.color || '#6366f1'
+                    color: workout.color || '#1e3a5f'
                 })
                 .select()
                 .single()

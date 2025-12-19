@@ -13,6 +13,8 @@
     margin: 0 auto;
     width: 100%;
     touch-action: pan-y;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .date-display {
@@ -37,9 +39,15 @@
     transition: all var(--transition-fast);
 }
 
-.date-nav-btn:hover {
+.date-nav-btn:hover:not(:disabled) {
     background: var(--glass-bg);
     color: var(--text-primary);
+    border-color: var(--accent-secondary);
+}
+
+.date-nav-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .current-date-text {
@@ -55,6 +63,65 @@
     margin-bottom: var(--space-lg);
     font-size: 0.75rem;
     color: var(--text-muted);
+}
+
+/* Workout container with slide animations */
+.workout-container {
+    transition: transform 0.15s ease-out, opacity 0.15s ease-out;
+    will-change: transform, opacity;
+    padding-bottom: var(--space-xl);
+}
+
+.workout-container.slide-out-up {
+    animation: slideOutUp 0.3s ease-in-out forwards;
+}
+
+.workout-container.slide-out-down {
+    animation: slideOutDown 0.3s ease-in-out forwards;
+}
+
+@keyframes slideOutUp {
+    0% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    50% {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+
+    51% {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutDown {
+    0% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    50% {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+
+    51% {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
 .loading-container {
@@ -103,9 +170,10 @@
     margin: 0;
 }
 
+/* FAB Buttons */
 .fab {
     position: fixed;
-    bottom: 90px;
+    bottom: 100px;
     right: var(--space-md);
     width: 56px;
     height: 56px;
@@ -130,8 +198,26 @@
     transform: scale(0.95);
 }
 
+/* CF FAB Button - positioned to the left of the plus button */
+.fab.cf-fab {
+    right: calc(var(--space-md) + 64px);
+    background: linear-gradient(135deg, #1e3a5f 0%, #0a141f 100%);
+    border: 2px solid #c9a227;
+}
+
+.cf-fab-text {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #c9a227;
+    letter-spacing: -0.05em;
+}
+
 @media (min-width: 600px) {
     .fab {
         right: calc(50% - 300px + var(--space-md));
+    }
+
+    .fab.cf-fab {
+        right: calc(50% - 300px + var(--space-md) + 64px);
     }
 }
