@@ -6,124 +6,134 @@
     padding-bottom: 80px;
 }
 
-.home-content {
-    flex: 1;
-    padding: var(--space-md);
-    max-width: 600px;
-    margin: 0 auto;
-    width: 100%;
-    touch-action: pan-y;
-    overflow-y: auto;
-    overflow-x: hidden;
-}
-
-.date-display {
+/* Sticky date indicator at top */
+.sticky-date-indicator {
+    position: sticky;
+    top: 60px;
+    z-index: 30;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: var(--space-lg);
-    margin-bottom: var(--space-sm);
-}
-
-.date-nav-btn {
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--input-bg);
-    border: 1px solid var(--input-border);
-    border-radius: var(--radius-full);
-    color: var(--text-secondary);
+    padding: var(--space-sm) var(--space-md);
+    background: linear-gradient(180deg, var(--bg-primary) 0%, rgba(var(--bg-primary-rgb), 0.95) 80%, transparent 100%);
+    backdrop-filter: blur(8px);
     cursor: pointer;
     transition: all var(--transition-fast);
 }
 
-.date-nav-btn:hover:not(:disabled) {
-    background: var(--glass-bg);
-    color: var(--text-primary);
-    border-color: var(--accent-secondary);
+.sticky-date-indicator:hover {
+    background: linear-gradient(180deg, var(--bg-secondary) 0%, rgba(var(--bg-primary-rgb), 0.95) 80%, transparent 100%);
 }
 
-.date-nav-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.current-date-text {
+.indicator-text {
     font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    min-width: 180px;
-    text-align: center;
+    font-weight: 700;
+    color: var(--accent-secondary);
 }
 
-.swipe-hint {
-    text-align: center;
-    margin-bottom: var(--space-lg);
+.indicator-hint {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Infinite scroll content area */
+.home-content.infinite-scroll {
+    flex: 1;
+    padding: 0 var(--space-md);
+    padding-bottom: var(--space-2xl);
+    max-width: 600px;
+    margin: 0 auto;
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+}
+
+.days-container {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Day section */
+.day-section {
+    min-height: 120px;
+    padding-bottom: var(--space-lg);
+    border-bottom: 1px solid var(--divider);
+}
+
+.day-section:last-child {
+    border-bottom: none;
+}
+
+.day-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: var(--space-md) 0;
+    background: var(--bg-primary);
+    margin-bottom: var(--space-sm);
+}
+
+.day-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.day-date-full {
     font-size: 0.75rem;
     color: var(--text-muted);
 }
 
-/* Workout container with slide animations */
-.workout-container {
-    transition: transform 0.15s ease-out, opacity 0.15s ease-out;
-    will-change: transform, opacity;
-    padding-bottom: var(--space-xl);
+.day-content {
+    padding: 0;
 }
 
-.workout-container.slide-out-up {
-    animation: slideOutUp 0.3s ease-in-out forwards;
+.day-workouts {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
 }
 
-.workout-container.slide-out-down {
-    animation: slideOutDown 0.3s ease-in-out forwards;
+/* Empty day inline style */
+.empty-day-inline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
 }
 
-@keyframes slideOutUp {
-    0% {
-        transform: translateY(0);
-        opacity: 1;
-    }
-
-    50% {
-        transform: translateY(-50px);
-        opacity: 0;
-    }
-
-    51% {
-        transform: translateY(50px);
-        opacity: 0;
-    }
-
-    100% {
-        transform: translateY(0);
-        opacity: 1;
-    }
+.empty-day-content {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    color: var(--text-muted);
 }
 
-@keyframes slideOutDown {
-    0% {
-        transform: translateY(0);
-        opacity: 1;
-    }
-
-    50% {
-        transform: translateY(50px);
-        opacity: 0;
-    }
-
-    51% {
-        transform: translateY(-50px);
-        opacity: 0;
-    }
-
-    100% {
-        transform: translateY(0);
-        opacity: 1;
-    }
+.empty-day-content svg {
+    opacity: 0.5;
 }
 
+.empty-day-content span {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.btn-sm {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: 0.75rem;
+}
+
+/* Loading container */
 .loading-container {
     display: flex;
     flex-direction: column;
@@ -132,42 +142,7 @@
     padding: var(--space-2xl);
     color: var(--text-tertiary);
     gap: var(--space-md);
-}
-
-.workouts-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-md);
-}
-
-.empty-day {
-    display: flex;
-    justify-content: center;
-    padding: var(--space-lg) 0;
-}
-
-.empty-card {
-    text-align: center;
-    max-width: 300px;
-}
-
-.empty-icon {
-    color: var(--text-muted);
-    margin-bottom: var(--space-md);
-    opacity: 0.5;
-}
-
-.empty-card h3 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin: 0 0 var(--space-xs) 0;
-}
-
-.empty-card p {
-    font-size: 0.875rem;
-    color: var(--text-tertiary);
-    margin: 0;
+    min-height: 300px;
 }
 
 /* FAB Buttons */
@@ -198,7 +173,7 @@
     transform: scale(0.95);
 }
 
-/* CF FAB Button - positioned to the left of the plus button */
+/* CF FAB Button */
 .fab.cf-fab {
     right: calc(var(--space-md) + 64px);
     background: linear-gradient(135deg, #1e3a5f 0%, #0a141f 100%);
@@ -220,4 +195,15 @@
     .fab.cf-fab {
         right: calc(50% - 300px + var(--space-md) + 64px);
     }
+}
+
+/* Hide the old swipe styles */
+.swipe-hint,
+.date-display,
+.date-nav-btn,
+.current-date-text,
+.workout-container,
+.empty-day,
+.empty-card {
+    display: none;
 }

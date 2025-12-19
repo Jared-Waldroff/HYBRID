@@ -47,6 +47,7 @@
 /* Dark theme (default) - Deep Navy Royal */
 [data-theme="dark"] {
   --bg-primary: #0a141f;
+  --bg-primary-rgb: 10, 20, 31;
   --bg-secondary: #0f1e2d;
   --bg-tertiary: #15293b;
   --glass-bg: rgba(15, 30, 45, 0.8);
@@ -64,6 +65,7 @@
 /* Light theme - Bright and Clean */
 [data-theme="light"] {
   --bg-primary: #f8f9fc;
+  --bg-primary-rgb: 248, 249, 252;
   --bg-secondary: #ffffff;
   --bg-tertiary: #eef1f7;
   --glass-bg: rgba(255, 255, 255, 0.85);
