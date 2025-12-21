@@ -1,6 +1,13 @@
 .cf-workout-card {
     border-left: 4px solid #c9a227;
-    background: linear-gradient(135deg, rgba(15, 30, 45, 0.95) 0%, rgba(30, 58, 95, 0.8) 100%);
+    background: var(--glass-bg);
+    cursor: pointer;
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.cf-workout-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--glass-shadow);
 }
 
 .cf-header {
@@ -15,7 +22,7 @@
     flex-direction: column;
     align-items: center;
     padding: var(--space-sm);
-    background: linear-gradient(135deg, #1e3a5f 0%, #0a141f 100%);
+    background: var(--bg-tertiary);
     border-radius: var(--radius-md);
     border: 1px solid rgba(201, 162, 39, 0.3);
     min-width: 48px;
@@ -61,7 +68,7 @@
     gap: var(--space-sm);
     margin-bottom: var(--space-md);
     padding: var(--space-sm);
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--input-bg);
     border-radius: var(--radius-md);
 }
 
@@ -102,7 +109,7 @@
 
 .cf-description {
     padding: var(--space-md);
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--input-bg);
     border-radius: var(--radius-md);
     margin-bottom: var(--space-md);
     font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
@@ -132,7 +139,7 @@
     flex-direction: column;
     align-items: center;
     padding: var(--space-sm);
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--input-bg);
     border-radius: var(--radius-sm);
     border: 1px solid var(--input-border);
 }

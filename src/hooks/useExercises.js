@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
+import { useVisibilityRefresh } from './useVisibilityRefresh'
 
 export function useExercises() {
     const { user } = useAuth()
@@ -257,6 +258,9 @@ export function useExercises() {
     useEffect(() => {
         fetchExercises()
     }, [fetchExercises])
+
+    // Refetch exercises when app becomes visible again (fixes reload issue)
+    useVisibilityRefresh(fetchExercises)
 
     return {
         exercises,

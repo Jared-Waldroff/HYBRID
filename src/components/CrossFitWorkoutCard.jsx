@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import GlassCard from './GlassCard'
 import './CrossFitWorkoutCard.css'
 
@@ -7,12 +8,29 @@ export default function CrossFitWorkoutCard({
     onDelete,
     onShuffle
 }) {
+    const navigate = useNavigate()
     const [showActions, setShowActions] = useState(false)
 
     if (!workout) return null
 
+    const handleCardClick = () => {
+        if (!showActions) {
+            navigate('/cf-workout', { state: { workout } })
+        }
+    }
+
+    const handleMenuClick = (e) => {
+        e.stopPropagation()
+        setShowActions(!showActions)
+    }
+
+    const handleActionClick = (e, action) => {
+        e.stopPropagation()
+        action()
+    }
+
     return (
-        <GlassCard className="cf-workout-card">
+        <GlassCard className="cf-workout-card" onClick={handleCardClick}>
             <div className="cf-header">
                 <div className="cf-badge">
                     <span className="cf-logo">CF</span>
@@ -24,7 +42,7 @@ export default function CrossFitWorkoutCard({
                 </div>
                 <button
                     className="btn btn-ghost btn-icon cf-menu-btn"
-                    onClick={() => setShowActions(!showActions)}
+                    onClick={handleMenuClick}
                 >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <circle cx="12" cy="12" r="1" />
@@ -35,8 +53,8 @@ export default function CrossFitWorkoutCard({
             </div>
 
             {showActions && (
-                <div className="cf-actions">
-                    <button className="btn btn-secondary" onClick={onShuffle}>
+                <div className="cf-actions" onClick={e => e.stopPropagation()}>
+                    <button className="btn btn-secondary" onClick={(e) => handleActionClick(e, onShuffle)}>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <polyline points="16 3 21 3 21 8" />
                             <line x1="4" y1="20" x2="21" y2="3" />
@@ -46,7 +64,7 @@ export default function CrossFitWorkoutCard({
                         </svg>
                         Different WOD
                     </button>
-                    <button className="btn btn-secondary delete-btn" onClick={onDelete}>
+                    <button className="btn btn-secondary delete-btn" onClick={(e) => handleActionClick(e, onDelete)}>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <polyline points="3 6 5 6 21 6" />
                             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
@@ -82,3 +100,4 @@ export default function CrossFitWorkoutCard({
         </GlassCard>
     )
 }
+

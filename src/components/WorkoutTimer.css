@@ -1,0 +1,109 @@
+.workout-timer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-lg);
+    background: var(--glass-bg);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--glass-border);
+}
+
+.workout-timer.running {
+    border-color: var(--success);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+}
+
+.workout-timer.complete {
+    border-color: #c9a227;
+    box-shadow: 0 0 20px rgba(201, 162, 39, 0.3);
+}
+
+.timer-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.timer-time {
+    font-size: 4rem;
+    font-weight: 700;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+    color: var(--text-primary);
+    line-height: 1;
+    letter-spacing: 0.05em;
+}
+
+.timer-mode {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.workout-timer.running .timer-time {
+    color: var(--success);
+}
+
+.workout-timer.complete .timer-time {
+    color: #c9a227;
+}
+
+.timer-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.timer-btn {
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.timer-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.reset-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-full);
+    background: var(--input-bg);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.reset-btn:hover:not(:disabled) {
+    background: var(--glass-bg);
+    color: var(--text-primary);
+}
+
+.play-btn {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--radius-full);
+    background: var(--accent-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.play-btn:hover:not(:disabled) {
+    filter: brightness(1.1);
+    transform: scale(1.05);
+}
+
+.play-btn.pause {
+    background: var(--warning);
+}
+
+.timer-spacer {
+    width: 48px;
+}

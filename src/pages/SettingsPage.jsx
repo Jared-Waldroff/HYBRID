@@ -86,7 +86,7 @@ export default function SettingsPage() {
                 <GlassCard className="settings-section about-section">
                     <h3 className="section-title">About</h3>
                     <p className="about-text">
-                        Workout helps you plan and track your fitness journey.
+                        Hybrid is built for athletes who train both strength and cardio. Plan and track your complete fitness journey.
                     </p>
                     <p className="version">Version 1.0.0</p>
                 </GlassCard>

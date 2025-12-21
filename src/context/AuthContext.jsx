@@ -10,11 +10,25 @@ export function AuthProvider({ children }) {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        // Get initial session
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            setUser(session?.user ?? null)
+        // Get initial session with timeout to prevent infinite loading
+        const timeoutId = setTimeout(() => {
+            console.warn('Auth session check timed out - proceeding without session')
+            setUser(null)
             setLoading(false)
-        })
+        }, 5000)
+
+        supabase.auth.getSession()
+            .then(({ data: { session } }) => {
+                clearTimeout(timeoutId)
+                setUser(session?.user ?? null)
+                setLoading(false)
+            })
+            .catch((error) => {
+                clearTimeout(timeoutId)
+                console.error('Failed to get session:', error)
+                setUser(null)
+                setLoading(false)
+            })
 
         // Listen for auth changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(

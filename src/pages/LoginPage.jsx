@@ -78,10 +78,18 @@ export default function LoginPage() {
                 <div className="login-header">
                     <div className="login-logo">
                         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M6.5 6.5h11M6.5 17.5h11M4 12h16M2 6.5a2.5 2.5 0 0 1 2.5-2.5h0a2.5 2.5 0 0 1 2.5 2.5v11a2.5 2.5 0 0 1-2.5 2.5h0A2.5 2.5 0 0 1 2 17.5v-11zM17 6.5a2.5 2.5 0 0 1 2.5-2.5h0a2.5 2.5 0 0 1 2.5 2.5v11a2.5 2.5 0 0 1-2.5 2.5h0a2.5 2.5 0 0 1-2.5-2.5v-11z" />
+                            {/* Dumbbell bar */}
+                            <path d="M4 12h16" />
+                            {/* Left weight */}
+                            <rect x="2" y="9" width="4" height="6" rx="1" />
+                            {/* Right weight */}
+                            <rect x="18" y="9" width="4" height="6" rx="1" />
+                            {/* Motion lines representing cardio/movement */}
+                            <path d="M8 6l2 2M16 6l-2 2" strokeLinecap="round" />
+                            <path d="M8 18l2-2M16 18l-2-2" strokeLinecap="round" />
                         </svg>
                     </div>
-                    <h1 className="login-title">Workout</h1>
+                    <h1 className="login-title">Hybrid</h1>
                     <p className="login-subtitle">
                         {isLogin ? 'Welcome back!' : 'Create your account'}
                     </p>

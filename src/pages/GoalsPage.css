@@ -1,0 +1,361 @@
+.goals-page {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+}
+
+.goals-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    max-width: 800px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0;
+}
+
+.chat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 100px;
+}
+
+/* Messages */
+.messages-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.message {
+    display: flex;
+    gap: var(--space-sm);
+    max-width: 85%;
+    animation: slideUp 0.3s ease-out;
+}
+
+.user-message {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.ai-message {
+    align-self: flex-start;
+}
+
+.message-avatar {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    border-radius: var(--radius-full);
+    background: var(--accent-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--bg-primary);
+}
+
+.message-content {
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-lg);
+    line-height: 1.5;
+}
+
+.message-content p {
+    margin: 0;
+}
+
+.message-content p+p {
+    margin-top: var(--space-xs);
+}
+
+.user-message .message-content {
+    background: var(--accent-primary);
+    color: white;
+    border-bottom-right-radius: var(--radius-sm);
+}
+
+.ai-message .message-content {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-bottom-left-radius: var(--radius-sm);
+}
+
+/* Typing indicator */
+.typing-indicator {
+    display: flex;
+    gap: 4px;
+    padding: var(--space-xs) 0;
+}
+
+.typing-indicator span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-tertiary);
+    animation: bounce 1.4s infinite;
+}
+
+.typing-indicator span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes bounce {
+
+    0%,
+    60%,
+    100% {
+        transform: translateY(0);
+    }
+
+    30% {
+        transform: translateY(-8px);
+    }
+}
+
+/* Error message */
+.error-message {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid var(--error);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    align-items: center;
+    text-align: center;
+}
+
+/* Plan Preview */
+.plan-preview {
+    margin: var(--space-md);
+    padding: var(--space-lg);
+    animation: scaleIn 0.3s ease-out;
+}
+
+.plan-preview h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: var(--space-sm);
+    color: var(--accent-secondary);
+}
+
+.plan-summary {
+    color: var(--text-secondary);
+    margin-bottom: var(--space-lg);
+    line-height: 1.5;
+}
+
+.plan-workouts {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-lg);
+}
+
+.plan-workout-item {
+    background: var(--input-bg);
+    border-radius: var(--radius-md);
+    padding: var(--space-sm) var(--space-md);
+    border-left: 4px solid var(--accent-primary);
+}
+
+.plan-workout-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-xs);
+}
+
+.plan-workout-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.plan-workout-day {
+    font-size: 0.875rem;
+    color: var(--text-tertiary);
+}
+
+.plan-exercises {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+}
+
+.plan-exercise-tag {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-full);
+    color: var(--text-secondary);
+}
+
+.plan-exercise-tag.more {
+    color: var(--accent-secondary);
+    font-weight: 500;
+}
+
+.plan-actions {
+    display: flex;
+    justify-content: center;
+}
+
+.plan-actions .btn {
+    width: 100%;
+}
+
+/* Success Message */
+.success-message {
+    margin: var(--space-md);
+    padding: var(--space-xl);
+    text-align: center;
+    animation: scaleIn 0.3s ease-out;
+}
+
+.success-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--success);
+    color: white;
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--space-md);
+}
+
+.success-message h3 {
+    color: var(--success);
+    margin-bottom: var(--space-sm);
+}
+
+.success-message p {
+    color: var(--text-secondary);
+}
+
+/* Input Form */
+.chat-input-form {
+    position: fixed;
+    bottom: 80px;
+    left: 0;
+    right: 0;
+    padding: var(--space-md);
+    background: linear-gradient(to top, var(--bg-primary) 80%, transparent);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.chat-input-container {
+    display: flex;
+    gap: var(--space-sm);
+    max-width: 800px;
+    width: 100%;
+}
+
+.chat-input {
+    flex: 1;
+    padding: var(--space-md);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+}
+
+.chat-input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+}
+
+.chat-input::placeholder {
+    color: var(--text-muted);
+}
+
+.send-button {
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border-radius: var(--radius-lg);
+}
+
+.send-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.new-chat-button {
+    font-size: 0.875rem;
+}
+
+/* Schedule Toggle */
+.schedule-toggle {
+    margin: var(--space-md);
+    margin-bottom: 0;
+    align-self: flex-start;
+    font-size: 0.875rem;
+}
+
+/* Schedule Panel */
+.schedule-panel {
+    margin: var(--space-sm) var(--space-md);
+    padding: var(--space-md);
+}
+
+.schedule-panel h4 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--space-sm);
+}
+
+.schedule-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.schedule-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--input-bg);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--accent-primary);
+    font-size: 0.875rem;
+}
+
+.schedule-date {
+    color: var(--text-tertiary);
+    font-size: 0.75rem;
+    min-width: 80px;
+}
+
+.schedule-name {
+    flex: 1;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.schedule-done {
+    color: var(--success);
+    font-weight: 600;
+}

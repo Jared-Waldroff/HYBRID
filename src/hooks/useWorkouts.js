@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
+import { useVisibilityRefresh } from './useVisibilityRefresh'
 
 export function useWorkouts() {
     const { user } = useAuth()
@@ -9,10 +10,19 @@ export function useWorkouts() {
     const [error, setError] = useState(null)
 
     const fetchWorkouts = useCallback(async (startDate = null, endDate = null) => {
-        if (!user) return
+        if (!user) {
+            setLoading(false)
+            return
+        }
 
         try {
             setLoading(true)
+
+            // Create a timeout promise
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('Request timed out')), 10000)
+            })
+
             let query = supabase
                 .from('workouts')
                 .select(`
@@ -37,7 +47,11 @@ export function useWorkouts() {
                 query = query.lte('scheduled_date', endDate)
             }
 
-            const { data, error: fetchError } = await query
+            // Race between the query and the timeout
+            const { data, error: fetchError } = await Promise.race([
+                query,
+                timeoutPromise
+            ])
 
             if (fetchError) throw fetchError
 
@@ -52,6 +66,7 @@ export function useWorkouts() {
         } catch (err) {
             console.error('Error fetching workouts:', err)
             setError(err.message)
+            setWorkouts([]) // Set empty workouts on error so UI can render
         } finally {
             setLoading(false)
         }
@@ -232,6 +247,9 @@ export function useWorkouts() {
             fetchWorkouts()
         }
     }, [user, fetchWorkouts])
+
+    // Refetch workouts when app becomes visible again (fixes reload issue)
+    useVisibilityRefresh(fetchWorkouts, !!user)
 
     return {
         workouts,

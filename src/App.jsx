@@ -10,10 +10,12 @@ import LoginPage from './pages/LoginPage'
 import HomePage from './pages/HomePage'
 import CalendarPage from './pages/CalendarPage'
 import ExercisesPage from './pages/ExercisesPage'
+import GoalsPage from './pages/GoalsPage'
 import SettingsPage from './pages/SettingsPage'
 import CreateWorkoutPage from './pages/CreateWorkoutPage'
 import ActiveWorkoutPage from './pages/ActiveWorkoutPage'
 import ExerciseDetailPage from './pages/ExerciseDetailPage'
+import CrossFitWorkoutPage from './pages/CrossFitWorkoutPage'
 
 function AppContent() {
   // Handle app visibility changes (screen lock/unlock)
@@ -65,6 +67,12 @@ function AppContent() {
         </ProtectedRoute>
       } />
 
+      <Route path="/goals" element={
+        <ProtectedRoute>
+          <GoalsPage />
+        </ProtectedRoute>
+      } />
+
       <Route path="/settings" element={
         <ProtectedRoute>
           <SettingsPage />
@@ -86,6 +94,12 @@ function AppContent() {
       <Route path="/exercise/:id" element={
         <ProtectedRoute>
           <ExerciseDetailPage />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/cf-workout" element={
+        <ProtectedRoute>
+          <CrossFitWorkoutPage />
         </ProtectedRoute>
       } />
     </Routes>
