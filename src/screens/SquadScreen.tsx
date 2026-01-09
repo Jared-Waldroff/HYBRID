@@ -314,9 +314,18 @@ export default function SquadScreen() {
             {/* Header */}
             <View style={[styles.header, { borderBottomColor: themeColors.glassBorder }]}>
                 <Text style={[styles.headerTitle, { color: themeColors.textPrimary }]}>Your Squad</Text>
-                <Pressable style={styles.addBtn} onPress={() => { setShowAddModal(true); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}>
-                    <Feather name="user-plus" size={20} color="#fff" />
-                </Pressable>
+                <View style={styles.headerButtons}>
+                    <Pressable
+                        style={[styles.eventsBtn, { backgroundColor: themeColors.glassBg }]}
+                        onPress={() => { navigation.navigate('SquadEvents' as never); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
+                    >
+                        <Feather name="calendar" size={18} color="#c9a227" />
+                        <Text style={styles.eventsBtnText}>Events</Text>
+                    </Pressable>
+                    <Pressable style={styles.addBtn} onPress={() => { setShowAddModal(true); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}>
+                        <Feather name="user-plus" size={20} color="#fff" />
+                    </Pressable>
+                </View>
             </View>
 
             {/* Tabs */}
@@ -404,8 +413,8 @@ export default function SquadScreen() {
 
             {/* Add to Squad Modal */}
             <Modal visible={showAddModal} animationType="slide" transparent>
-                <View style={styles.modalOverlay}>
-                    <View style={[styles.modalContent, { backgroundColor: themeColors.bgSecondary }]}>
+                <Pressable style={styles.modalOverlay} onPress={() => setShowAddModal(false)}>
+                    <Pressable style={[styles.modalContent, { backgroundColor: themeColors.bgSecondary }]} onPress={(e) => e.stopPropagation()}>
                         <View style={styles.modalHeader}>
                             <Text style={[styles.modalTitle, { color: themeColors.textPrimary }]}>Add to Squad</Text>
                             <Pressable onPress={() => setShowAddModal(false)}>
@@ -520,8 +529,8 @@ export default function SquadScreen() {
                                 </Pressable>
                             </View>
                         )}
-                    </View>
-                </View>
+                    </Pressable>
+                </Pressable>
             </Modal>
         </ScreenLayout>
     );
@@ -550,6 +559,24 @@ const styles = StyleSheet.create({
         backgroundColor: '#1e3a5f',
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    headerButtons: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+    },
+    eventsBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 14,
+        paddingVertical: 10,
+        borderRadius: 12,
+        gap: 6,
+    },
+    eventsBtnText: {
+        color: '#c9a227',
+        fontSize: 14,
+        fontWeight: '600',
     },
     tabs: {
         flexDirection: 'row',

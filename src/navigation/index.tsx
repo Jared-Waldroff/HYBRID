@@ -25,6 +25,12 @@ import ExerciseDetailScreen from '../screens/ExerciseDetailScreen';
 import CrossFitWorkoutScreen from '../screens/CrossFitWorkoutScreen';
 import AthleteProfileScreen from '../screens/AthleteProfileScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
+import SquadEventsScreen from '../screens/SquadEventsScreen';
+import CreateEventScreen from '../screens/CreateEventScreen';
+import EventDetailScreen from '../screens/EventDetailScreen';
+import ActivityFeedScreen from '../screens/ActivityFeedScreen';
+import CompleteEventWorkoutScreen from '../screens/CompleteEventWorkoutScreen';
+import NotificationSettingsScreen from '../screens/NotificationSettingsScreen';
 
 // Type definitions for navigation
 export type RootStackParamList = {
@@ -38,7 +44,14 @@ export type RootStackParamList = {
     CrossFitWorkout: { id: string };
     AthleteProfile: { id: string };
     Notifications: undefined;
+    NotificationSettings: undefined;
     Settings: undefined;
+    // Squad Events
+    SquadEvents: undefined;
+    CreateEvent: undefined;
+    EventDetail: { id: string };
+    ActivityFeed: { eventId?: string };
+    CompleteEventWorkout: { trainingWorkoutId: string; eventId: string };
 };
 
 export type MainTabParamList = {
@@ -168,6 +181,13 @@ function AppStack() {
             <Stack.Screen name="AthleteProfile" component={AthleteProfileScreen} />
             <Stack.Screen name="Notifications" component={NotificationsScreen} />
             <Stack.Screen name="Settings" component={SettingsScreen} />
+            {/* Squad Events */}
+            <Stack.Screen name="SquadEvents" component={SquadEventsScreen} />
+            <Stack.Screen name="CreateEvent" component={CreateEventScreen} />
+            <Stack.Screen name="EventDetail" component={EventDetailScreen} />
+            <Stack.Screen name="ActivityFeed" component={ActivityFeedScreen} />
+            <Stack.Screen name="CompleteEventWorkout" component={CompleteEventWorkoutScreen} />
+            <Stack.Screen name="NotificationSettings" component={NotificationSettingsScreen} />
         </Stack.Navigator>
     );
 }
