@@ -62,7 +62,7 @@ export default function ActivityFeedScreen() {
     };
 
     return (
-        <ScreenLayout title="Activity Feed" showBack>
+        <ScreenLayout hideHeader>
             {loading && !refreshing ? (
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={userColors.accent_color} />

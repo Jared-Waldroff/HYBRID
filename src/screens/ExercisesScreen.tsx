@@ -122,7 +122,7 @@ export default function ExercisesScreen() {
 
     if (loading) {
         return (
-            <ScreenLayout>
+            <ScreenLayout hideHeader>
                 <View style={styles.loading}>
                     <ActivityIndicator size="large" color={themeColors.textPrimary} />
                     <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>
@@ -134,7 +134,7 @@ export default function ExercisesScreen() {
     }
 
     return (
-        <ScreenLayout>
+        <ScreenLayout hideHeader>
             {/* Header with Search and Add */}
             <View style={styles.header}>
                 <View style={[styles.searchBox, { backgroundColor: themeColors.inputBg, borderColor: themeColors.inputBorder }]}>

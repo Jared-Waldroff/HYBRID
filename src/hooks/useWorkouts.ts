@@ -261,6 +261,55 @@ export function useWorkouts() {
         return workouts.filter((w) => w.scheduled_date === dateStr);
     };
 
+    const getRecentCompletedWorkouts = useCallback(async (limit: number = 5) => {
+        if (!user) return [];
+
+        try {
+            // Fetch workouts that have at least one completed set or are marked as completed
+            // For now, simpler approach: fetch past workouts and check completion status
+            // In a real app, you'd want a 'completed_at' or 'status' field on the workout itself
+
+            const today = new Date().toISOString().split('T')[0];
+
+            const { data, error: fetchError } = await supabase
+                .from('workouts')
+                .select(`
+                  *,
+                  workout_exercises (
+                    id,
+                    order_index,
+                    exercise:exercises (
+                      id,
+                      name,
+                      muscle_group
+                    ),
+                    sets (
+                        is_completed
+                    )
+                  )
+                `)
+                .eq('user_id', user.id)
+                .lte('scheduled_date', today)
+                .order('scheduled_date', { ascending: false })
+                .limit(limit * 2); // Fetch more to filter locally
+
+            if (fetchError) throw fetchError;
+
+            // Filter for workouts that have at least one completed set
+            const completedWorkouts = data?.filter(w => {
+                const hasCompletedSets = w.workout_exercises?.some((we: any) =>
+                    we.sets?.some((s: any) => s.is_completed)
+                );
+                return hasCompletedSets;
+            }).slice(0, limit);
+
+            return completedWorkouts || [];
+        } catch (err) {
+            console.error('Error fetching recent completed workouts:', err);
+            return [];
+        }
+    }, [user]);
+
     useEffect(() => {
         if (user) {
             fetchWorkouts();
@@ -289,5 +338,6 @@ export function useWorkouts() {
         updateWorkout,
         deleteWorkout,
         getWorkoutsByDate,
+        getRecentCompletedWorkouts,
     };
 }

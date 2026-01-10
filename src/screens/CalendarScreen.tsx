@@ -142,7 +142,7 @@ export default function CalendarScreen() {
 
     if (loading) {
         return (
-            <ScreenLayout>
+            <ScreenLayout hideHeader>
                 <View style={styles.loading}>
                     <ActivityIndicator size="large" color={themeColors.textPrimary} />
                 </View>
@@ -151,7 +151,7 @@ export default function CalendarScreen() {
     }
 
     return (
-        <ScreenLayout>
+        <ScreenLayout hideHeader>
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
                 {/* View Toggle */}
                 <View style={styles.toggleContainer}>

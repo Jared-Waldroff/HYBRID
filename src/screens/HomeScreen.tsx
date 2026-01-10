@@ -15,7 +15,7 @@ import * as Haptics from 'expo-haptics';
 
 import { useTheme } from '../context/ThemeContext';
 import { useWorkouts } from '../hooks/useWorkouts';
-import { RootStackParamList, MainTabParamList } from '../navigation';
+import { RootStackParamList, MainTabParamList, HomeStackParamList } from '../navigation';
 import WorkoutCard from '../components/WorkoutCard';
 import CrossFitWorkoutCard from '../components/CrossFitWorkoutCard';
 import ScreenLayout from '../components/ScreenLayout';
@@ -23,7 +23,7 @@ import { getRandomCrossFitWorkout } from '../data/crossfitWorkouts';
 import { colors, spacing, radii, typography, MIN_TOUCH_TARGET } from '../theme';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
-type HomeRouteProp = RouteProp<MainTabParamList, 'Home'>;
+type HomeRouteProp = RouteProp<HomeStackParamList, 'HomeMain'>;
 
 // Helper functions (unchanged)
 const formatDateKey = (date: Date) => {
@@ -164,6 +164,23 @@ export default function HomeScreen() {
         });
     }, [dates, workouts]);
 
+    // Initial Scroll to hide "Load Earlier Days"
+    useEffect(() => {
+        // We only want to do this ONCE on mount, or when initially loading if needed.
+        // Since dates are initialized with Today at index 0, we can just scroll to it.
+        // Small timeout ensures layout is ready.
+        const timer = setTimeout(() => {
+            flatListRef.current?.scrollToLocation({
+                sectionIndex: 0,
+                itemIndex: 0,
+                viewPosition: 0,
+                animated: false,
+                viewOffset: 1, // Slight offset to ensure sticky header doesn't cover if issue arises, or just to be safe
+            });
+        }, 100);
+        return () => clearTimeout(timer);
+    }, []);
+
     // Handle selectedDate from calendar navigation
     useEffect(() => {
         const selectedDate = route.params?.selectedDate;
@@ -282,7 +299,7 @@ export default function HomeScreen() {
 
     if (loading && workouts.length === 0) {
         return (
-            <ScreenLayout>
+            <ScreenLayout hideHeader>
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={userColors.accent_color} />
                     <Text style={[styles.loadingText, { color: themeColors.textTertiary }]}>
@@ -294,7 +311,7 @@ export default function HomeScreen() {
     }
 
     return (
-        <ScreenLayout>
+        <ScreenLayout hideHeader>
 
             <SectionList
                 ref={flatListRef}
@@ -538,9 +555,8 @@ const styles = StyleSheet.create({
     },
     loadMoreButton: {
         marginHorizontal: spacing.md,
-        marginTop: spacing.md,
-        marginBottom: spacing.xs,
-        paddingVertical: spacing.sm,
+        marginVertical: spacing.md,
+        paddingVertical: spacing.md,
         borderRadius: radii.md,
         alignItems: 'center',
         minHeight: MIN_TOUCH_TARGET,

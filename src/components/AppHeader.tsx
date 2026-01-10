@@ -11,9 +11,10 @@ import { spacing, typography, MIN_TOUCH_TARGET } from '../theme';
 interface AppHeaderProps {
     showBack?: boolean;
     title?: string;
+    showProfile?: boolean;
 }
 
-export default function AppHeader({ showBack = false, title }: AppHeaderProps) {
+export default function AppHeader({ showBack = false, title, showProfile = true }: AppHeaderProps) {
     const navigation = useNavigation<any>();
     const { themeColors, colors: userColors } = useTheme();
     const { user } = useAuth();
@@ -33,12 +34,12 @@ export default function AppHeader({ showBack = false, title }: AppHeaderProps) {
 
     const handleBell = () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        navigation.navigate('Notifications');
+        navigation.navigate('Main', { screen: 'NotificationsTab' });
     };
 
     const handleSettings = () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        navigation.navigate('Settings');
+        navigation.navigate('Main', { screen: 'SettingsTab' });
     };
 
     const handleBack = () => {
@@ -71,17 +72,21 @@ export default function AppHeader({ showBack = false, title }: AppHeaderProps) {
             </View>
 
             {/* Right - Profile Avatar (goes to Settings) */}
-            <Pressable style={styles.iconButton} onPress={handleSettings}>
-                <View style={[styles.avatarContainer, { borderColor: userColors.accent_color }]}>
-                    {profile?.avatar_url ? (
-                        <Image source={{ uri: profile.avatar_url }} style={styles.avatarImage} />
-                    ) : (
-                        <View style={[styles.avatarPlaceholder, { backgroundColor: userColors.accent_color }]}>
-                            <Text style={styles.avatarInitials}>{getInitials()}</Text>
+            <View style={styles.iconButton}>
+                {showProfile && (
+                    <Pressable onPress={handleSettings}>
+                        <View style={[styles.avatarContainer, { borderColor: userColors.accent_color }]}>
+                            {profile?.avatar_url ? (
+                                <Image source={{ uri: profile.avatar_url }} style={styles.avatarImage} />
+                            ) : (
+                                <View style={[styles.avatarPlaceholder, { backgroundColor: userColors.accent_color }]}>
+                                    <Text style={styles.avatarInitials}>{getInitials()}</Text>
+                                </View>
+                            )}
                         </View>
-                    )}
-                </View>
-            </Pressable>
+                    </Pressable>
+                )}
+            </View>
         </View>
     );
 }

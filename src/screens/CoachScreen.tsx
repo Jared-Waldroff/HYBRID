@@ -106,16 +106,7 @@ export default function CoachScreen() {
     const getInitialGreeting = async () => {
         const greeting: Message = {
             role: 'assistant',
-            content: `Hey${user?.email ? `, ${user.email.split('@')[0]}` : ''}! 👋
-
-I'm your AI fitness coach. I can help you:
-
-• Create personalized workout plans
-• Suggest exercises based on your goals
-• Recommend training schedules
-• Answer fitness questions
-
-What would you like to work on today?`
+            content: `AI Coach is coming soon! 🚀\n\nStay tuned for updates as we build the ultimate fitness companion.`
         };
         setMessages([greeting]);
     };
@@ -483,7 +474,7 @@ Be encouraging but honest. Explain the science. Create custom exercises when nee
     };
 
     return (
-        <ScreenLayout>
+        <ScreenLayout hideHeader>
             <View
                 style={[styles.keyboardView, { paddingBottom: keyboardHeight }]}
             >
@@ -499,6 +490,8 @@ Be encouraging but honest. Explain the science. Create custom exercises when nee
                         </Pressable>
                     )}
                 </View>
+
+
 
                 {/* Messages */}
                 <ScrollView
@@ -622,20 +615,16 @@ Be encouraging but honest. Explain the science. Create custom exercises when nee
                     <View style={[styles.inputWrapper, { backgroundColor: themeColors.inputBg, borderColor: themeColors.inputBorder }]}>
                         <TextInput
                             style={[styles.input, { color: themeColors.textPrimary }]}
-                            placeholder="Ask your coach..."
+                            placeholder="Coming Soon..."
                             placeholderTextColor={themeColors.textMuted}
-                            value={inputValue}
-                            onChangeText={setInputValue}
+                            value=""
+                            editable={false}
                             multiline
                             maxLength={1000}
-                            editable={!isLoading && !addSuccess}
-                            onSubmitEditing={() => sendMessage(inputValue)}
-                            blurOnSubmit={false}
                         />
                         <Pressable
-                            style={[styles.sendBtn, (!inputValue.trim() || isLoading) && styles.sendBtnDisabled]}
-                            onPress={() => sendMessage(inputValue)}
-                            disabled={!inputValue.trim() || isLoading}
+                            style={[styles.sendBtn, styles.sendBtnDisabled]}
+                            disabled={true}
                         >
                             <Feather name="send" size={20} color={inputValue.trim() && !isLoading ? '#fff' : themeColors.textMuted} />
                         </Pressable>

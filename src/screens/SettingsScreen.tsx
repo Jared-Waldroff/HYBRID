@@ -22,7 +22,46 @@ export default function SettingsScreen() {
     const [bio, setBio] = useState('');
     const [displayName, setDisplayName] = useState('');
     const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
     const [savingProfile, setSavingProfile] = useState(false);
+
+    // Stats State
+    const [followingCount, setFollowingCount] = useState(0);
+    const [followersCount, setFollowersCount] = useState(0);
+    const [requestsCount, setRequestsCount] = useState(0);
+
+    // Fetch Stats
+    useEffect(() => {
+        if (!user) return;
+        const fetchStats = async () => {
+            try {
+                const { count: following } = await supabase
+                    .from('connections')
+                    .select('id', { count: 'exact', head: true })
+                    .eq('follower_id', user.id)
+                    .eq('status', 'accepted');
+
+                const { count: followers } = await supabase
+                    .from('connections')
+                    .select('id', { count: 'exact', head: true })
+                    .eq('following_id', user.id)
+                    .eq('status', 'accepted');
+
+                const { count: requests } = await supabase
+                    .from('connections')
+                    .select('id', { count: 'exact', head: true })
+                    .eq('following_id', user.id)
+                    .eq('status', 'pending');
+
+                setFollowingCount(following || 0);
+                setFollowersCount(followers || 0);
+                setRequestsCount(requests || 0);
+            } catch (err) {
+                console.error('Error fetching stats:', err);
+            }
+        };
+        fetchStats();
+    }, [user]);
 
     // Initialize bio and display name from profile
     useEffect(() => {
@@ -226,7 +265,7 @@ export default function SettingsScreen() {
     );
 
     return (
-        <ScreenLayout showBack title="Settings">
+        <ScreenLayout hideHeader>
 
             <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
                 {/* Profile Section */}
@@ -254,6 +293,30 @@ export default function SettingsScreen() {
                                 {uploadingPhoto ? 'Uploading...' : 'Change Photo'}
                             </Text>
                         </Pressable>
+                    </View>
+
+                    {/* Stats Bar */}
+                    <View style={[styles.statsContainer, { borderColor: themeColors.divider }]}>
+                        <View style={styles.statItem}>
+                            <Text style={[styles.statNumber, { color: themeColors.textPrimary }]}>{followingCount}</Text>
+                            <Text style={[styles.statLabel, { color: themeColors.textSecondary }]}>Following</Text>
+                        </View>
+                        <View style={[styles.statDivider, { backgroundColor: themeColors.divider }]} />
+                        <View style={styles.statItem}>
+                            <Text style={[styles.statNumber, { color: themeColors.textPrimary }]}>{followersCount}</Text>
+                            <Text style={[styles.statLabel, { color: themeColors.textSecondary }]}>Followers</Text>
+                        </View>
+                        {requestsCount > 0 && (
+                            <>
+                                <View style={[styles.statDivider, { backgroundColor: themeColors.divider }]} />
+                                <View style={styles.statItem}>
+                                    <View style={[styles.badge, { backgroundColor: colors.error }]}>
+                                        <Text style={styles.badgeText}>{requestsCount}</Text>
+                                    </View>
+                                    <Text style={[styles.statLabel, { color: themeColors.textSecondary }]}>Requests</Text>
+                                </View>
+                            </>
+                        )}
                     </View>
 
                     {/* Display Name */}
@@ -798,6 +861,45 @@ const styles = StyleSheet.create({
     avatarImage: {
         width: '100%',
         height: '100%',
+    },
+    // Stats Styles
+    statsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        paddingVertical: spacing.md,
+        borderTopWidth: 1,
+        borderBottomWidth: 1,
+        marginBottom: spacing.lg,
+    },
+    statItem: {
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    statNumber: {
+        fontSize: typography.sizes.lg,
+        fontWeight: typography.weights.bold,
+        marginBottom: 2,
+    },
+    statLabel: {
+        fontSize: typography.sizes.xs,
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+    },
+    statDivider: {
+        width: 1,
+        height: 24,
+    },
+    badge: {
+        paddingHorizontal: 6,
+        paddingVertical: 1,
+        borderRadius: 10,
+        marginBottom: 2,
+    },
+    badgeText: {
+        color: '#fff',
+        fontSize: 10,
+        fontWeight: 'bold',
     },
     avatarPlaceholder: {
         width: '100%',

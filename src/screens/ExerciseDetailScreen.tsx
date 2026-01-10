@@ -128,7 +128,7 @@ export default function ExerciseDetailScreen() {
 
     if (loading) {
         return (
-            <ScreenLayout showBack title={exerciseName || 'Loading...'}>
+            <ScreenLayout hideHeader>
                 <View style={styles.loading}>
                     <ActivityIndicator size="large" color={themeColors.textPrimary} />
                     <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>
@@ -141,7 +141,7 @@ export default function ExerciseDetailScreen() {
 
     if (error || !exercise) {
         return (
-            <ScreenLayout showBack title="Error">
+            <ScreenLayout hideHeader>
                 <View style={styles.errorContainer}>
                     <Feather name="alert-circle" size={48} color="#ef4444" />
                     <Text style={[styles.errorText, { color: themeColors.textSecondary }]}>
@@ -156,7 +156,7 @@ export default function ExerciseDetailScreen() {
     }
 
     return (
-        <ScreenLayout showBack title={exercise.name}>
+        <ScreenLayout hideHeader>
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
                 {/* Progress Chart */}
                 <View style={[styles.card, { backgroundColor: themeColors.glassBg, borderColor: themeColors.glassBorder }]}>

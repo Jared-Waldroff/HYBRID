@@ -334,7 +334,7 @@ export default function CrossFitWorkoutScreen() {
 
     if (loading) {
         return (
-            <ScreenLayout>
+            <ScreenLayout hideHeader>
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={userColors.accent_color} />
                     <Text style={[styles.loadingText, { color: themeColors.textTertiary }]}>
@@ -347,7 +347,7 @@ export default function CrossFitWorkoutScreen() {
 
     if (!cfData) {
         return (
-            <ScreenLayout>
+            <ScreenLayout hideHeader>
                 <View style={styles.errorContainer}>
                     <Text style={[styles.errorText, { color: themeColors.textTertiary }]}>
                         Workout not found
@@ -375,7 +375,7 @@ export default function CrossFitWorkoutScreen() {
     }
 
     return (
-        <ScreenLayout>
+        <ScreenLayout hideHeader>
             {/* Title Bar */}
             <View style={[styles.titleBar, { borderBottomColor: themeColors.glassBorder }]}>
                 <Pressable style={styles.backButton} onPress={stopWorkout}>

@@ -12,6 +12,8 @@ export interface SquadEvent {
     event_date: string;
     cover_image_url: string | null;
     is_private: boolean;
+    visibility: 'public' | 'squad' | 'invite_only';
+    invite_code: string | null;
     template_id: string | null;
     is_active: boolean;
     created_at: string;
@@ -76,6 +78,8 @@ export interface CreateEventInput {
     event_date: string;
     cover_image_url?: string;
     is_private?: boolean;
+    visibility?: 'public' | 'squad' | 'invite_only';
+    invite_code?: string;
     template_id?: string;
 }
 
@@ -492,6 +496,42 @@ export function useSquadEvents() {
         }
     }, [user]);
 
+    const addTrainingWorkout = async (eventId: string, workout: CreateTrainingWorkoutInput) => {
+        if (!user) return { error: 'Not authenticated' };
+
+        try {
+            const { data, error } = await supabase
+                .from('event_training_workouts')
+                .insert({
+                    event_id: eventId,
+                    ...workout
+                })
+                .select()
+                .single();
+
+            if (error) throw error;
+            return { data, error: null };
+        } catch (err: any) {
+            return { data: null, error: err.message };
+        }
+    };
+
+    const deleteTrainingWorkout = async (workoutId: string) => {
+        if (!user) return { error: 'Not authenticated' };
+
+        try {
+            const { error } = await supabase
+                .from('event_training_workouts')
+                .delete()
+                .eq('id', workoutId);
+
+            if (error) throw error;
+            return { error: null };
+        } catch (err: any) {
+            return { error: err.message };
+        }
+    };
+
     // Load on mount
     useEffect(() => {
         if (user) {
@@ -518,6 +558,8 @@ export function useSquadEvents() {
         getEventParticipants,
         getTrainingPlan,
         updateNotificationPreference,
+        addTrainingWorkout,
+        deleteTrainingWorkout,
     };
 }
 

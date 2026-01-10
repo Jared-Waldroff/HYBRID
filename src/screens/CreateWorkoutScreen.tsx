@@ -242,7 +242,7 @@ export default function CreateWorkoutScreen() {
     const selectedExercises = (exercises || []).filter(ex => selectedExerciseIds.includes(ex.id));
 
     return (
-        <ScreenLayout showBack title="New Workout">
+        <ScreenLayout hideHeader>
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
                 {/* Workout Name */}
                 <View style={[styles.card, { backgroundColor: themeColors.glassBg, borderColor: themeColors.glassBorder }]}>

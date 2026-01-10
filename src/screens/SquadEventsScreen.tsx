@@ -127,7 +127,7 @@ export default function SquadEventsScreen() {
     };
 
     return (
-        <ScreenLayout title="Squad Events" showBack>
+        <ScreenLayout hideHeader>
             {/* Tabs */}
             <View style={[styles.tabContainer, { borderBottomColor: themeColors.divider }]}>
                 <Pressable

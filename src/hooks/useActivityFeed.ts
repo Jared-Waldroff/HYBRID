@@ -6,8 +6,10 @@ import { useAuth } from '../context/AuthContext';
 export interface FeedPost {
     id: string;
     user_id: string;
-    event_id: string;
+    event_id: string | null;
+
     completion_id: string | null;
+    workout_id: string | null;
     caption: string | null;
     photo_urls: string[];
     lfg_count: number;
@@ -34,7 +36,24 @@ export interface FeedPost {
             workout_type: string;
             target_value: number | null;
             target_unit: string | null;
+            description: string | null;
+            color: string | null;
+            target_zone: string | null;
         };
+    };
+    // Linked Workout (Regular)
+    workout?: {
+        id: string;
+        name: string;
+        color: string;
+        is_completed?: boolean;
+        workout_exercises?: Array<{
+            id: string;
+            order_index: number;
+            exercise?: {
+                name: string;
+            };
+        }>;
     };
     has_lfg?: boolean; // Whether current user has LFG'd this post
 }
@@ -53,8 +72,9 @@ export interface FeedComment {
 }
 
 export interface CreatePostInput {
-    event_id: string;
+    event_id?: string | null;
     completion_id?: string;
+    workout_id?: string | null;
     caption?: string;
     photo_urls?: string[];
 }
@@ -88,7 +108,22 @@ export function useActivityFeed() {
                             name,
                             workout_type,
                             target_value,
-                            target_unit
+                            target_unit,
+                            description,
+                            color,
+                            target_zone
+                        )
+
+                    ),
+                    workout:workouts(
+                        id,
+                        name,
+                        color,
+                        is_completed,
+                        workout_exercises(
+                            id,
+                            order_index,
+                            exercise:exercises(name)
                         )
                     )
                 `)
@@ -122,11 +157,20 @@ export function useActivityFeed() {
 
             const lfgPostIds = new Set(reactions?.map(r => r.post_id) || []);
 
-            const postsWithLfg = (data || []).map(post => ({
-                ...post,
-                user: profileMap.get(post.user_id),
-                has_lfg: lfgPostIds.has(post.id),
-            }));
+            const postsWithLfg = (data || []).map(post => {
+                if (post.workout && post.workout.workout_exercises) {
+                    post.workout.workout_exercises.sort((a: any, b: any) => (a.order_index || 0) - (b.order_index || 0));
+                }
+                return {
+                    ...post,
+                    user: profileMap.get(post.user_id),
+                    has_lfg: lfgPostIds.has(post.id),
+                };
+            });
+
+            if (postsWithLfg.length > 0) {
+                // Debug log removed
+            }
 
             setFeed(postsWithLfg);
         } catch (err: any) {
@@ -138,6 +182,7 @@ export function useActivityFeed() {
     }, [user]);
 
     // Create a new post
+    // Create a new post
     const createPost = useCallback(async (
         input: CreatePostInput
     ): Promise<{ post: FeedPost | null; error: string | null }> => {
@@ -148,8 +193,9 @@ export function useActivityFeed() {
                 .from('activity_feed')
                 .insert({
                     user_id: user.id,
-                    event_id: input.event_id,
+                    event_id: input.event_id || null, // Allow null for general posts
                     completion_id: input.completion_id || null,
+                    workout_id: input.workout_id || null,
                     caption: input.caption || null,
                     photo_urls: input.photo_urls || [],
                 })
@@ -159,7 +205,7 @@ export function useActivityFeed() {
             if (insertError) throw insertError;
 
             // Refresh feed
-            await loadFeed(input.event_id);
+            await loadFeed(input.event_id || undefined);
 
             return { post: data, error: null };
         } catch (err: any) {
@@ -418,13 +464,16 @@ export async function uploadFeedPhotos(
         for (const photo of photos) {
             const fileName = `${userId}/${Date.now()}-${Math.random().toString(36).substr(2, 9)}.jpg`;
 
-            // Fetch the image and convert to blob
-            const response = await fetch(photo.uri);
-            const blob = await response.blob();
+            const formData = new FormData();
+            formData.append('files', {
+                uri: photo.uri,
+                name: fileName,
+                type: photo.type || 'image/jpeg',
+            } as any);
 
             const { data, error: uploadError } = await supabase.storage
                 .from('activity-photos')
-                .upload(fileName, blob, {
+                .upload(fileName, formData, {
                     contentType: photo.type || 'image/jpeg',
                     upsert: false,
                 });

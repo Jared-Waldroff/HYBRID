@@ -35,7 +35,7 @@ export default function CreateEventScreen() {
     const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
     const [eventName, setEventName] = useState('');
     const [eventDate, setEventDate] = useState(new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)); // 3 months out
-    const [isPrivate, setIsPrivate] = useState(false);
+    const [visibility, setVisibility] = useState<'public' | 'squad' | 'invite_only'>('public');
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [customPlan, setCustomPlan] = useState<CreateTrainingWorkoutInput[]>([]);
 
@@ -89,13 +89,55 @@ export default function CreateEventScreen() {
         try {
             const dateString = eventDate.toISOString().split('T')[0];
 
+            // Generate invite code
+            const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+
             let result;
             if (selectedTemplate) {
-                result = await createEventFromTemplate(
-                    selectedTemplate,
-                    eventName.trim(),
-                    dateString,
-                    isPrivate
+                // TODO: Update createEventFromTemplate to accept visibility
+                // For now passing boolean isPrivate for backward compat if hook requires it, 
+                // but ideally the hook should be updated. 
+                // We'll update createEvent call below which serves both.
+
+                // Assuming createEventFromTemplate calls createEvent internally or we refactor.
+                // Actually, createEventFromTemplate in hook calls createEvent.
+                // But it takes specific args. We should check hook signature update? 
+                // In step 4 we updated the types but not the function signatures fully?
+                // Let's look at useSquadEvents again. createEventFromTemplate takes (id, name, date, isPrivate).
+                // We need to update that hook implementation too if we want it to carry visibility.
+                // For now, let's just use createEvent directly or assume isPrivate mapping:
+                // invite_only = true, others = false? Or just pass visibility.
+
+                // Actually, let's use createEvent directly for custom events.
+                // For templates, we might need to cast or update the hook.
+
+                // Let's stick to createEvent since we updated the Input type!
+                // But we need the template plan.
+                const template = templates.find(t => t.id === selectedTemplate);
+                const trainingPlan = template?.training_plan.map((workout: any) => ({
+                    name: workout.name,
+                    description: workout.description,
+                    workout_type: workout.workout_type,
+                    target_value: workout.target_value,
+                    target_unit: workout.target_unit,
+                    target_zone: workout.target_zone,
+                    target_notes: workout.target_notes,
+                    days_before_event: workout.days_before_event,
+                    is_required: workout.is_required ?? true,
+                    color: workout.color || '#6366f1',
+                }));
+
+                result = await createEvent(
+                    {
+                        name: eventName.trim(),
+                        event_type: selectedType,
+                        event_date: dateString,
+                        is_private: visibility === 'invite_only', // Legacy fallback
+                        visibility,
+                        invite_code: inviteCode,
+                        template_id: selectedTemplate,
+                    },
+                    trainingPlan
                 );
             } else {
                 result = await createEvent(
@@ -103,7 +145,9 @@ export default function CreateEventScreen() {
                         name: eventName.trim(),
                         event_type: selectedType,
                         event_date: dateString,
-                        is_private: isPrivate,
+                        is_private: visibility === 'invite_only',
+                        visibility,
+                        invite_code: inviteCode,
                     },
                     customPlan.length > 0 ? customPlan : undefined
                 );
@@ -255,32 +299,57 @@ export default function CreateEventScreen() {
                 </Pressable>
             </View>
 
-            {/* Privacy Toggle */}
-            <View style={[styles.privacyRow, { backgroundColor: themeColors.bgSecondary }]}>
-                <View style={styles.privacyInfo}>
-                    <Feather
-                        name={isPrivate ? 'lock' : 'globe'}
-                        size={20}
-                        color={themeColors.textSecondary}
-                    />
-                    <View style={styles.privacyText}>
-                        <Text style={[styles.privacyTitle, { color: themeColors.textPrimary }]}>
-                            {isPrivate ? 'Private Event' : 'Public Event'}
-                        </Text>
-                        <Text style={[styles.privacyDesc, { color: themeColors.textSecondary }]}>
-                            {isPrivate
-                                ? 'Only squad members can see this event'
-                                : 'Anyone can see and join this event'
-                            }
-                        </Text>
-                    </View>
+            {/* Visibility Selection */}
+            <View style={styles.inputGroup}>
+                <Text style={[styles.label, { color: themeColors.textSecondary }]}>
+                    Visibility
+                </Text>
+                <View style={[styles.visibilityContainer, { backgroundColor: themeColors.bgSecondary }]}>
+                    <Pressable
+                        style={[
+                            styles.visibilityOption,
+                            visibility === 'public' && { backgroundColor: userColors.accent_color }
+                        ]}
+                        onPress={() => setVisibility('public')}
+                    >
+                        <Feather name="globe" size={18} color={visibility === 'public' ? themeColors.accentText : themeColors.textSecondary} />
+                        <Text style={[
+                            styles.visibilityText,
+                            { color: visibility === 'public' ? themeColors.accentText : themeColors.textPrimary }
+                        ]}>Public</Text>
+                    </Pressable>
+                    <Pressable
+                        style={[
+                            styles.visibilityOption,
+                            visibility === 'squad' && { backgroundColor: userColors.accent_color }
+                        ]}
+                        onPress={() => setVisibility('squad')}
+                    >
+                        <Feather name="users" size={18} color={visibility === 'squad' ? themeColors.accentText : themeColors.textSecondary} />
+                        <Text style={[
+                            styles.visibilityText,
+                            { color: visibility === 'squad' ? themeColors.accentText : themeColors.textPrimary }
+                        ]}>Squad</Text>
+                    </Pressable>
+                    <Pressable
+                        style={[
+                            styles.visibilityOption,
+                            visibility === 'invite_only' && { backgroundColor: userColors.accent_color }
+                        ]}
+                        onPress={() => setVisibility('invite_only')}
+                    >
+                        <Feather name="lock" size={18} color={visibility === 'invite_only' ? themeColors.accentText : themeColors.textSecondary} />
+                        <Text style={[
+                            styles.visibilityText,
+                            { color: visibility === 'invite_only' ? themeColors.accentText : themeColors.textPrimary }
+                        ]}>Invite Only</Text>
+                    </Pressable>
                 </View>
-                <Switch
-                    value={isPrivate}
-                    onValueChange={setIsPrivate}
-                    trackColor={{ false: themeColors.bgTertiary, true: `${userColors.accent_color}50` }}
-                    thumbColor={isPrivate ? userColors.accent_color : themeColors.textMuted}
-                />
+                <Text style={[styles.visibilityDesc, { color: themeColors.textSecondary }]}>
+                    {visibility === 'public' && 'Anyone can see and join this event.'}
+                    {visibility === 'squad' && 'Only your squad (followers) can see and join.'}
+                    {visibility === 'invite_only' && 'Hidden from search. Only people with the link can join.'}
+                </Text>
             </View>
 
             {/* Training Plan Info */}
@@ -338,7 +407,7 @@ export default function CreateEventScreen() {
     );
 
     return (
-        <ScreenLayout title="Create Event" showBack>
+        <ScreenLayout hideHeader>
             <ScrollView
                 style={styles.container}
                 contentContainerStyle={styles.contentContainer}
@@ -705,5 +774,28 @@ const styles = StyleSheet.create({
     templateBadgeText: {
         fontSize: typography.sizes.xs,
         textTransform: 'capitalize',
+    },
+    visibilityContainer: {
+        flexDirection: 'row',
+        padding: 4,
+        borderRadius: radii.md,
+        marginBottom: spacing.sm,
+    },
+    visibilityOption: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: spacing.sm,
+        borderRadius: radii.sm,
+        gap: spacing.xs,
+    },
+    visibilityText: {
+        fontSize: typography.sizes.sm,
+        fontWeight: typography.weights.medium,
+    },
+    visibilityDesc: {
+        fontSize: typography.sizes.sm,
+        lineHeight: 20,
     },
 });

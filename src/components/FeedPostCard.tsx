@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -13,7 +13,9 @@ import { Feather } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { spacing, radii, typography } from '../theme';
 import { FeedPost, formatRelativeTime, formatDuration } from '../hooks/useActivityFeed';
+
 import { FEELING_OPTIONS } from '../hooks/useEventWorkouts';
+import WorkoutCard from './WorkoutCard';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -23,6 +25,8 @@ interface FeedPostCardProps {
     onComment: () => void;
     onUserPress?: (userId: string) => void;
     onEventPress?: (eventId: string) => void;
+    isOwner?: boolean;
+    onOptions?: () => void;
 }
 
 export default function FeedPostCard({
@@ -31,10 +35,25 @@ export default function FeedPostCard({
     onComment,
     onUserPress,
     onEventPress,
+    isOwner,
+    onOptions,
 }: FeedPostCardProps) {
     const { themeColors, colors: userColors } = useTheme();
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [imageAspectRatio, setImageAspectRatio] = useState(1);
     const [showImageModal, setShowImageModal] = useState(false);
+
+    // Calculate aspect ratio for current image
+    useEffect(() => {
+        if (post.photo_urls && post.photo_urls.length > 0) {
+            const currentUrl = post.photo_urls[currentImageIndex];
+            Image.getSize(currentUrl, (width, height) => {
+                setImageAspectRatio(width / height);
+            }, (error) => {
+                console.error('Failed to get image size:', error);
+            });
+        }
+    }, [post.photo_urls, currentImageIndex]);
 
     // Get feeling emoji
     const feeling = FEELING_OPTIONS.find(f => f.id === post.completion?.feeling);
@@ -111,36 +130,86 @@ export default function FeedPostCard({
                         <Text style={styles.feelingEmoji}>{feeling.emoji}</Text>
                     </View>
                 )}
+
+                {isOwner && (
+                    <Pressable
+                        style={styles.optionsButton}
+                        onPress={onOptions}
+                        hitSlop={10}
+                    >
+                        <Feather name="more-horizontal" size={20} color={themeColors.textSecondary} />
+                    </Pressable>
+                )}
             </View>
 
             {/* Workout Info */}
             {post.completion?.training_workout && (
-                <View style={[styles.workoutCard, { backgroundColor: themeColors.bgTertiary }]}>
-                    <View style={styles.workoutHeader}>
-                        <Feather name="activity" size={16} color={userColors.accent_color} />
-                        <Text style={[styles.workoutName, { color: themeColors.textPrimary }]}>
-                            {post.completion.training_workout.name}
-                        </Text>
+                <View style={[
+                    styles.workoutCard,
+                    {
+                        backgroundColor: themeColors.glassBg,
+                        borderColor: themeColors.glassBorder,
+                        borderWidth: 1,
+                        padding: 0, // Reset padding for inner layout
+                        overflow: 'hidden'
+                    }
+                ]}>
+                    {/* Color Bar */}
+                    <View style={[
+                        styles.colorBar,
+                        { backgroundColor: post.completion.training_workout.color || userColors.accent_color }
+                    ]} />
+
+                    <View style={styles.workoutContent}>
+                        <View style={styles.workoutHeader}>
+                            <Text style={[styles.workoutName, { color: themeColors.textPrimary }]}>
+                                {post.completion.training_workout.name}
+                            </Text>
+                            {post.completion.training_workout.target_zone && (
+                                <View style={[styles.zoneBadge, { backgroundColor: '#ef4444' + '20' }]}>
+                                    <Text style={[styles.zoneText, { color: '#ef4444' }]}>
+                                        {post.completion.training_workout.target_zone.replace('zone', 'Zone ')}
+                                    </Text>
+                                </View>
+                            )}
+                        </View>
+
+                        {post.completion.training_workout.description && (
+                            <Text style={[styles.description, { color: themeColors.textSecondary }]} numberOfLines={2}>
+                                {post.completion.training_workout.description}
+                            </Text>
+                        )}
+
+                        <View style={styles.statsRow}>
+                            {result && (
+                                <View style={styles.statItem}>
+                                    <Feather name="check-circle" size={14} color={userColors.accent_color} />
+                                    <Text style={[styles.statValue, { color: userColors.accent_color }]}>
+                                        {result}
+                                    </Text>
+                                </View>
+                            )}
+
+                            {post.completion.training_workout.target_value && (
+                                <View style={styles.statItem}>
+                                    <Feather name="target" size={14} color={themeColors.textMuted} />
+                                    <Text style={[styles.statValue, { color: themeColors.textMuted }]}>
+                                        {post.completion.training_workout.target_value} {post.completion.training_workout.target_unit}
+                                    </Text>
+                                </View>
+                            )}
+                        </View>
                     </View>
+                </View>
+            )}
 
-                    {result && (
-                        <View style={styles.resultRow}>
-                            <Text style={[styles.resultLabel, { color: themeColors.textSecondary }]}>
-                                Completed:
-                            </Text>
-                            <Text style={[styles.resultValue, { color: userColors.accent_color }]}>
-                                {result}
-                            </Text>
-                        </View>
-                    )}
-
-                    {post.completion.training_workout.target_value && (
-                        <View style={styles.targetRow}>
-                            <Text style={[styles.targetLabel, { color: themeColors.textMuted }]}>
-                                Target: {post.completion.training_workout.target_value} {post.completion.training_workout.target_unit}
-                            </Text>
-                        </View>
-                    )}
+            {/* Regular Workout Linked Card */}
+            {post.workout && (
+                <View style={{ marginHorizontal: spacing.md, marginBottom: spacing.md }}>
+                    <WorkoutCard
+                        workout={post.workout}
+                    // We don't pass onDelete or others, so it's view-only mostly relating to feed
+                    />
                 </View>
             )}
 
@@ -154,13 +223,14 @@ export default function FeedPostCard({
             {/* Photos */}
             {hasPhotos && (
                 <Pressable
-                    style={styles.photoContainer}
+                    style={[styles.photoContainer, { aspectRatio: imageAspectRatio }]}
                     onPress={() => setShowImageModal(true)}
                 >
                     <Image
                         source={{ uri: post.photo_urls[currentImageIndex] }}
                         style={styles.photo}
                         resizeMode="cover"
+                        onError={(e) => console.log('Image Load Error:', e.nativeEvent.error)}
                     />
 
                     {/* Photo counter */}
@@ -335,39 +405,59 @@ const styles = StyleSheet.create({
     feelingEmoji: {
         fontSize: 20,
     },
+    optionsButton: {
+        padding: spacing.xs,
+        marginLeft: spacing.sm,
+    },
     workoutCard: {
         marginHorizontal: spacing.md,
         marginBottom: spacing.md,
-        padding: spacing.md,
         borderRadius: radii.md,
+    },
+    colorBar: {
+        height: 4,
+        width: '100%',
+    },
+    workoutContent: {
+        padding: spacing.md,
     },
     workoutHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: spacing.xs,
+        justifyContent: 'space-between',
+        marginBottom: spacing.xs,
     },
     workoutName: {
         fontSize: typography.sizes.base,
+        fontWeight: typography.weights.semibold,
+        flex: 1,
+    },
+    zoneBadge: {
+        paddingHorizontal: spacing.sm,
+        paddingVertical: 2,
+        borderRadius: radii.sm,
+    },
+    zoneText: {
+        fontSize: typography.sizes.xs,
         fontWeight: typography.weights.medium,
     },
-    resultRow: {
+    description: {
+        fontSize: typography.sizes.sm,
+        marginBottom: spacing.sm,
+    },
+    statsRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: spacing.sm,
+        gap: spacing.md,
+    },
+    statItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
         gap: spacing.xs,
     },
-    resultLabel: {
+    statValue: {
         fontSize: typography.sizes.sm,
-    },
-    resultValue: {
-        fontSize: typography.sizes.base,
-        fontWeight: typography.weights.semibold,
-    },
-    targetRow: {
-        marginTop: spacing.xs,
-    },
-    targetLabel: {
-        fontSize: typography.sizes.sm,
+        fontWeight: typography.weights.medium,
     },
     caption: {
         paddingHorizontal: spacing.md,
@@ -378,7 +468,7 @@ const styles = StyleSheet.create({
     photoContainer: {
         position: 'relative',
         width: '100%',
-        aspectRatio: 1,
+        backgroundColor: '#f0f0f0', // Visible background to debug layout size
     },
     photo: {
         width: '100%',

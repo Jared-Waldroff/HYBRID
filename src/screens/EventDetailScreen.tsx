@@ -9,6 +9,7 @@ import {
     RefreshControl,
     Image,
     Alert,
+    Share,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -112,9 +113,44 @@ export default function EventDetailScreen() {
         await toggleLfg(postId);
     };
 
+    const handleInvite = async () => {
+        if (!event) return;
+
+        let inviteLink = `https://hybrid.app/event/${event.id}`;
+        if (event.invite_code) {
+            inviteLink += `?code=${event.invite_code}`;
+        }
+
+        try {
+            await Share.share({
+                message: `Join me for ${event.name} on HYBRID! ${inviteLink}`,
+                title: 'Join Event',
+            });
+        } catch (err) {
+            console.log('Share error', err);
+        }
+    };
+
+    const handleCreatePost = () => {
+        if (!event) return;
+        navigation.navigate('CreatePost', {
+            eventId: event.id,
+            eventName: event.name
+        } as any); // Type assertion until nav types updated
+    };
+
+    const handleEditPlan = () => {
+        if (!event) return;
+        navigation.navigate('ManageEventPlan', {
+            eventId: event.id,
+            eventName: event.name,
+            eventDate: event.event_date
+        });
+    };
+
     if (loading) {
         return (
-            <ScreenLayout title="Event" showBack>
+            <ScreenLayout hideHeader>
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={userColors.accent_color} />
                 </View>
@@ -124,7 +160,7 @@ export default function EventDetailScreen() {
 
     if (!event) {
         return (
-            <ScreenLayout title="Event" showBack>
+            <ScreenLayout hideHeader>
                 <View style={styles.errorContainer}>
                     <Feather name="alert-circle" size={48} color={themeColors.textMuted} />
                     <Text style={[styles.errorText, { color: themeColors.textSecondary }]}>
@@ -234,6 +270,19 @@ export default function EventDetailScreen() {
 
     const renderTrainingTab = () => (
         <View style={styles.tabContent}>
+            {/* Creator Actions */}
+            {event?.creator_id === user?.id && (
+                <Pressable
+                    style={[styles.actionButton, { backgroundColor: themeColors.bgSecondary, marginBottom: spacing.md }]}
+                    onPress={handleEditPlan}
+                >
+                    <Feather name="plus-circle" size={20} color={userColors.accent_color} />
+                    <Text style={[styles.actionButtonText, { color: userColors.accent_color }]}>
+                        Manage Training Plan
+                    </Text>
+                </Pressable>
+            )}
+
             {trainingPlan.length > 0 ? (
                 trainingPlan.map((workout, index) => {
                     const workoutDate = new Date(workout.scheduled_date || '');
@@ -337,7 +386,7 @@ export default function EventDetailScreen() {
     );
 
     return (
-        <ScreenLayout title={event.name} showBack>
+        <ScreenLayout hideHeader>
             <ScrollView
                 style={styles.container}
                 contentContainerStyle={styles.contentContainer}
@@ -432,6 +481,14 @@ export default function EventDetailScreen() {
                                 </Text>
                             </Pressable>
                         )}
+
+                        {/* Invite Button */}
+                        <Pressable
+                            style={[styles.inviteButton, { borderColor: themeColors.divider }]}
+                            onPress={handleInvite}
+                        >
+                            <Feather name="share-2" size={20} color={themeColors.textPrimary} />
+                        </Pressable>
                     </View>
                 </View>
 
@@ -461,6 +518,16 @@ export default function EventDetailScreen() {
                 {activeTab === 'training' && renderTrainingTab()}
                 {activeTab === 'feed' && renderFeedTab()}
             </ScrollView>
+
+            {/* FAB for Feed */}
+            {activeTab === 'feed' && event.is_participating && (
+                <Pressable
+                    style={[styles.fab, { backgroundColor: userColors.accent_color }]}
+                    onPress={handleCreatePost}
+                >
+                    <Feather name="plus" size={24} color="#fff" />
+                </Pressable>
+            )}
         </ScreenLayout>
     );
 }
@@ -743,5 +810,41 @@ const styles = StyleSheet.create({
     },
     feedLoader: {
         marginTop: spacing.xl,
+    },
+    actionButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: spacing.md,
+        borderRadius: radii.md,
+        gap: spacing.sm,
+    },
+    actionButtonText: {
+        fontSize: typography.sizes.base,
+        fontWeight: typography.weights.medium,
+    },
+    inviteButton: {
+        width: 44,
+        height: 44,
+        borderRadius: radii.md,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        marginLeft: spacing.xs,
+    },
+    fab: {
+        position: 'absolute',
+        right: spacing.md,
+        bottom: spacing.lg,
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        justifyContent: 'center',
+        alignItems: 'center',
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
     },
 });

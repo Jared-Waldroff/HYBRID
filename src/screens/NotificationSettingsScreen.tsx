@@ -73,7 +73,7 @@ export default function NotificationSettingsScreen() {
     };
 
     return (
-        <ScreenLayout title="Notifications" showBack>
+        <ScreenLayout hideHeader>
             <ScrollView
                 style={styles.container}
                 contentContainerStyle={styles.contentContainer}

@@ -157,7 +157,7 @@ export default function CompleteEventWorkoutScreen() {
 
     if (loading) {
         return (
-            <ScreenLayout title="Complete Workout" showBack>
+            <ScreenLayout hideHeader>
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={userColors.accent_color} />
                 </View>
@@ -167,7 +167,7 @@ export default function CompleteEventWorkoutScreen() {
 
     if (!workout) {
         return (
-            <ScreenLayout title="Complete Workout" showBack>
+            <ScreenLayout hideHeader>
                 <View style={styles.errorContainer}>
                     <Feather name="alert-circle" size={48} color={themeColors.textMuted} />
                     <Text style={[styles.errorText, { color: themeColors.textSecondary }]}>
@@ -179,7 +179,7 @@ export default function CompleteEventWorkoutScreen() {
     }
 
     return (
-        <ScreenLayout title="Complete Workout" showBack>
+        <ScreenLayout hideHeader>
             <ScrollView
                 style={styles.container}
                 contentContainerStyle={styles.contentContainer}

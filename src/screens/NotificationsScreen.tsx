@@ -8,7 +8,7 @@ export default function NotificationsScreen() {
     const { themeColors } = useTheme();
 
     return (
-        <ScreenLayout showBack title="Notifications">
+        <ScreenLayout hideHeader>
             <View style={styles.content}>
                 <Text style={[styles.emptyText, { color: themeColors.textTertiary }]}>
                     No notifications yet
