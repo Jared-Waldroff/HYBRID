@@ -17,6 +17,7 @@ interface WorkoutCardProps {
         name: string;
         color: string;
         is_completed?: boolean;
+        source_event_name?: string | null;  // Event name if synced from event
         workout_exercises?: Array<{
             id: string;
             exercise?: {
@@ -127,6 +128,16 @@ export default function WorkoutCard({ workout, onDelete }: WorkoutCardProps) {
                                 +{exerciseNames.length - 4} more
                             </Text>
                         )}
+                    </View>
+                )}
+
+                {/* Event tag */}
+                {workout.source_event_name && (
+                    <View style={[styles.eventTag, { backgroundColor: colors.accentPrimary + '20' }]}>
+                        <Feather name="flag" size={12} color={colors.accentPrimary} />
+                        <Text style={[styles.eventTagText, { color: colors.accentPrimary }]} numberOfLines={1}>
+                            {workout.source_event_name}
+                        </Text>
                     </View>
                 )}
 
@@ -260,5 +271,21 @@ const styles = StyleSheet.create({
     completedText: {
         fontSize: typography.sizes.xs,
         fontWeight: typography.weights.medium,
+    },
+    eventTag: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.xs,
+        alignSelf: 'flex-start',
+        paddingHorizontal: spacing.sm,
+        paddingVertical: spacing.xs,
+        borderRadius: radii.full,
+        marginTop: spacing.sm,
+        maxWidth: '100%',
+    },
+    eventTagText: {
+        fontSize: typography.sizes.xs,
+        fontWeight: typography.weights.medium,
+        flexShrink: 1,
     },
 });

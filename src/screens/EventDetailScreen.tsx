@@ -16,7 +16,7 @@ import {
     PanResponder,
 } from 'react-native';
 import PagerView from 'react-native-pager-view';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Feather } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
@@ -128,6 +128,15 @@ export default function EventDetailScreen() {
         loadEventData();
     }, [loadEventData]);
 
+    // Reload data when screen comes into focus (e.g., after editing training plan)
+    useFocusEffect(
+        useCallback(() => {
+            if (!loading) {
+                loadEventData();
+            }
+        }, [loadEventData])
+    );
+
     const handleRefresh = async () => {
         setRefreshing(true);
         await loadEventData();
@@ -202,12 +211,25 @@ export default function EventDetailScreen() {
         navigation.navigate('ManageEventPlan', {
             eventId: event.id,
             eventName: event.name,
-            eventDate: event.event_date
+            eventDate: event.event_date,
+            eventType: event.event_type
         });
     };
 
     const handleUpdatePhoto = async () => {
         if (!event) return;
+
+        // Request permission first (required for App Store)
+        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+        if (!permissionResult.granted) {
+            Alert.alert(
+                'Permission Required',
+                'Please allow access to your photo library to update the event photo.',
+                [{ text: 'OK' }]
+            );
+            return;
+        }
 
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ['images'],

@@ -394,8 +394,6 @@ export default function FeedPostCard({
                                 margin: spacing.lg,
                                 borderRadius: radii.xl,
                                 maxHeight: '80%',
-                                minHeight: undefined, // Let it adapt
-                                flex: 0 // Prevents expanding to full height if not needed
                             }
                         ]}
                         onPress={(e) => e.stopPropagation()}
@@ -695,8 +693,9 @@ const styles = StyleSheet.create({
     detailsModalContent: {
         borderTopLeftRadius: radii.xl,
         borderTopRightRadius: radii.xl,
+        borderBottomLeftRadius: radii.xl,
+        borderBottomRightRadius: radii.xl,
         maxHeight: '80%',
-        minHeight: '50%',
         padding: spacing.lg,
         paddingBottom: 40,
     },
@@ -716,7 +715,8 @@ const styles = StyleSheet.create({
         borderRadius: 6,
     },
     detailsScrollView: {
-        flex: 1,
+        flexGrow: 1,
+        flexShrink: 1,
     },
     detailsExerciseItem: {
         padding: spacing.md,

@@ -20,13 +20,27 @@ import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useWorkouts } from '../hooks/useWorkouts';
 import { useExercises } from '../hooks/useExercises';
+import { useSquadEvents } from '../hooks/useSquadEvents';
 import ScreenLayout from '../components/ScreenLayout';
+import { HYBRID_COACH_SYSTEM_PROMPT } from '../lib/geminiClient';
 
 const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
 
 interface Message {
     role: 'user' | 'assistant';
     content: string;
+}
+
+interface WorkoutExercise {
+    name: string;
+    sets: number;
+    reps: string;
+    weight?: string;          // "135 lbs" or "RPE 8"
+    tempo?: string;           // "3-1-2-0" (eccentric-pause-concentric-pause)
+    rest_seconds?: number;
+    notes?: string;           // Form cues, breathing, etc.
+    cardio_zone?: string;     // "Zone 2", "Zone 4-5"
+    duration?: string;        // "45 min", "4 min intervals"
 }
 
 interface WorkoutPlan {
@@ -37,15 +51,28 @@ interface WorkoutPlan {
         name: string;
         day_of_week: string;
         color: string;
-        exercises: { name: string; sets: number; reps: string }[];
+        estimated_duration_minutes?: number;
+        exercises: WorkoutExercise[];
     }[];
 }
 
+interface PendingAction {
+    type: 'create' | 'delete' | 'update';
+    plan?: WorkoutPlan;
+    workoutIds?: string[];
+    workoutNames?: string[];
+    updateData?: { workout_id: string; updates: any };
+}
+
 export default function CoachScreen() {
-    const { themeColors } = useTheme();
+    const { themeColors, colors: userColors } = useTheme();
     const { user } = useAuth();
     const { workouts, createWorkout, deleteWorkout, updateWorkout, fetchWorkouts } = useWorkouts();
     const { exercises, createExercise, fetchExercises } = useExercises();
+    const { events } = useSquadEvents();
+
+    // Filter events created by this user
+    const myCreatedEvents = events.filter(e => e.creator_id === user?.id);
 
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputValue, setInputValue] = useState('');
@@ -54,6 +81,7 @@ export default function CoachScreen() {
     const [isAddingWorkouts, setIsAddingWorkouts] = useState(false);
     const [addSuccess, setAddSuccess] = useState(false);
     const [keyboardHeight, setKeyboardHeight] = useState(0);
+    const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
 
     const scrollViewRef = useRef<ScrollView>(null);
 
@@ -106,7 +134,7 @@ export default function CoachScreen() {
     const getInitialGreeting = async () => {
         const greeting: Message = {
             role: 'assistant',
-            content: `AI Coach is coming soon! 🚀\n\nStay tuned for updates as we build the ultimate fitness companion.`
+            content: `Hey! I'm your AI Coach. 💪\n\n⚠️ **Disclaimer**: I provide general fitness information, not medical advice. Consult a healthcare provider before starting any program, especially with injuries or medical conditions.\n\nTo build your personalized program, tell me:\n\n1. **What's your main goal?** (Strength, muscle, endurance, fat loss?)\n2. **How many days per week can you train?**\n3. **How long per session?** (45 min, 60 min, 90 min?)\n4. **Any injuries or limitations?**\n\nLet's build something great!`
         };
         setMessages([greeting]);
     };
@@ -131,19 +159,61 @@ export default function CoachScreen() {
                     const actionData = JSON.parse(actionMatch[1]);
 
                     if (actionData.action === 'delete' && actionData.workout_ids) {
-                        // Delete workouts
-                        for (const workoutId of actionData.workout_ids) {
-                            await deleteWorkout(workoutId);
-                        }
-                        await fetchWorkouts();
-                        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                        // Show confirmation dialog for deletion
+                        const workoutNames = actionData.workout_ids
+                            .map((id: string) => workouts.find(w => w.id === id)?.name || 'Unknown')
+                            .join(', ');
+
+                        Alert.alert(
+                            '⚠️ Confirm Deletion',
+                            `Are you sure you want to delete these workouts?\n\n${workoutNames}\n\nThis cannot be undone.`,
+                            [
+                                { text: 'Cancel', style: 'cancel' },
+                                {
+                                    text: 'Delete',
+                                    style: 'destructive',
+                                    onPress: async () => {
+                                        for (const workoutId of actionData.workout_ids) {
+                                            await deleteWorkout(workoutId);
+                                        }
+                                        await fetchWorkouts();
+                                        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+                                        // Add confirmation message
+                                        setMessages(prev => [...prev, {
+                                            role: 'assistant',
+                                            content: '✅ Workouts deleted successfully.'
+                                        }]);
+                                    }
+                                }
+                            ]
+                        );
                     } else if (actionData.action === 'update' && actionData.workout_id) {
-                        // Update workout
-                        await updateWorkout(actionData.workout_id, actionData.updates);
-                        await fetchWorkouts();
-                        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                        // Show confirmation dialog for update
+                        const workoutName = workouts.find(w => w.id === actionData.workout_id)?.name || 'Unknown';
+
+                        Alert.alert(
+                            'Confirm Changes',
+                            `Update "${workoutName}"?`,
+                            [
+                                { text: 'Cancel', style: 'cancel' },
+                                {
+                                    text: 'Update',
+                                    onPress: async () => {
+                                        await updateWorkout(actionData.workout_id, actionData.updates);
+                                        await fetchWorkouts();
+                                        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+                                        setMessages(prev => [...prev, {
+                                            role: 'assistant',
+                                            content: '✅ Workout updated successfully.'
+                                        }]);
+                                    }
+                                }
+                            ]
+                        );
                     } else if (actionData.action === 'create_exercise' && actionData.exercises) {
-                        // Create new custom exercises
+                        // Create new custom exercises (no confirmation needed for adding)
                         for (const exercise of actionData.exercises) {
                             await createExercise({
                                 name: exercise.name,
@@ -196,147 +266,62 @@ export default function CoachScreen() {
             throw new Error('Gemini API key not configured');
         }
 
-        const systemPrompt = `You are an elite AI fitness coach for hybrid athletes. You provide realistic, science-based guidance grounded in peer-reviewed research. Today's date is ${new Date().toISOString().split('T')[0]}.
+        // Build user context to append to main system prompt
+        // Separate personal workouts from event-synced workouts
+        const personalWorkouts = workouts.filter(w => !w.source_event_name);
+        const eventSyncedWorkouts = workouts.filter(w => w.source_event_name);
 
-**YOUR PRIMARY MISSION:**
-When a user first engages, always ask about their goals AND current abilities:
-1. "Do you have any upcoming competitions or events you're training for?"
-2. "What's the date of your event?" (to properly periodize)
-3. "What's your current training experience level?"
-4. "How many days per week can you train?"
-5. "What are your current strength levels?" (bench, squat, deadlift, running pace, etc.)
-6. "Any injuries or limitations I should know about?"
+        const userContext = `
 
-**PERSONALIZED PROGRAMMING:**
-Always ask about and track the user's current abilities to prescribe appropriate weights and reps:
-- Ask for current 1RM or working weights on main lifts
-- Ask for current running pace/distances
-- Base recommendations on their ACTUAL numbers, not generic percentages
-- Include specific weight recommendations (e.g., "135 lbs x 8" not just "moderate weight")
-- Progress intelligently based on their level
+---
 
-**COMPETITION PERIODIZATION (Be Realistic!):**
-When users have a target event, calculate weeks until event and design appropriate phases:
+## CURRENT USER CONTEXT
 
-- **Marathon (16-20 weeks ideal):** Base building → Build phase → Peak → Taper (2-3 weeks)
-- **Hyrox (12-16 weeks):** Zone 2 engine, station practice, race simulation, taper
-- **CrossFit Competition (8-12 weeks):** Benchmark testing, skill work, conditioning, taper
-- **Triathlon/Ironman (20-30 weeks):** Base across disciplines, brick workouts, race simulation
-- **Powerlifting (8-16 weeks):** Accumulation (volume) → Intensification → Peaking → Deload
+**Today's Date:** ${new Date().toISOString().split('T')[0]}
 
-**REALISTIC PROGRESSION (Science-Based - Never Overpromise!):**
-- Strength gains: 5-10% per mesocycle for intermediates
-- Running: 30-60 sec 5K improvement per month of training
-- Muscle growth: 0.5-1 lb per month for trained individuals
-- Weight loss: 0.5-1% bodyweight per week is sustainable
-- Never promise unrealistic gains!
+**Available Exercises in User's Library:**
+${exercises.length > 0 ? exercises.slice(0, 50).map(e => `- ${e.name} (${e.muscle_group})`).join('\n') : 'No exercises yet - you can create new ones.'}
 
-**INJURY PREVENTION & BULLETPROOFING:**
-Include in every plan:
-- **Knees:** Backwards walking, sled drags, tibialis raises, ATG split squats
-- **Ankles/Feet:** Calf raises, toe spacers, barefoot training, balance work
-- **Hips:** 90/90 stretches, hip CARs, glute bridges, Copenhagen planks
-- **Shoulders:** Face pulls, external rotations, Turkish get-ups
-- **Running-specific:** 10% max weekly mileage increase, hip/glute strength
-
-**NUTRITION GUIDANCE:**
-Ask about and recommend:
-- **Protein:** 0.7-1g per pound bodyweight (higher for hard training)
-- **Calories:** ~15 cal/lb for maintenance, adjust for goals
-- **Fat loss:** 300-500 cal deficit max
-- **Muscle gain:** 200-300 cal surplus
-- **Competition carb loading:** For endurance 2+ hours
-
-**SLEEP & RECOVERY:**
-Always ask about sleep:
-- Target: 7-9 hours (8-10 during heavy training)
-- Signs of under-recovery: elevated resting HR, poor motivation, persistent soreness
-
-**RECOVERY PROTOCOLS (Essential!):**
-Prescribe specific recovery:
-
-**Foam Rolling/Self-Myofascial Release:**
-- Roll quads, IT band, glutes, lats, thoracic spine (1-2 min each)
-- Lacrosse ball for targeted trigger points
-
-**Stretching:**
-- Static: 30-60 sec holds, post-workout
-- Dynamic: Before workouts for warm-up
-- Key areas runners: Hip flexors, hamstrings, calves
-- Key areas lifters: Lats, pecs, hip flexors, thoracic spine
-
-**Massage & Soft Tissue:**
-- Massage gun for daily maintenance
-- Professional massage 1-2x/month during hard training
-
-**Active Recovery:**
-- Easy Zone 1 cardio, yoga, walking
-- Sauna: 15-20 min, 3-4x/week post-workout
-- Cold exposure: Separate from strength training
-
-**Mobility Routines:**
-- CARs (Controlled Articular Rotations) daily
-- End-range loading for flexibility gains
-
-**TRAINING METHODOLOGY:**
-- Hypertrophy: Volume landmarks, RIR training, 2x/week frequency
-- Strength: Block periodization, submaximal training
-- Endurance: 80/20 polarized (80% easy, 20% hard)
-- Kettlebells: Swings, get-ups, goblet squats, carries
-
-**YOUR COACHING APPROACH:**
-1. ALWAYS ask about goals and competition dates first
-2. Ask about current strength/ability levels for personalized programming
-3. Calculate realistic timelines
-4. Include injury prevention automatically
-5. Prescribe recovery protocols (rolling, stretching)
-6. Be honest about what's achievable
-7. Adjust for sleep, stress, life circumstances
-8. Include SPECIFIC weight and rep recommendations based on user's level
-
-**AVAILABLE EXERCISES IN USER'S LIBRARY:**
-${exercises.length > 0 ? exercises.slice(0, 50).map(e => `- ${e.name} (${e.muscle_group})`).join('\n') : 'No exercises yet.'}
-
-**CREATING NEW CUSTOM EXERCISES:**
-If the user needs an exercise that doesn't exist in their library, CREATE IT with:
-\`\`\`action
-{"action": "create_exercise", "exercises": [{"name": "Exercise Name", "muscle_group": "Chest/Back/Legs/Shoulders/Arms/Core/Cardio/Full Body/Other", "description": "Brief description of how to perform"}]}
-\`\`\`
-
-**USER'S CURRENT SCHEDULED WORKOUTS:**
-${workouts.length > 0 ? workouts.slice(0, 20).map(w =>
+**User's Personal Workouts (not linked to events):**
+${personalWorkouts.length > 0 ? personalWorkouts.slice(0, 15).map(w =>
             `- ID: ${w.id} | "${w.name}" on ${w.scheduled_date}`
-        ).join('\n') : 'No workouts scheduled yet.'}
+        ).join('\n') : 'No personal workouts scheduled yet.'}
 
-**WORKOUT MANAGEMENT ACTIONS:**
-To DELETE workouts: \`\`\`action
-{"action": "delete", "workout_ids": ["id1", "id2"]}
+**Event-Synced Workouts (Can edit - breaks sync for that workout):**
+${eventSyncedWorkouts.length > 0 ? eventSyncedWorkouts.slice(0, 15).map(w =>
+            `- ID: ${w.id} | "${w.name}" on ${w.scheduled_date} [EVENT: ${w.source_event_name}]`
+        ).join('\n') : 'No event workouts synced to schedule.'}
+${eventSyncedWorkouts.length > 0 ? `
+ℹ️ User CAN edit these workouts - it only affects their personal copy.
+Give a brief note: "This is synced from [event]. Editing it will make your copy independent. Proceed?"
+Then make the edit - don't block them.
+` : ''}
+
+**Events User Created (Can Build Master Training Plans):**
+${myCreatedEvents.length > 0 ? myCreatedEvents.map(e =>
+            `- Event ID: ${e.id} | "${e.name}" (${e.event_type}) on ${e.event_date}`
+        ).join('\n') : 'User has not created any events.'}
+${myCreatedEvents.length > 0 ? `
+✅ You CAN help build training plans for these events - changes sync to ALL participants.
+` : ''}
+
+**Events User Is Participating In (Cannot modify master plan, CAN edit their copies):**
+${events.filter(e => e.creator_id !== user?.id && e.is_participating).slice(0, 10).map(e =>
+            `- "${e.name}" by ${e.creator?.display_name || 'Unknown'}`
+        ).join('\n') || 'None.'}
+${events.some(e => e.creator_id !== user?.id && e.is_participating) ? `
+For these events: User cannot change the master training plan, but CAN edit any synced workout on their Home page.
+If they want to change the master plan: "Only the creator can modify the master plan, but I can help you customize your personal copy!"
+` : ''}
+
+**Creating New Custom Exercises:**
+If the user needs an exercise that doesn't exist in their library, create it with:
+\`\`\`action
+{"action": "create_exercise", "exercises": [{"name": "Exercise Name", "muscle_group": "Chest/Back/Legs/Shoulders/Arms/Core/Cardio/Full Body/Other", "description": "Brief description"}]}
 \`\`\`
+`;
 
-To UPDATE a workout: \`\`\`action
-{"action": "update", "workout_id": "id", "updates": {"name": "New Name", "scheduled_date": "2024-12-25"}}
-\`\`\`
-
-**CREATING WORKOUT PLANS (with SPECIFIC weights/reps for user):**
-When creating NEW workouts, include personalized weight and rep recommendations:
-\`\`\`json
-{
-  "plan_name": "Plan Name",
-  "summary": "Methodology description",
-  "weeks": 4,
-  "workouts": [{
-    "name": "Workout Name",
-    "day_of_week": "Monday",
-    "color": "#1e3a5f",
-    "exercises": [
-      {"name": "Bench Press", "sets": 3, "reps": "8-10", "weight": "135 lbs", "notes": "Control the eccentric"},
-      {"name": "Incline DB Press", "sets": 3, "reps": "10-12", "weight": "50 lb DBs", "notes": "Full ROM"}
-    ]
-  }]
-}
-\`\`\`
-
-Be encouraging but honest. Explain the science. Create custom exercises when needed. Always provide specific, personalized recommendations! 🏆`;
+        const systemPrompt = HYBRID_COACH_SYSTEM_PROMPT + userContext;
 
         const contents = conversationMessages.map(msg => ({
             role: msg.role === 'assistant' ? 'model' : 'user',
@@ -615,16 +600,18 @@ Be encouraging but honest. Explain the science. Create custom exercises when nee
                     <View style={[styles.inputWrapper, { backgroundColor: themeColors.inputBg, borderColor: themeColors.inputBorder }]}>
                         <TextInput
                             style={[styles.input, { color: themeColors.textPrimary }]}
-                            placeholder="Coming Soon..."
+                            placeholder="Ask me about your training..."
                             placeholderTextColor={themeColors.textMuted}
-                            value=""
-                            editable={false}
+                            value={inputValue}
+                            onChangeText={setInputValue}
+                            editable={!isLoading}
                             multiline
                             maxLength={1000}
                         />
                         <Pressable
-                            style={[styles.sendBtn, styles.sendBtnDisabled]}
-                            disabled={true}
+                            style={[styles.sendBtn, (!inputValue.trim() || isLoading) && styles.sendBtnDisabled]}
+                            onPress={() => sendMessage(inputValue)}
+                            disabled={!inputValue.trim() || isLoading}
                         >
                             <Feather name="send" size={20} color={inputValue.trim() && !isLoading ? '#fff' : themeColors.textMuted} />
                         </Pressable>

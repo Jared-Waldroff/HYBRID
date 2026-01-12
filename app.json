@@ -14,7 +14,12 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "HYBRID needs access to your photo library to upload photos to your posts and profile.",
+        "NSCameraUsageDescription": "HYBRID needs access to your camera to take photos for your posts.",
+        "NSCalendarsUsageDescription": "HYBRID needs access to your calendar to sync your workouts."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -22,10 +27,31 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "READ_MEDIA_IMAGES",
+        "READ_CALENDAR",
+        "WRITE_CALENDAR"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "HYBRID needs access to your photo library to upload photos to your posts and profile."
+        }
+      ],
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "HYBRID needs access to your calendar to sync your workouts."
+        }
+      ]
+    ]
   }
 }

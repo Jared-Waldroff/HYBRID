@@ -56,7 +56,7 @@ export type RootStackParamList = {
     EventDetail: { id: string };
     ActivityFeed: { eventId?: string };
     CreatePost: { eventId?: string; eventName?: string };
-    ManageEventPlan: { eventId: string; eventName: string; eventDate: string };
+    ManageEventPlan: { eventId: string; eventName: string; eventDate: string; eventType: string };
     CompleteEventWorkout: { trainingWorkoutId: string; eventId: string };
 };
 
@@ -85,7 +85,7 @@ export type SquadStackParamList = {
     CreateEvent: undefined;
     CreatePost: { eventId?: string; eventName?: string };
     EventDetail: { id: string };
-    ManageEventPlan: { eventId: string; eventName: string; eventDate: string };
+    ManageEventPlan: { eventId: string; eventName: string; eventDate: string; eventType: string };
     SquadEvents: undefined;
     ActivityFeed: { eventId?: string };
     CompleteEventWorkout: { trainingWorkoutId: string; eventId: string };

@@ -9,9 +9,11 @@ import {
     Modal,
     TextInput,
     Switch,
+    Platform,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTheme } from '../context/ThemeContext';
 import { useSquadEvents, TrainingWorkout, CreateTrainingWorkoutInput } from '../hooks/useSquadEvents';
 import ScreenLayout from '../components/ScreenLayout';
@@ -20,12 +22,83 @@ import { RootStackParamList } from '../navigation';
 
 type ManagePlanRouteProp = RouteProp<RootStackParamList, 'ManageEventPlan'>;
 
+// Event type categories for adaptive forms
+type EventCategory = 'running' | 'strength' | 'hyrox' | 'crossfit' | 'endurance' | 'custom';
+
+const getEventCategory = (eventType: string): EventCategory => {
+    if (['marathon', 'half_marathon', '5k', '10k', 'trail_running'].includes(eventType)) return 'running';
+    if (['powerlifting'].includes(eventType)) return 'strength';
+    if (['hyrox'].includes(eventType)) return 'hyrox';
+    if (['crossfit'].includes(eventType)) return 'crossfit';
+    if (['triathlon', 'cycling', 'swimming'].includes(eventType)) return 'endurance';
+    return 'custom';
+};
+
+// Workout type options per event category
+const WORKOUT_OPTIONS: Record<EventCategory, { id: string; name: string; icon: string }[]> = {
+    running: [
+        { id: 'easy_run', name: 'Easy Run', icon: 'activity' },
+        { id: 'long_run', name: 'Long Run', icon: 'navigation' },
+        { id: 'tempo', name: 'Tempo Run', icon: 'zap' },
+        { id: 'intervals', name: 'Intervals', icon: 'repeat' },
+        { id: 'recovery', name: 'Recovery', icon: 'heart' },
+        { id: 'race_pace', name: 'Race Pace', icon: 'flag' },
+    ],
+    strength: [
+        { id: 'squat', name: 'Squat Day', icon: 'trending-up' },
+        { id: 'bench', name: 'Bench Day', icon: 'minus' },
+        { id: 'deadlift', name: 'Deadlift Day', icon: 'arrow-up' },
+        { id: 'accessory', name: 'Accessory', icon: 'layers' },
+        { id: 'deload', name: 'Deload', icon: 'sunset' },
+    ],
+    hyrox: [
+        { id: 'running', name: 'Running Segment', icon: 'navigation' },
+        { id: 'skierg', name: 'SkiErg', icon: 'activity' },
+        { id: 'sled_push', name: 'Sled Push', icon: 'arrow-right' },
+        { id: 'sled_pull', name: 'Sled Pull', icon: 'arrow-left' },
+        { id: 'burpee_broad', name: 'Burpee Broad Jump', icon: 'chevrons-up' },
+        { id: 'rowing', name: 'Rowing', icon: 'align-justify' },
+        { id: 'farmers_carry', name: 'Farmers Carry', icon: 'move' },
+        { id: 'lunges', name: 'Sandbag Lunges', icon: 'trending-down' },
+        { id: 'wall_balls', name: 'Wall Balls', icon: 'target' },
+        { id: 'full_sim', name: 'Race Simulation', icon: 'award' },
+    ],
+    crossfit: [
+        { id: 'amrap', name: 'AMRAP', icon: 'repeat' },
+        { id: 'emom', name: 'EMOM', icon: 'clock' },
+        { id: 'for_time', name: 'For Time', icon: 'zap' },
+        { id: 'strength', name: 'Strength', icon: 'trending-up' },
+        { id: 'skill', name: 'Skill Work', icon: 'target' },
+        { id: 'metcon', name: 'MetCon', icon: 'activity' },
+        { id: 'benchmark', name: 'Benchmark', icon: 'award' },
+    ],
+    endurance: [
+        { id: 'swim', name: 'Swim', icon: 'droplet' },
+        { id: 'bike', name: 'Bike', icon: 'disc' },
+        { id: 'run', name: 'Run', icon: 'navigation' },
+        { id: 'brick', name: 'Brick Workout', icon: 'layers' },
+        { id: 'zone2', name: 'Zone 2', icon: 'heart' },
+        { id: 'threshold', name: 'Threshold', icon: 'zap' },
+    ],
+    custom: [
+        { id: 'distance', name: 'Distance', icon: 'navigation' },
+        { id: 'time', name: 'Time-based', icon: 'clock' },
+        { id: 'weight', name: 'Weight', icon: 'trending-up' },
+        { id: 'reps', name: 'Reps', icon: 'repeat' },
+        { id: 'zone', name: 'HR Zone', icon: 'heart' },
+        { id: 'custom', name: 'Custom', icon: 'edit-2' },
+    ],
+};
+
 export default function ManageEventPlanScreen() {
     const navigation = useNavigation();
     const route = useRoute<ManagePlanRouteProp>();
-    const { eventId, eventName, eventDate } = route.params;
+    const { eventId, eventName, eventDate, eventType } = route.params;
     const { themeColors, colors: userColors } = useTheme();
     const { getTrainingPlan, addTrainingWorkout, deleteTrainingWorkout } = useSquadEvents();
+
+    const eventCategory = getEventCategory(eventType);
+    const workoutOptions = WORKOUT_OPTIONS[eventCategory];
 
     const [workouts, setWorkouts] = useState<TrainingWorkout[]>([]);
     const [loading, setLoading] = useState(true);
@@ -35,10 +108,16 @@ export default function ManageEventPlanScreen() {
     // Form State
     const [formName, setFormName] = useState('');
     const [formDesc, setFormDesc] = useState('');
-    const [formType, setFormType] = useState<'distance' | 'time' | 'custom'>('distance');
+    const [formWorkoutType, setFormWorkoutType] = useState(workoutOptions[0]?.id || 'custom');
     const [formValue, setFormValue] = useState('');
     const [formUnit, setFormUnit] = useState('km');
-    const [formDays, setFormDays] = useState('1');
+    const [formDate, setFormDate] = useState<Date>(new Date());
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    // Additional fields for strength/CrossFit
+    const [formSets, setFormSets] = useState('');
+    const [formReps, setFormReps] = useState('');
+    const [formRPE, setFormRPE] = useState('');
+    const [formZone, setFormZone] = useState('zone2');
 
     useEffect(() => {
         loadPlan();
@@ -77,16 +156,36 @@ export default function ManageEventPlanScreen() {
             return;
         }
 
+        // Validate date is before event
+        const eventDateObj = new Date(eventDate);
+        if (formDate >= eventDateObj) {
+            Alert.alert('Error', 'Workout date must be before the event date');
+            return;
+        }
+
         setSubmitting(true);
-        const days = parseInt(formDays) || 1;
+
+        // Calculate days before event from selected date
+        const timeDiff = eventDateObj.getTime() - formDate.getTime();
+        const daysBefore = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+
+        // Map event-specific workout types to generic workout_type
+        const getWorkoutType = (): 'distance' | 'time' | 'weight' | 'reps' | 'zone' | 'custom' => {
+            if (['easy_run', 'long_run', 'tempo', 'intervals', 'race_pace', 'running', 'swim', 'bike', 'run', 'brick'].includes(formWorkoutType)) return 'distance';
+            if (['squat', 'bench', 'deadlift', 'accessory', 'strength'].includes(formWorkoutType)) return 'weight';
+            if (['amrap', 'emom', 'for_time', 'metcon', 'benchmark'].includes(formWorkoutType)) return 'time';
+            if (['zone2', 'threshold', 'recovery'].includes(formWorkoutType)) return 'zone';
+            return 'custom';
+        };
 
         const input: CreateTrainingWorkoutInput = {
-            name: formName.trim(),
+            name: formName.trim() || workoutOptions.find(o => o.id === formWorkoutType)?.name || 'Workout',
             description: formDesc.trim() || undefined,
-            workout_type: formType,
+            workout_type: getWorkoutType(),
             target_value: formValue ? parseFloat(formValue) : undefined,
-            target_unit: formType === 'distance' ? formUnit : undefined,
-            days_before_event: days,
+            target_unit: eventCategory === 'running' || eventCategory === 'endurance' ? formUnit :
+                eventCategory === 'strength' ? 'kg' : undefined,
+            days_before_event: daysBefore,
             color: userColors.accent_color,
             is_required: true,
             order_index: workouts.length,
@@ -108,9 +207,13 @@ export default function ManageEventPlanScreen() {
     const resetForm = () => {
         setFormName('');
         setFormDesc('');
-        setFormType('distance');
+        setFormWorkoutType(workoutOptions[0]?.id || 'custom');
         setFormValue('');
-        setFormDays('1');
+        setFormDate(new Date());
+        setFormSets('');
+        setFormReps('');
+        setFormRPE('');
+        setFormZone('zone2');
     };
 
     const renderWorkoutCard = (workout: TrainingWorkout) => (
@@ -188,54 +291,159 @@ export default function ManageEventPlanScreen() {
                                 />
                             </View>
 
-                            <View style={styles.row}>
-                                <View style={[styles.inputGroup, { flex: 1 }]}>
-                                    <Text style={[styles.label, { color: themeColors.textSecondary }]}>Type</Text>
-                                    <View style={styles.typeRow}>
-                                        {['distance', 'time', 'custom'].map(t => (
-                                            <Pressable
-                                                key={t}
-                                                style={[
-                                                    styles.typeOption,
-                                                    formType === t && { backgroundColor: userColors.accent_color }
-                                                ]}
-                                                onPress={() => setFormType(t as any)}
-                                            >
-                                                <Text style={[
-                                                    styles.typeText,
-                                                    { color: formType === t ? '#fff' : themeColors.textSecondary }
-                                                ]}>{t.charAt(0).toUpperCase() + t.slice(1)}</Text>
-                                            </Pressable>
-                                        ))}
-                                    </View>
+                            {/* Workout Type - Adaptive based on event category */}
+                            <View style={styles.inputGroup}>
+                                <Text style={[styles.label, { color: themeColors.textSecondary }]}>
+                                    Workout Type
+                                </Text>
+                                <View style={styles.workoutTypeGrid}>
+                                    {workoutOptions.map(opt => (
+                                        <Pressable
+                                            key={opt.id}
+                                            style={[
+                                                styles.workoutTypeItem,
+                                                { borderColor: themeColors.divider },
+                                                formWorkoutType === opt.id && {
+                                                    backgroundColor: userColors.accent_color,
+                                                    borderColor: userColors.accent_color
+                                                }
+                                            ]}
+                                            onPress={() => setFormWorkoutType(opt.id)}
+                                        >
+                                            <Feather
+                                                name={opt.icon as any}
+                                                size={16}
+                                                color={formWorkoutType === opt.id ? '#fff' : themeColors.textSecondary}
+                                            />
+                                            <Text style={[
+                                                styles.workoutTypeText,
+                                                { color: formWorkoutType === opt.id ? '#fff' : themeColors.textSecondary }
+                                            ]} numberOfLines={1}>
+                                                {opt.name}
+                                            </Text>
+                                        </Pressable>
+                                    ))}
                                 </View>
                             </View>
 
-                            <View style={styles.row}>
-                                <View style={[styles.inputGroup, { flex: 1 }]}>
-                                    <Text style={[styles.label, { color: themeColors.textSecondary }]}>
-                                        Target {formType === 'distance' ? '(km/mi)' : formType === 'time' ? '(min)' : ''}
+                            {/* Target Value - shows different labels based on category */}
+                            {(eventCategory === 'running' || eventCategory === 'endurance') && (
+                                <View style={styles.row}>
+                                    <View style={[styles.inputGroup, { flex: 1 }]}>
+                                        <Text style={[styles.label, { color: themeColors.textSecondary }]}>
+                                            Distance (km)
+                                        </Text>
+                                        <TextInput
+                                            style={[styles.input, { color: themeColors.textPrimary, borderColor: themeColors.inputBorder || themeColors.divider }]}
+                                            value={formValue}
+                                            onChangeText={setFormValue}
+                                            keyboardType="numeric"
+                                            placeholder="e.g. 10"
+                                            placeholderTextColor={themeColors.textMuted}
+                                        />
+                                    </View>
+                                </View>
+                            )}
+
+                            {eventCategory === 'strength' && (
+                                <View style={styles.row}>
+                                    <View style={[styles.inputGroup, { flex: 1 }]}>
+                                        <Text style={[styles.label, { color: themeColors.textSecondary }]}>Sets</Text>
+                                        <TextInput
+                                            style={[styles.input, { color: themeColors.textPrimary, borderColor: themeColors.inputBorder || themeColors.divider }]}
+                                            value={formSets}
+                                            onChangeText={setFormSets}
+                                            keyboardType="numeric"
+                                            placeholder="5"
+                                            placeholderTextColor={themeColors.textMuted}
+                                        />
+                                    </View>
+                                    <View style={[styles.inputGroup, { flex: 1 }]}>
+                                        <Text style={[styles.label, { color: themeColors.textSecondary }]}>Reps</Text>
+                                        <TextInput
+                                            style={[styles.input, { color: themeColors.textPrimary, borderColor: themeColors.inputBorder || themeColors.divider }]}
+                                            value={formReps}
+                                            onChangeText={setFormReps}
+                                            placeholder="5"
+                                            placeholderTextColor={themeColors.textMuted}
+                                        />
+                                    </View>
+                                    <View style={[styles.inputGroup, { flex: 1 }]}>
+                                        <Text style={[styles.label, { color: themeColors.textSecondary }]}>RPE</Text>
+                                        <TextInput
+                                            style={[styles.input, { color: themeColors.textPrimary, borderColor: themeColors.inputBorder || themeColors.divider }]}
+                                            value={formRPE}
+                                            onChangeText={setFormRPE}
+                                            keyboardType="numeric"
+                                            placeholder="7-8"
+                                            placeholderTextColor={themeColors.textMuted}
+                                        />
+                                    </View>
+                                </View>
+                            )}
+
+                            {(eventCategory === 'crossfit' || eventCategory === 'hyrox') && (
+                                <View style={styles.row}>
+                                    <View style={[styles.inputGroup, { flex: 1 }]}>
+                                        <Text style={[styles.label, { color: themeColors.textSecondary }]}>
+                                            Duration (min)
+                                        </Text>
+                                        <TextInput
+                                            style={[styles.input, { color: themeColors.textPrimary, borderColor: themeColors.inputBorder || themeColors.divider }]}
+                                            value={formValue}
+                                            onChangeText={setFormValue}
+                                            keyboardType="numeric"
+                                            placeholder="e.g. 20"
+                                            placeholderTextColor={themeColors.textMuted}
+                                        />
+                                    </View>
+                                </View>
+                            )}
+
+                            {eventCategory === 'custom' && (
+                                <View style={styles.row}>
+                                    <View style={[styles.inputGroup, { flex: 1 }]}>
+                                        <Text style={[styles.label, { color: themeColors.textSecondary }]}>
+                                            Target Value
+                                        </Text>
+                                        <TextInput
+                                            style={[styles.input, { color: themeColors.textPrimary, borderColor: themeColors.inputBorder || themeColors.divider }]}
+                                            value={formValue}
+                                            onChangeText={setFormValue}
+                                            keyboardType="numeric"
+                                            placeholder="0"
+                                            placeholderTextColor={themeColors.textMuted}
+                                        />
+                                    </View>
+                                </View>
+                            )}
+
+                            <View style={styles.inputGroup}>
+                                <Text style={[styles.label, { color: themeColors.textSecondary }]}>Workout Date</Text>
+                                <Pressable
+                                    style={[styles.input, styles.datePickerBtn, { borderColor: themeColors.inputBorder || themeColors.divider }]}
+                                    onPress={() => setShowDatePicker(true)}
+                                >
+                                    <Feather name="calendar" size={18} color={userColors.accent_color} />
+                                    <Text style={[styles.dateText, { color: themeColors.textPrimary }]}>
+                                        {formDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                                     </Text>
-                                    <TextInput
-                                        style={[styles.input, { color: themeColors.textPrimary, borderColor: themeColors.inputBorder || themeColors.divider }]}
-                                        value={formValue}
-                                        onChangeText={setFormValue}
-                                        keyboardType="numeric"
-                                        placeholder="0"
-                                        placeholderTextColor={themeColors.textMuted}
+                                </Pressable>
+                                {showDatePicker && (
+                                    <DateTimePicker
+                                        value={formDate}
+                                        mode="date"
+                                        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                        minimumDate={new Date()}
+                                        maximumDate={new Date(eventDate)}
+                                        onChange={(event, selectedDate) => {
+                                            setShowDatePicker(Platform.OS === 'ios');
+                                            if (selectedDate) {
+                                                setFormDate(selectedDate);
+                                            }
+                                        }}
                                     />
-                                </View>
-                                <View style={[styles.inputGroup, { flex: 1 }]}>
-                                    <Text style={[styles.label, { color: themeColors.textSecondary }]}>Days Before Event</Text>
-                                    <TextInput
-                                        style={[styles.input, { color: themeColors.textPrimary, borderColor: themeColors.inputBorder || themeColors.divider }]}
-                                        value={formDays}
-                                        onChangeText={setFormDays}
-                                        keyboardType="numeric"
-                                        placeholder="1"
-                                        placeholderTextColor={themeColors.textMuted}
-                                    />
-                                </View>
+                                )}
                             </View>
 
                             <View style={styles.inputGroup}>
@@ -393,6 +601,14 @@ const styles = StyleSheet.create({
         fontSize: typography.sizes.xs,
         fontWeight: typography.weights.medium,
     },
+    datePickerBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.sm,
+    },
+    dateText: {
+        fontSize: typography.sizes.base,
+    },
     submitBtn: {
         marginTop: spacing.md,
         padding: spacing.md,
@@ -403,5 +619,26 @@ const styles = StyleSheet.create({
     submitBtnText: {
         color: '#fff',
         fontWeight: typography.weights.bold,
+    },
+    // Adaptive workout type grid
+    workoutTypeGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: spacing.sm,
+    },
+    workoutTypeItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.xs,
+        paddingVertical: spacing.sm,
+        paddingHorizontal: spacing.md,
+        borderRadius: radii.md,
+        borderWidth: 1,
+        minWidth: '30%',
+    },
+    workoutTypeText: {
+        fontSize: typography.sizes.xs,
+        fontWeight: typography.weights.medium,
+        flexShrink: 1,
     },
 });

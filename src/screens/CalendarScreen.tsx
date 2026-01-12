@@ -13,6 +13,7 @@ import * as Haptics from 'expo-haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useWorkouts } from '../hooks/useWorkouts';
 import ScreenLayout from '../components/ScreenLayout';
+import CalendarSyncModal from '../components/CalendarSyncModal';
 
 const MONTH_NAMES = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -23,11 +24,12 @@ const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function CalendarScreen() {
     const navigation = useNavigation();
-    const { themeColors } = useTheme();
+    const { themeColors, colors: userColors } = useTheme();
     const { workouts, loading } = useWorkouts();
 
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [viewMode, setViewMode] = useState<'month' | 'year'>('month');
+    const [showSyncModal, setShowSyncModal] = useState(false);
 
     // Generate calendar days for the current month
     const calendarDays = useMemo(() => {
@@ -158,26 +160,26 @@ export default function CalendarScreen() {
                     <Pressable
                         style={[
                             styles.toggleBtn,
-                            viewMode === 'month' && styles.toggleBtnActive,
+                            viewMode === 'month' && { backgroundColor: `${userColors.accent_color}15` },
                             { borderColor: themeColors.glassBorder },
                         ]}
                         onPress={() => { setViewMode('month'); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
                     >
-                        <Feather name="calendar" size={16} color={viewMode === 'month' ? '#c9a227' : themeColors.textSecondary} />
-                        <Text style={[styles.toggleText, viewMode === 'month' && styles.toggleTextActive]}>
+                        <Feather name="calendar" size={16} color={viewMode === 'month' ? userColors.accent_color : themeColors.textSecondary} />
+                        <Text style={[styles.toggleText, { color: viewMode === 'month' ? userColors.accent_color : themeColors.textSecondary }]}>
                             Month
                         </Text>
                     </Pressable>
                     <Pressable
                         style={[
                             styles.toggleBtn,
-                            viewMode === 'year' && styles.toggleBtnActive,
+                            viewMode === 'year' && { backgroundColor: `${userColors.accent_color}15` },
                             { borderColor: themeColors.glassBorder },
                         ]}
                         onPress={() => { setViewMode('year'); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
                     >
-                        <Feather name="grid" size={16} color={viewMode === 'year' ? '#c9a227' : themeColors.textSecondary} />
-                        <Text style={[styles.toggleText, viewMode === 'year' && styles.toggleTextActive]}>
+                        <Feather name="grid" size={16} color={viewMode === 'year' ? userColors.accent_color : themeColors.textSecondary} />
+                        <Text style={[styles.toggleText, { color: viewMode === 'year' ? userColors.accent_color : themeColors.textSecondary }]}>
                             Year
                         </Text>
                     </Pressable>
@@ -222,7 +224,7 @@ export default function CalendarScreen() {
                                             key={index}
                                             style={[
                                                 styles.dayCell,
-                                                isTodayDate && styles.todayCell,
+                                                isTodayDate && { backgroundColor: `${userColors.accent_color}33`, borderRadius: 8 },
                                             ]}
                                             onPress={() => handleDayPress(day.date)}
                                         >
@@ -230,7 +232,7 @@ export default function CalendarScreen() {
                                                 style={[
                                                     styles.dayText,
                                                     { color: day.isCurrentMonth ? themeColors.textPrimary : themeColors.textMuted },
-                                                    isTodayDate && styles.todayText,
+                                                    isTodayDate && { color: userColors.accent_color, fontWeight: '700' },
                                                 ]}
                                             >
                                                 {day.date.getDate()}
@@ -242,7 +244,7 @@ export default function CalendarScreen() {
                                                             key={i}
                                                             style={[
                                                                 styles.workoutDot,
-                                                                { backgroundColor: w.color || '#c9a227' },
+                                                                { backgroundColor: w.color || userColors.accent_color },
                                                             ]}
                                                         />
                                                     ))}
@@ -256,10 +258,22 @@ export default function CalendarScreen() {
 
                         {/* Stats Legend */}
                         <View style={[styles.legend, { backgroundColor: themeColors.glassBg, borderColor: themeColors.glassBorder }]}>
-                            <Text style={[styles.legendTitle, { color: themeColors.textPrimary }]}>This Month</Text>
-                            <View style={styles.statsRow}>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Text style={[styles.legendTitle, { color: themeColors.textPrimary, marginBottom: 0 }]}>This Month</Text>
+                                <Pressable
+                                    style={[styles.syncButton, { borderColor: userColors.accent_color }]}
+                                    onPress={() => {
+                                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                        setShowSyncModal(true);
+                                    }}
+                                >
+                                    <Feather name="upload-cloud" size={14} color={userColors.accent_color} />
+                                    <Text style={[styles.syncButtonText, { color: userColors.accent_color }]}>Sync</Text>
+                                </Pressable>
+                            </View>
+                            <View style={[styles.statsRow, { marginTop: 12 }]}>
                                 <View style={styles.statItem}>
-                                    <Text style={[styles.statValue, { color: '#c9a227' }]}>{monthStats.daysWithWorkouts}</Text>
+                                    <Text style={[styles.statValue, { color: userColors.accent_color }]}>{monthStats.daysWithWorkouts}</Text>
                                     <Text style={[styles.statLabel, { color: themeColors.textSecondary }]}>Workout Days</Text>
                                 </View>
                                 <View style={styles.statItem}>
@@ -313,7 +327,7 @@ export default function CalendarScreen() {
                                                     key={day}
                                                     style={[
                                                         styles.miniDay,
-                                                        workoutDays.has(day) && styles.miniDayActive,
+                                                        { backgroundColor: workoutDays.has(day) ? userColors.accent_color : themeColors.glassBorder },
                                                     ]}
                                                 />
                                             ))}
@@ -328,6 +342,13 @@ export default function CalendarScreen() {
                     </View>
                 )}
             </ScrollView>
+
+            {/* Calendar Sync Modal */}
+            <CalendarSyncModal
+                visible={showSyncModal}
+                onClose={() => setShowSyncModal(false)}
+                workouts={workouts}
+            />
         </ScreenLayout>
     );
 }
@@ -360,16 +381,8 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         borderWidth: 1,
     },
-    toggleBtnActive: {
-        backgroundColor: 'rgba(201, 162, 39, 0.15)',
-    },
     toggleText: {
         fontSize: 14,
-        color: 'rgba(255, 255, 255, 0.6)',
-    },
-    toggleTextActive: {
-        color: '#c9a227',
-        fontWeight: '600',
     },
     calendarCard: {
         borderRadius: 16,
@@ -417,17 +430,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 4,
     },
-    todayCell: {
-        backgroundColor: 'rgba(201, 162, 39, 0.2)',
-        borderRadius: 8,
-    },
     dayText: {
         fontSize: 14,
         fontWeight: '500',
-    },
-    todayText: {
-        color: '#c9a227',
-        fontWeight: '700',
     },
     dotsRow: {
         flexDirection: 'row',
@@ -499,12 +504,21 @@ const styles = StyleSheet.create({
         width: 4,
         height: 4,
         borderRadius: 1,
-        backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    },
-    miniDayActive: {
-        backgroundColor: '#c9a227',
     },
     miniMonthCount: {
         fontSize: 9,
+    },
+    syncButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 16,
+        borderWidth: 1,
+    },
+    syncButtonText: {
+        fontSize: 12,
+        fontWeight: '600',
     },
 });

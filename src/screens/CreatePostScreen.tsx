@@ -63,6 +63,18 @@ export default function CreatePostScreen() {
     };
 
     const pickImage = async () => {
+        // Request permission first (required for App Store)
+        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+        if (!permissionResult.granted) {
+            Alert.alert(
+                'Permission Required',
+                'Please allow access to your photo library to add photos to your post.',
+                [{ text: 'OK' }]
+            );
+            return;
+        }
+
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             quality: 0.8,
