@@ -7,10 +7,12 @@ import {
     StyleSheet,
     ActivityIndicator,
     Alert,
+    Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { useAuth } from '../context/AuthContext';
+import GradientBackground from '../components/GradientBackground';
 
 export default function LoginScreen() {
     const { signIn, signUp, resetPassword } = useAuth();
@@ -86,14 +88,17 @@ export default function LoginScreen() {
 
     return (
         <SafeAreaView style={styles.container}>
+            <GradientBackground />
             <View style={styles.content}>
                 {/* Header */}
                 <View style={styles.header}>
-                    <Text style={styles.emoji}>💪</Text>
+                    <Image
+                        source={require('../../assets/icon.png')}
+                        style={styles.logoIcon}
+                        resizeMode="contain"
+                    />
                     <Text style={styles.title}>HYBRID</Text>
-                    <Text style={styles.subtitle}>
-                        {isSignUp ? 'Create your account' : 'Welcome back, athlete'}
-                    </Text>
+                    <Text style={styles.tagline}>Out lift the runners, out run the lifters</Text>
                 </View>
 
                 {/* Form */}
@@ -202,19 +207,25 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 32,
     },
-    emoji: {
-        fontSize: 64,
+    logoIcon: {
+        width: 100,
+        height: 100,
         marginBottom: 16,
+        borderRadius: 20,
     },
     title: {
-        fontSize: 32,
+        fontSize: 36,
         fontWeight: '700',
+        fontFamily: 'Inter_700Bold',
         color: '#ffffff',
-        marginBottom: 4,
+        letterSpacing: 2,
+        marginBottom: 8,
     },
-    subtitle: {
-        fontSize: 18,
-        color: 'rgba(255,255,255,0.75)',
+    tagline: {
+        fontSize: 14,
+        fontFamily: 'Inter_500Medium',
+        color: 'rgba(255,255,255,0.6)',
+        fontStyle: 'italic',
     },
     form: {
         gap: 16,
@@ -225,6 +236,7 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 14,
         fontWeight: '500',
+        fontFamily: 'Inter_500Medium',
         color: 'rgba(255,255,255,0.75)',
     },
     input: {
@@ -235,11 +247,13 @@ const styles = StyleSheet.create({
         borderColor: 'rgba(201,162,39,0.2)',
         borderRadius: 12,
         fontSize: 16,
+        fontFamily: 'Inter_400Regular',
         color: '#ffffff',
     },
     error: {
         color: '#ef4444',
         fontSize: 14,
+        fontFamily: 'Inter_400Regular',
         textAlign: 'center',
     },
     button: {
@@ -254,6 +268,7 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 16,
         fontWeight: '600',
+        fontFamily: 'Inter_600SemiBold',
     },
     linkButton: {
         minHeight: 48,
@@ -262,11 +277,13 @@ const styles = StyleSheet.create({
     },
     linkText: {
         fontSize: 14,
+        fontFamily: 'Inter_400Regular',
         color: 'rgba(255,255,255,0.75)',
     },
     linkTextAccent: {
         fontSize: 14,
         fontWeight: '600',
+        fontFamily: 'Inter_600SemiBold',
         color: '#c9a227',
     },
     toggleContainer: {
@@ -278,6 +295,7 @@ const styles = StyleSheet.create({
     },
     toggleText: {
         fontSize: 14,
+        fontFamily: 'Inter_400Regular',
         color: 'rgba(255,255,255,0.75)',
     },
 });
