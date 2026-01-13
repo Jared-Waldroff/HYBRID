@@ -23,6 +23,10 @@ import { useExercises } from '../hooks/useExercises';
 import { useSquadEvents } from '../hooks/useSquadEvents';
 import ScreenLayout from '../components/ScreenLayout';
 import { HYBRID_COACH_SYSTEM_PROMPT } from '../lib/geminiClient';
+import { useRevenueCat } from '../hooks/useRevenueCat';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation';
 
 const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
 
@@ -83,6 +87,26 @@ export default function CoachScreen() {
     const [keyboardHeight, setKeyboardHeight] = useState(0);
     const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
 
+    // RevenueCat Integration
+    const { isPro, isLoading: isPurchasesLoading } = useRevenueCat();
+    const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+    useEffect(() => {
+        if (!isPurchasesLoading && !isPro) {
+            navigation.navigate('Paywall');
+        }
+    }, [isPro, isPurchasesLoading]);
+
+
+
+    const getInitialGreeting = async () => {
+        const greeting: Message = {
+            role: 'assistant',
+            content: `Hey! I'm your AI Coach. 💪\n\n⚠️ **Disclaimer**: I provide general fitness information, not medical advice. Consult a healthcare provider before starting any program, especially with injuries or medical conditions.\n\nTo build your personalized program, tell me:\n\n1. **What's your main goal?** (Strength, muscle, endurance, fat loss?)\n2. **How many days per week can you train?**\n3. **How long per session?** (45 min, 60 min, 90 min?)\n4. **Any injuries or limitations?**\n\nLet's build something great!`
+        };
+        setMessages([greeting]);
+    };
+
     const scrollViewRef = useRef<ScrollView>(null);
 
     // Listen for keyboard events and use LayoutAnimation for native-speed sync
@@ -131,13 +155,18 @@ export default function CoachScreen() {
         }
     }, []);
 
-    const getInitialGreeting = async () => {
-        const greeting: Message = {
-            role: 'assistant',
-            content: `Hey! I'm your AI Coach. 💪\n\n⚠️ **Disclaimer**: I provide general fitness information, not medical advice. Consult a healthcare provider before starting any program, especially with injuries or medical conditions.\n\nTo build your personalized program, tell me:\n\n1. **What's your main goal?** (Strength, muscle, endurance, fat loss?)\n2. **How many days per week can you train?**\n3. **How long per session?** (45 min, 60 min, 90 min?)\n4. **Any injuries or limitations?**\n\nLet's build something great!`
-        };
-        setMessages([greeting]);
-    };
+    // Block interaction while loading or if not pro
+    if (isPurchasesLoading) {
+        return (
+            <ScreenLayout hideHeader>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <ActivityIndicator size="large" color="#c9a227" />
+                </View>
+            </ScreenLayout>
+        );
+    }
+
+
 
     const sendMessage = async (content: string) => {
         if (!content.trim() || isLoading) return;

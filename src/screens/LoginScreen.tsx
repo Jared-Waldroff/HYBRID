@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
+import * as SecureStore from 'expo-secure-store';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import GradientBackground from '../components/GradientBackground';
 
@@ -21,8 +23,28 @@ export default function LoginScreen() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [username, setUsername] = useState('');
+    const [rememberMe, setRememberMe] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+
+    useEffect(() => {
+        loadRememberedCredentials();
+    }, []);
+
+    const loadRememberedCredentials = async () => {
+        try {
+            const savedEmail = await SecureStore.getItemAsync('remembered_user_email');
+            const savedPassword = await SecureStore.getItemAsync('remembered_user_password');
+
+            if (savedEmail && savedPassword) {
+                setEmail(savedEmail);
+                setPassword(savedPassword);
+                setRememberMe(true);
+            }
+        } catch (error) {
+            console.log('Error loading saved credentials:', error);
+        }
+    };
 
     const handleSubmit = async () => {
         if (!email || !password) {
@@ -40,6 +62,15 @@ export default function LoginScreen() {
 
         try {
             await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+            // Handle Remember Me
+            if (rememberMe) {
+                await SecureStore.setItemAsync('remembered_user_email', email);
+                await SecureStore.setItemAsync('remembered_user_password', password);
+            } else {
+                await SecureStore.deleteItemAsync('remembered_user_email');
+                await SecureStore.deleteItemAsync('remembered_user_password');
+            }
 
             if (isSignUp) {
                 const { error: signUpError } = await signUp(email, password, username);
@@ -69,6 +100,7 @@ export default function LoginScreen() {
         }
     };
 
+
     const handleForgotPassword = async () => {
         if (!email) {
             Alert.alert('Enter your email', 'Please enter your email address first');
@@ -90,14 +122,12 @@ export default function LoginScreen() {
         <SafeAreaView style={styles.container}>
             <GradientBackground />
             <View style={styles.content}>
-                {/* Header */}
                 <View style={styles.header}>
                     <Image
-                        source={require('../../assets/icon.png')}
-                        style={styles.logoIcon}
+                        source={require('../../assets/hybrid-logo.png')}
+                        style={styles.logoImage}
                         resizeMode="contain"
                     />
-                    <Text style={styles.title}>HYBRID</Text>
                     <Text style={styles.tagline}>Out lift the runners, out run the lifters</Text>
                 </View>
 
@@ -146,6 +176,22 @@ export default function LoginScreen() {
                         />
                     </View>
 
+                    {/* Remember Me Toggle */}
+                    {!isSignUp && (
+                        <Pressable
+                            style={styles.rememberMeContainer}
+                            onPress={() => {
+                                Haptics.selectionAsync();
+                                setRememberMe(!rememberMe);
+                            }}
+                        >
+                            <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
+                                {rememberMe && <Feather name="check" size={12} color="#0a141f" />}
+                            </View>
+                            <Text style={styles.rememberMeText}>Remember me</Text>
+                        </Pressable>
+                    )}
+
                     {error ? <Text style={styles.error}>{error}</Text> : null}
 
                     {/* Submit Button */}
@@ -162,6 +208,8 @@ export default function LoginScreen() {
                             </Text>
                         )}
                     </Pressable>
+
+
 
                     {/* Forgot Password */}
                     {!isSignUp && (
@@ -207,11 +255,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 32,
     },
-    logoIcon: {
-        width: 100,
-        height: 100,
-        marginBottom: 16,
-        borderRadius: 20,
+    logoImage: {
+        width: 320,
+        height: 92,
+        marginBottom: 24,
     },
     title: {
         fontSize: 36,
@@ -294,6 +341,30 @@ const styles = StyleSheet.create({
         marginTop: 16,
     },
     toggleText: {
+        fontSize: 14,
+        fontFamily: 'Inter_400Regular',
+        color: 'rgba(255,255,255,0.75)',
+    },
+    rememberMeContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        marginLeft: 4,
+    },
+    checkbox: {
+        width: 20,
+        height: 20,
+        borderRadius: 6,
+        borderWidth: 1.5,
+        borderColor: 'rgba(255,255,255,0.4)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    checkboxChecked: {
+        backgroundColor: '#c9a227', // Gold accent
+        borderColor: '#c9a227',
+    },
+    rememberMeText: {
         fontSize: 14,
         fontFamily: 'Inter_400Regular',
         color: 'rgba(255,255,255,0.75)',

@@ -420,31 +420,7 @@ export default function SettingsScreen() {
                             />
                         </View>
 
-                        {/* Private Profile Toggle */}
-                        <View style={[styles.settingsRow, { backgroundColor: themeColors.inputBg }]}>
-                            <View style={styles.settingsRowLeft}>
-                                <View style={[styles.iconContainer, { backgroundColor: userColors.accent_color }]}>
-                                    <Feather name="lock" size={18} color="#fff" />
-                                </View>
-                                <View>
-                                    <Text style={[styles.settingsLabel, { color: themeColors.textPrimary }]}>
-                                        Private Profile
-                                    </Text>
-                                    <Text style={[styles.settingsSubLabel, { color: themeColors.textMuted }]}>
-                                        Hide workouts from followers
-                                    </Text>
-                                </View>
-                            </View>
-                            <Switch
-                                value={profile?.is_private ?? false}
-                                onValueChange={(value) => {
-                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                    updateProfile({ is_private: value });
-                                }}
-                                trackColor={{ false: themeColors.inputBorder, true: userColors.accent_color }}
-                                ios_backgroundColor={themeColors.inputBorder}
-                            />
-                        </View>
+
                     </View>
                 </View>
 
@@ -469,7 +445,8 @@ export default function SettingsScreen() {
 
                 {/* App Info */}
                 <View style={styles.appInfo}>
-                    <Text style={[styles.appName, { color: themeColors.textMuted }]}>Workout Tracker</Text>
+                    <Text style={[styles.appName, { color: themeColors.textMuted }]}>HYBRID</Text>
+                    <Text style={[styles.appVersion, { color: themeColors.textMuted, marginTop: 4 }]}>Walsan Software</Text>
                     <Text style={[styles.appVersion, { color: themeColors.textMuted }]}>Version 1.0.0</Text>
                 </View>
             </ScrollView>
@@ -626,7 +603,7 @@ const styles = StyleSheet.create({
     },
     appInfo: {
         alignItems: 'center',
-        paddingVertical: spacing.xl,
+        paddingVertical: spacing.md,
     },
     appName: {
         fontSize: typography.sizes.sm,

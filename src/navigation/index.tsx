@@ -36,6 +36,7 @@ import ActivityFeedScreen from '../screens/ActivityFeedScreen';
 import CompleteEventWorkoutScreen from '../screens/CompleteEventWorkoutScreen';
 import NotificationSettingsScreen from '../screens/NotificationSettingsScreen';
 import ManageEventPlanScreen from '../screens/ManageEventPlanScreen';
+import PaywallScreen from '../screens/PaywallScreen';
 
 // Type definitions for navigation
 export type RootStackParamList = {
@@ -58,6 +59,7 @@ export type RootStackParamList = {
     CreatePost: { eventId?: string; eventName?: string };
     ManageEventPlan: { eventId: string; eventName: string; eventDate: string; eventType: string };
     CompleteEventWorkout: { trainingWorkoutId: string; eventId: string };
+    Paywall: undefined;
 };
 
 export type MainTabParamList = {
@@ -371,6 +373,14 @@ function AppStack() {
             <Stack.Screen name="Settings" component={SettingsScreen} />
             {/* Squad Events moved to SquadStack */}
             <Stack.Screen name="NotificationSettings" component={NotificationSettingsScreen} />
+            <Stack.Screen
+                name="Paywall"
+                component={PaywallScreen}
+                options={{
+                    presentation: 'modal',
+                    animation: 'slide_from_bottom'
+                }}
+            />
         </Stack.Navigator>
     );
 }
