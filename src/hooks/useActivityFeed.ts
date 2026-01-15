@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 
@@ -85,13 +85,50 @@ export interface CreatePostInput {
     photo_urls?: string[];
 }
 
+// Cache for user profiles to avoid repeated queries
+const profileCache = new Map<string, { display_name: string; avatar_url: string; cachedAt: number }>();
+const PROFILE_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 export function useActivityFeed() {
     const { user } = useAuth();
     const [feed, setFeed] = useState<FeedPost[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Load activity feed
+    // Store allowed IDs for realtime filtering
+    const allowedIdsRef = useRef<string[]>([]);
+
+    // Helper to get cached profiles or fetch missing ones
+    const getProfiles = useCallback(async (userIds: string[]) => {
+        const now = Date.now();
+        const cached: Map<string, { display_name: string; avatar_url: string }> = new Map();
+        const missing: string[] = [];
+
+        for (const id of userIds) {
+            const cachedProfile = profileCache.get(id);
+            if (cachedProfile && (now - cachedProfile.cachedAt) < PROFILE_CACHE_TTL) {
+                cached.set(id, { display_name: cachedProfile.display_name, avatar_url: cachedProfile.avatar_url });
+            } else {
+                missing.push(id);
+            }
+        }
+
+        if (missing.length > 0) {
+            const { data: profiles } = await supabase
+                .from('athlete_profiles')
+                .select('user_id, display_name, avatar_url')
+                .in('user_id', missing);
+
+            for (const p of (profiles || [])) {
+                profileCache.set(p.user_id, { ...p, cachedAt: now });
+                cached.set(p.user_id, { display_name: p.display_name, avatar_url: p.avatar_url });
+            }
+        }
+
+        return cached;
+    }, []);
+
+    // Load activity feed - OPTIMIZED: Reduced nested queries, parallel requests
     const loadFeed = useCallback(async (eventId?: string, limit: number = 50) => {
         if (!user) return;
 
@@ -99,10 +136,30 @@ export function useActivityFeed() {
             setLoading(true);
             setError(null);
 
+            // OPTIMIZATION 1: Fetch squad IDs first (needed for filtering)
+            let allowedIds: string[] = [user.id];
+            if (!eventId) {
+                const { data: squadIds } = await supabase.rpc('get_squad_ids', { p_user_id: user.id });
+                allowedIds = [user.id, ...(squadIds?.map((c: any) => c.member_id) || [])];
+            }
+            allowedIdsRef.current = allowedIds;
+
+            // OPTIMIZATION 2: Simplified initial query - don't fetch deep nested workout data
+            // Fetch workout details lazily when user taps on a post
             let query = supabase
                 .from('activity_feed')
                 .select(`
-                    *,
+                    id,
+                    user_id,
+                    event_id,
+                    completion_id,
+                    workout_id,
+                    caption,
+                    photo_urls,
+                    lfg_count,
+                    comment_count,
+                    created_at,
+                    updated_at,
                     event:squad_events(name, event_type),
                     completion:event_workout_completions(
                         actual_value,
@@ -119,19 +176,12 @@ export function useActivityFeed() {
                             color,
                             target_zone
                         )
-
                     ),
                     workout:workouts(
                         id,
                         name,
                         color,
-                        is_completed,
-                        workout_exercises(
-                            id,
-                            order_index,
-                            exercise:exercises(name),
-                            sets(id, weight, reps, is_completed)
-                        )
+                        is_completed
                     )
                 `)
                 .order('created_at', { ascending: false })
@@ -140,62 +190,83 @@ export function useActivityFeed() {
             if (eventId) {
                 query = query.eq('event_id', eventId);
             } else {
-                // If no eventId, only show posts from my Squad (and myself)
-                // Filter by users in my squad (accepted status)
-                const { data: squadIds } = await supabase.rpc('get_squad_ids', { p_user_id: user.id });
-                const allowedIds = [user.id, ...(squadIds?.map((c: any) => c.member_id) || [])];
-
                 query = query.in('user_id', allowedIds);
             }
 
-            const { data, error: fetchError } = await query;
+            // OPTIMIZATION 3: Run queries in parallel
+            const [feedResult, reactionsResult] = await Promise.all([
+                query,
+                // Only fetch user's reactions, not all users
+                supabase
+                    .from('feed_reactions')
+                    .select('post_id')
+                    .eq('user_id', user.id)
+                    .eq('reaction_type', 'lfg')
+            ]);
 
-            if (fetchError) throw fetchError;
+            if (feedResult.error) throw feedResult.error;
 
-            // Get user profiles separately
-            const userIds = [...new Set((data || []).map(p => p.user_id))];
-            const { data: profiles } = await supabase
-                .from('athlete_profiles')
-                .select('user_id, display_name, avatar_url')
-                .in('user_id', userIds);
+            const data = feedResult.data || [];
+            const lfgPostIds = new Set(reactionsResult.data?.map(r => r.post_id) || []);
 
-            const profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
+            // OPTIMIZATION 4: Use cached profiles
+            const userIds = [...new Set(data.map(p => p.user_id))];
+            const profileMap = await getProfiles(userIds);
 
-            // Check which posts current user has LFG'd
-            const postIds = (data || []).map(p => p.id);
-            const { data: reactions } = await supabase
-                .from('feed_reactions')
-                .select('post_id')
-                .eq('user_id', user.id)
-                .in('post_id', postIds);
+            const postsWithData = data.map(post => ({
+                ...post,
+                user: profileMap.get(post.user_id),
+                has_lfg: lfgPostIds.has(post.id),
+            }));
 
-            const lfgPostIds = new Set(reactions?.map(r => r.post_id) || []);
-
-            const postsWithLfg = (data || []).map(post => {
-                if (post.workout && post.workout.workout_exercises) {
-                    post.workout.workout_exercises.sort((a: any, b: any) => (a.order_index || 0) - (b.order_index || 0));
-                }
-                return {
-                    ...post,
-                    user: profileMap.get(post.user_id),
-                    has_lfg: lfgPostIds.has(post.id),
-                };
-            });
-
-            if (postsWithLfg.length > 0) {
-                // Debug log removed
-            }
-
-            setFeed(postsWithLfg);
+            setFeed(postsWithData);
         } catch (err: any) {
             console.error('Error loading feed:', err);
             setError(err.message);
         } finally {
             setLoading(false);
         }
-    }, [user]);
+    }, [user, getProfiles]);
 
-    // Create a new post
+    // OPTIMIZATION 5: Lazy load workout details when needed
+    const loadWorkoutDetails = useCallback(async (workoutId: string) => {
+        const { data, error } = await supabase
+            .from('workouts')
+            .select(`
+                id,
+                name,
+                color,
+                is_completed,
+                workout_exercises(
+                    id,
+                    order_index,
+                    exercise:exercises(name),
+                    sets(id, weight, reps, is_completed)
+                )
+            `)
+            .eq('id', workoutId)
+            .single();
+
+        if (error) {
+            console.error('Error loading workout details:', error);
+            return null;
+        }
+
+        // Sort exercises by order_index
+        if (data?.workout_exercises) {
+            data.workout_exercises.sort((a: any, b: any) => (a.order_index || 0) - (b.order_index || 0));
+        }
+
+        // Update the feed item with full workout data
+        setFeed(prev => prev.map(p =>
+            p.workout_id === workoutId
+                ? { ...p, workout: data }
+                : p
+        ));
+
+        return data;
+    }, []);
+
     // Create a new post
     const createPost = useCallback(async (
         input: CreatePostInput
@@ -207,7 +278,7 @@ export function useActivityFeed() {
                 .from('activity_feed')
                 .insert({
                     user_id: user.id,
-                    event_id: input.event_id || null, // Allow null for general posts
+                    event_id: input.event_id || null,
                     completion_id: input.completion_id || null,
                     workout_id: input.workout_id || null,
                     caption: input.caption || null,
@@ -254,7 +325,6 @@ export function useActivityFeed() {
         if (!user) return { error: 'Not authenticated' };
 
         try {
-            // Check if already LFG'd
             const post = feed.find(p => p.id === postId);
 
             if (post?.has_lfg) {
@@ -310,14 +380,9 @@ export function useActivityFeed() {
 
             if (fetchError) throw fetchError;
 
-            // Get user profiles
+            // Get user profiles (use cache)
             const userIds = (data || []).map(c => c.user_id);
-            const { data: profiles } = await supabase
-                .from('athlete_profiles')
-                .select('user_id, display_name, avatar_url')
-                .in('user_id', userIds);
-
-            const profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
+            const profileMap = await getProfiles(userIds);
 
             return (data || []).map(comment => ({
                 ...comment,
@@ -327,7 +392,7 @@ export function useActivityFeed() {
             console.error('Error getting comments:', err);
             return [];
         }
-    }, []);
+    }, [getProfiles]);
 
     // Add a comment
     const addComment = useCallback(async (
@@ -349,14 +414,9 @@ export function useActivityFeed() {
 
             if (insertError) throw insertError;
 
-            // Get user profile
-            const { data: profile } = await supabase
-                .from('athlete_profiles')
-                .select('display_name, avatar_url')
-                .eq('user_id', user.id)
-                .single();
-
-            const commentWithUser = { ...data, user: profile };
+            // Get user profile from cache
+            const profileMap = await getProfiles([user.id]);
+            const commentWithUser = { ...data, user: profileMap.get(user.id) };
 
             // Update comment count in local state
             setFeed(prev => prev.map(p =>
@@ -370,7 +430,7 @@ export function useActivityFeed() {
             console.error('Error adding comment:', err);
             return { comment: null, error: err.message };
         }
-    }, [user]);
+    }, [user, getProfiles]);
 
     // Delete a comment
     const deleteComment = useCallback(async (
@@ -413,21 +473,18 @@ export function useActivityFeed() {
 
             if (fetchError) throw fetchError;
 
-            // Get user profiles
+            // Get user profiles (use cache)
             const userIds = (data || []).map(r => r.user_id);
-            const { data: profiles } = await supabase
-                .from('athlete_profiles')
-                .select('display_name, avatar_url')
-                .in('user_id', userIds);
+            const profileMap = await getProfiles(userIds);
 
-            return profiles || [];
+            return Array.from(profileMap.values());
         } catch (err: any) {
             console.error('Error getting LFG users:', err);
             return [];
         }
-    }, []);
+    }, [getProfiles]);
 
-    // Subscribe to realtime feed updates
+    // OPTIMIZATION 6: Realtime subscription with user filter
     useEffect(() => {
         if (!user) return;
 
@@ -439,6 +496,10 @@ export function useActivityFeed() {
                     event: 'INSERT',
                     schema: 'public',
                     table: 'activity_feed',
+                    // Only subscribe to posts from allowed users (reduces realtime load)
+                    filter: allowedIdsRef.current.length > 0
+                        ? `user_id=in.(${allowedIdsRef.current.join(',')})`
+                        : undefined,
                 },
                 (payload) => {
                     // Refresh feed when new post is added
@@ -457,6 +518,7 @@ export function useActivityFeed() {
         loading,
         error,
         loadFeed,
+        loadWorkoutDetails, // NEW: Lazy load workout details
         createPost,
         deletePost,
         toggleLfg,
