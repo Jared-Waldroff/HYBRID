@@ -72,8 +72,6 @@ describe('useWorkouts', () => {
     });
 
     it('deletes a workout with optimistic update', async () => {
-        mockSupabase.eq.mockResolvedValueOnce(mockSupabaseResponse(null));
-
         const { result } = renderHook(() => useWorkouts(), {
             wrapper: MockAuthProvider,
         });
@@ -84,6 +82,9 @@ describe('useWorkouts', () => {
         });
 
         const initialCount = result.current.workouts.length;
+
+        // Set up the delete mock AFTER initial fetch completes
+        mockSupabase.eq.mockResolvedValueOnce(mockSupabaseResponse(null));
 
         // Delete
         await act(async () => {

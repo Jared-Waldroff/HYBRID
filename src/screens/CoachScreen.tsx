@@ -21,9 +21,13 @@ import { useAuth } from '../context/AuthContext';
 import { useWorkouts } from '../hooks/useWorkouts';
 import { useExercises } from '../hooks/useExercises';
 import { useSquadEvents } from '../hooks/useSquadEvents';
+import { useTrainingTemplates } from '../hooks/useTrainingTemplates';
+import { useAthleteProfile } from '../hooks/useAthleteProfile';
+import { useUserStats } from '../hooks/useUserStats';
+import LiabilityWaiverModal from '../components/LiabilityWaiverModal';
 import ScreenLayout from '../components/ScreenLayout';
-import { HYBRID_COACH_SYSTEM_PROMPT } from '../lib/geminiClient';
-import { useRevenueCat } from '../hooks/useRevenueCat';
+import { buildDynamicPromptAsync, detectTrainingIntent } from '../lib/coachKnowledge';
+import { useRevenueCat } from '../context/RevenueCatContext';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation';
@@ -31,8 +35,13 @@ import { RootStackParamList } from '../navigation';
 const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
 
 interface Message {
+    id: string;
     role: 'user' | 'assistant';
     content: string;
+    workoutPlan?: WorkoutPlan;
+    pendingAction?: PendingAction;
+    actionCompleted?: boolean;
+    actionSuccess?: boolean;
 }
 
 interface WorkoutExercise {
@@ -61,19 +70,33 @@ interface WorkoutPlan {
 }
 
 interface PendingAction {
-    type: 'create' | 'delete' | 'update';
-    plan?: WorkoutPlan;
+    type: 'delete' | 'update' | 'log_workout' | 'add_exercise' | 'remove_exercise';
     workoutIds?: string[];
     workoutNames?: string[];
     updateData?: { workout_id: string; updates: any };
+    data?: any;
+    summary?: string;
 }
 
 export default function CoachScreen() {
     const { themeColors, colors: userColors } = useTheme();
     const { user } = useAuth();
-    const { workouts, createWorkout, deleteWorkout, updateWorkout, fetchWorkouts } = useWorkouts();
+    const {
+        workouts,
+        createWorkout,
+        deleteWorkout,
+        updateWorkout,
+        fetchWorkouts,
+        addExercisesToWorkout,
+        removeExerciseFromWorkout
+    } = useWorkouts();
     const { exercises, createExercise, fetchExercises } = useExercises();
     const { events } = useSquadEvents();
+    const { templates, formatTemplatesForAI } = useTrainingTemplates();
+    const { profile, updateProfile } = useAthleteProfile();
+    const { stats, fetchStats } = useUserStats();
+    const [showLiabilityModal, setShowLiabilityModal] = useState(false);
+    const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
 
     // Filter events created by this user
     const myCreatedEvents = events.filter(e => e.creator_id === user?.id);
@@ -81,33 +104,132 @@ export default function CoachScreen() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [workoutPlan, setWorkoutPlan] = useState<WorkoutPlan | null>(null);
-    const [isAddingWorkouts, setIsAddingWorkouts] = useState(false);
-    const [addSuccess, setAddSuccess] = useState(false);
     const [keyboardHeight, setKeyboardHeight] = useState(0);
-    const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
+    const [processingActionId, setProcessingActionId] = useState<string | null>(null);
+
+    // Helper to generate IDs
+    const genId = () => Date.now().toString() + Math.random().toString(36).substr(2, 9);
 
     // RevenueCat Integration
     const { isPro, isLoading: isPurchasesLoading } = useRevenueCat();
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-    useEffect(() => {
-        if (!isPurchasesLoading && !isPro) {
-            navigation.navigate('Paywall');
-        }
-    }, [isPro, isPurchasesLoading]);
-
 
 
     const getInitialGreeting = async () => {
         const greeting: Message = {
+            id: genId(),
             role: 'assistant',
-            content: `Hey! I'm your AI Coach. 💪\n\n⚠️ **Disclaimer**: I provide general fitness information, not medical advice. Consult a healthcare provider before starting any program, especially with injuries or medical conditions.\n\nTo build your personalized program, tell me:\n\n1. **What's your main goal?** (Strength, muscle, endurance, fat loss?)\n2. **How many days per week can you train?**\n3. **How long per session?** (45 min, 60 min, 90 min?)\n4. **Any injuries or limitations?**\n\nLet's build something great!`
+            content: `Welcome to the HYBRID AI Coach! 🚀\n\nI can help you in two ways:\n\n1. Build a New Program\nDesign a training block tailored to your exact goal using proven methodologies.\nExamples:\n- "Build me an 8-week Hyrox prep program."\n- "I want to get better at CrossFit gymnastics."\n- "Create a 3-day powerlifting split."\n- "Prepare me for a sub-4 hour marathon."\n\n2. Manage Your Training\nHandle your day-to-day logging and schedule adjustments.\nExamples:\n- "I just ran 5k in 24 mins, please log it."\n- "Add 3 sets of bench press to today's workout."\n- "Push all my workouts back by one day."\n- "I hurt my shoulder, can we swap overhead press for something else?"\n\nWhat would you like to work on today?`
         };
         setMessages([greeting]);
     };
 
     const scrollViewRef = useRef<ScrollView>(null);
+
+    const handleConfirmAction = async (msgId: string, action: PendingAction) => {
+        setProcessingActionId(msgId);
+
+        try {
+            if (action.type === 'delete' && action.workoutIds) {
+                for (const workoutId of action.workoutIds) {
+                    await deleteWorkout(workoutId);
+                }
+            } else if (action.type === 'update' && action.updateData) {
+                await updateWorkout(action.updateData.workout_id, action.updateData.updates);
+            } else if (action.type === 'log_workout' && action.data) {
+                const actionData = action.data;
+                const exerciseIds = [];
+                const customSets: any = {};
+
+                if (actionData.exercises) {
+                    for (const ex of actionData.exercises) {
+                        let exId = findExerciseId(ex.name);
+                        if (!exId) {
+                            const { data: newEx } = await createExercise({ name: ex.name, muscle_group: 'Other' });
+                            if (newEx) exId = newEx.id;
+                        }
+                        if (exId) {
+                            exerciseIds.push(exId);
+                            customSets[exId] = Array(ex.sets || 3).fill({
+                                weight: parseFloat(ex.weight?.toString() || '0') || 0,
+                                reps: parseFloat(ex.reps?.toString() || '0') || 0,
+                                is_completed: true
+                            });
+                        }
+                    }
+                }
+                await createWorkout({
+                    name: actionData.name || 'Ad-Hoc Workout',
+                    scheduled_date: actionData.date || new Date().toISOString().split('T')[0],
+                    color: '#3b82f6'
+                }, exerciseIds, customSets);
+            } else if (action.type === 'add_exercise' && action.data) {
+                const actionData = action.data;
+                const exerciseIds = [];
+                const customSets: any = {};
+                if (actionData.exercises) {
+                    for (const ex of actionData.exercises) {
+                        let exId = findExerciseId(ex.name);
+                        if (!exId) {
+                            const { data: newEx } = await createExercise({ name: ex.name, muscle_group: 'Other' });
+                            if (newEx) exId = newEx.id;
+                        }
+                        if (exId) {
+                            exerciseIds.push(exId);
+                            customSets[exId] = Array(ex.sets || 3).fill({
+                                weight: parseFloat(ex.weight?.toString() || '0') || 0,
+                                reps: parseFloat(ex.reps?.toString() || '0') || 0,
+                                is_completed: false
+                            });
+                        }
+                    }
+                }
+                await addExercisesToWorkout(actionData.workout_id, exerciseIds, customSets);
+            } else if (action.type === 'remove_exercise' && action.data) {
+                const exId = findExerciseId(action.data.exercise_name);
+                if (exId) {
+                    await removeExerciseFromWorkout(action.data.workout_id, exId);
+                }
+            }
+
+            await fetchWorkouts();
+            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+            // Mark action as completed in history
+            setMessages(prev => prev.map(m => m.id === msgId ? { ...m, actionCompleted: true, actionSuccess: true } : m));
+
+        } catch (e) {
+            console.error(e);
+            Alert.alert('Error', 'Failed to execute action.');
+        } finally {
+            setProcessingActionId(null);
+        }
+    };
+
+
+    // Check for liability waiver agreement
+    useEffect(() => {
+        if (!isPurchasesLoading && isPro && profile) {
+            // If user hasn't agreed to terms yet, show modal
+            if (!profile.agreed_to_terms_at) {
+                setShowLiabilityModal(true);
+            }
+        }
+    }, [isPurchasesLoading, isPro, profile]);
+
+    const handleAgreeToTerms = async () => {
+        setIsUpdatingProfile(true);
+        const { error } = await updateProfile({ agreed_to_terms_at: new Date().toISOString() });
+        setIsUpdatingProfile(false);
+
+        if (!error) {
+            setShowLiabilityModal(false);
+            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        } else {
+            Alert.alert('Error', 'Could not save your agreement. Please try again.');
+        }
+    };
 
     // Listen for keyboard events and use LayoutAnimation for native-speed sync
     useEffect(() => {
@@ -125,7 +247,7 @@ export default function CoachScreen() {
                 // Scroll to bottom so user sees most recent message
                 setTimeout(() => {
                     scrollViewRef.current?.scrollToEnd({ animated: true });
-                }, 100);
+                }, 300);
             }
         );
 
@@ -151,6 +273,7 @@ export default function CoachScreen() {
     // Get initial greeting on mount
     useEffect(() => {
         if (messages.length === 0) {
+            fetchStats();
             getInitialGreeting();
         }
     }, []);
@@ -166,6 +289,34 @@ export default function CoachScreen() {
         );
     }
 
+    // Show inline paywall if not Pro - user cannot bypass this
+    if (!isPro) {
+        return (
+            <ScreenLayout hideHeader>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+                    <Feather name="lock" size={64} color={userColors.accent_color} style={{ marginBottom: 20 }} />
+                    <Text style={{ color: themeColors.textPrimary, fontSize: 24, fontWeight: '700', textAlign: 'center', marginBottom: 12 }}>
+                        AI Coach is a Pro Feature
+                    </Text>
+                    <Text style={{ color: themeColors.textSecondary, fontSize: 16, textAlign: 'center', marginBottom: 32, lineHeight: 24 }}>
+                        Subscribe to HYBRID Pro to unlock unlimited AI coaching and personalized workout plans.
+                    </Text>
+                    <Pressable
+                        style={{
+                            backgroundColor: userColors.accent_color,
+                            paddingHorizontal: 32,
+                            paddingVertical: 16,
+                            borderRadius: 28,
+                        }}
+                        onPress={() => navigation.navigate('Paywall', { fromCoach: true })}
+                    >
+                        <Text style={{ color: '#000', fontSize: 18, fontWeight: '700' }}>Upgrade to Pro</Text>
+                    </Pressable>
+                </View>
+            </ScreenLayout>
+        );
+    }
+
 
 
     const sendMessage = async (content: string) => {
@@ -173,113 +324,112 @@ export default function CoachScreen() {
 
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-        const userMessage: Message = { role: 'user', content };
+        const userMessage: Message = { id: genId(), role: 'user', content };
         setMessages(prev => [...prev, userMessage]);
         setInputValue('');
         setIsLoading(true);
 
         try {
+            console.log('--- Sending User Message ---', userMessage.content);
             const response = await callGeminiAPI([...messages, userMessage]);
+            console.log('--- Raw AI Response ---', response);
 
-            // Check for action commands (delete/update workouts, create exercises)
-            const actionMatches = response.matchAll(/```action\n([\s\S]*?)\n```/g);
-            for (const actionMatch of actionMatches) {
+            // Universal Code Block Matcher
+            const validMatches: string[] = [];
+            let processedResponse = response;
+
+            // 1. Extract and remove valid closed blocks
+            const closedBlockRegex = /```(?:json|action)?\s*([\s\S]*?)\s*```/g;
+            let match;
+            while ((match = closedBlockRegex.exec(response)) !== null) {
+                validMatches.push(match[1]);
+                processedResponse = processedResponse.replace(match[0], '');
+            }
+
+            // 2. Check for and remove unclosed/truncated blocks at the end
+            const unclosedBlockRegex = /```(?:json|action)?\s*([\s\S]*)$/;
+            const unclosedMatch = processedResponse.match(unclosedBlockRegex);
+
+            if (unclosedMatch) {
+                console.log('--- Detected Truncated/Unclosed Block ---');
+                processedResponse = processedResponse.replace(unclosedBlockRegex, '');
+
+                // If we found NO valid closed blocks but DID find an unclosed one, it's a failure.
+                if (validMatches.length === 0) {
+                    processedResponse += '\n\n(⚠️ Error: The generated plan was too long and got cut off. Please ask for a shorter duration, e.g., "4 weeks".)';
+                }
+            }
+
+            console.log(`--- Found ${validMatches.length} Valid Code Blocks ---`);
+
+            let detectedPlan: WorkoutPlan | undefined;
+            let detectedAction: PendingAction | undefined;
+
+            for (const jsonContent of validMatches) {
                 try {
-                    const actionData = JSON.parse(actionMatch[1]);
+                    const data = JSON.parse(jsonContent.trim());
 
-                    if (actionData.action === 'delete' && actionData.workout_ids) {
-                        // Show confirmation dialog for deletion
-                        const workoutNames = actionData.workout_ids
-                            .map((id: string) => workouts.find(w => w.id === id)?.name || 'Unknown')
-                            .join(', ');
-
-                        Alert.alert(
-                            '⚠️ Confirm Deletion',
-                            `Are you sure you want to delete these workouts?\n\n${workoutNames}\n\nThis cannot be undone.`,
-                            [
-                                { text: 'Cancel', style: 'cancel' },
-                                {
-                                    text: 'Delete',
-                                    style: 'destructive',
-                                    onPress: async () => {
-                                        for (const workoutId of actionData.workout_ids) {
-                                            await deleteWorkout(workoutId);
-                                        }
-                                        await fetchWorkouts();
-                                        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-
-                                        // Add confirmation message
-                                        setMessages(prev => [...prev, {
-                                            role: 'assistant',
-                                            content: '✅ Workouts deleted successfully.'
-                                        }]);
-                                    }
-                                }
-                            ]
-                        );
-                    } else if (actionData.action === 'update' && actionData.workout_id) {
-                        // Show confirmation dialog for update
-                        const workoutName = workouts.find(w => w.id === actionData.workout_id)?.name || 'Unknown';
-
-                        Alert.alert(
-                            'Confirm Changes',
-                            `Update "${workoutName}"?`,
-                            [
-                                { text: 'Cancel', style: 'cancel' },
-                                {
-                                    text: 'Update',
-                                    onPress: async () => {
-                                        await updateWorkout(actionData.workout_id, actionData.updates);
-                                        await fetchWorkouts();
-                                        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-
-                                        setMessages(prev => [...prev, {
-                                            role: 'assistant',
-                                            content: '✅ Workout updated successfully.'
-                                        }]);
-                                    }
-                                }
-                            ]
-                        );
-                    } else if (actionData.action === 'create_exercise' && actionData.exercises) {
-                        // Create new custom exercises (no confirmation needed for adding)
-                        for (const exercise of actionData.exercises) {
-                            await createExercise({
-                                name: exercise.name,
-                                muscle_group: exercise.muscle_group || 'Other',
-                                description: exercise.description || ''
-                            });
+                    if (data.action) {
+                        if (data.action === 'update_memory' && data.memory) {
+                            console.log('Updating AI Memory:', data.memory);
+                            const current = profile?.ai_preferences || '';
+                            const newMemory = current ? current + '\n- ' + data.memory : '- ' + data.memory;
+                            await updateProfile({ ai_preferences: newMemory });
+                            continue;
                         }
-                        await fetchExercises();
-                        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+                        if (data.action === 'delete') {
+                            const names = data.workout_ids?.map((id: string) => workouts.find(w => w.id === id)?.name || 'Unknown');
+                            detectedAction = { type: 'delete', workoutIds: data.workout_ids, workoutNames: names };
+                        } else if (data.action === 'update') {
+                            const name = workouts.find(w => w.id === data.workout_id)?.name || 'Unknown';
+                            detectedAction = { type: 'update', updateData: { workout_id: data.workout_id, updates: data.updates }, workoutNames: [name] };
+                        } else if (data.action === 'log_workout') {
+                            detectedAction = { type: 'log_workout', data: data };
+                        } else if (data.action === 'add_exercise') {
+                            const targetWorkout = workouts.find(w => w.id === data.workout_id);
+                            const label = targetWorkout ? `${targetWorkout.name} (${targetWorkout.scheduled_date})` : 'Unknown Workout';
+                            detectedAction = { type: 'add_exercise', data: data, workoutNames: [label] };
+                        } else if (data.action === 'remove_exercise') {
+                            detectedAction = { type: 'remove_exercise', data: data };
+                        } else if (data.action === 'create_exercise' && data.exercises) {
+                            for (const exercise of data.exercises) {
+                                await createExercise({
+                                    name: exercise.name,
+                                    muscle_group: exercise.muscle_group || 'Other',
+                                    description: exercise.description || ''
+                                });
+                            }
+                            await fetchExercises();
+                            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                        } else if (data.action === 'PROPOSE_PLAN' && data.plan) {
+                            detectedPlan = data.plan;
+                        }
+                    } else if (data.workouts && Array.isArray(data.workouts)) {
+                        detectedPlan = data;
                     }
                 } catch (e) {
-                    console.log('Could not parse or execute action:', e);
+                    console.log('Error parsing code block JSON:', e);
                 }
             }
 
-            // Check for workout plan in response (for creating new workouts)
-            const planMatch = response.match(/```json\n([\s\S]*?)\n```/);
-            if (planMatch) {
-                try {
-                    const plan = JSON.parse(planMatch[1]);
-                    if (plan.workouts && Array.isArray(plan.workouts)) {
-                        setWorkoutPlan(plan);
-                    }
-                } catch (e) {
-                    console.log('Could not parse workout plan JSON');
-                }
-            }
+            const cleanContent = processedResponse.trim();
 
-            const assistantMessage: Message = {
-                role: 'assistant',
-                content: response.replace(/```action\n[\s\S]*?\n```/g, '').replace(/```json\n[\s\S]*?\n```/g, '').trim()
-            };
-            setMessages(prev => [...prev, assistantMessage]);
+            if (cleanContent || detectedPlan || detectedAction) {
+                const assistantMessage: Message = {
+                    id: genId(),
+                    role: 'assistant',
+                    content: cleanContent,
+                    workoutPlan: detectedPlan,
+                    pendingAction: detectedAction
+                };
+                setMessages(prev => [...prev, assistantMessage]);
+            }
             await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         } catch (error: any) {
             console.error('Error calling Gemini:', error);
             const errorMessage: Message = {
+                id: genId(),
                 role: 'assistant',
                 content: "I'm having trouble connecting right now. Please try again in a moment."
             };
@@ -306,7 +456,38 @@ export default function CoachScreen() {
 
 ## CURRENT USER CONTEXT
 
-**Today's Date:** ${new Date().toISOString().split('T')[0]}
+**Today's Date:** ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} (${new Date().toISOString().split('T')[0]})
+
+**User's Long-Term Memory (Preferences & Facts):**
+${profile?.ai_preferences || "No specific preferences learned yet."}
+
+**User's Strength Profile (Estimated 1RM):**
+${stats ? `
+- Bench Press: ${stats.bench_press} lbs
+- Squat: ${stats.squat} lbs
+- Deadlift: ${stats.deadlift} lbs
+- Overhead Press: ${stats.overhead_press} lbs
+- Total Workouts Logged: ${stats.total_workouts}
+` : 'Stats not yet calculated.'}
+
+**Instructions for Weight Recommendations:**
+1. **CHECK HISTORY FIRST:** Look for the "User's Strength Profile" above. If a relevant max exists, use it to calculate working weights (e.g. 70-80% of 1RM for hypertrophy).
+2. **IF NO HISTORY:** Do NOT guess random weights. 
+   - Check "Memory" for Experience Level (Beginner vs Advanced).
+   - **ASK THE USER:** "I don't have a max for Squat logged. What's the heaviest you've lifted recently?" or "What weights do you usually use?"
+   - Only suggest a weight if you explicitly label it as a "starting point" (e.g. "Try 95lbs to start").
+   - **JSON OUTPUT RULE:** You MUST Include a \`weight\` field for every exercise.
+     - For weighted lifts, it MUST be a number > 0 (e.g. 45, 65, 95). NEVER LEAVE IT 0 or NULL for barbell/dumbbell work.
+     - For Bodyweight exercises, explicitly use 0.
+
+**Instructions for Memory:**
+1. You have access to the "Memory" above. Use it to personalize advice (e.g. if User has knee injury, avoid heavy plyometrics).
+2. If the user mentions a NEW preference, goal, or fact (e.g. "I hate running", "I have only 30 mins a day", "My gym has no cables"), SAVE IT using the \`update_memory\` action.
+   Response format:
+   \`\`\`action
+   {"action": "update_memory", "memory": "User hates running."}
+   \`\`\`
+   (You can perform this action AND reply to the user in the same message).
 
 **Available Exercises in User's Library:**
 ${exercises.length > 0 ? exercises.slice(0, 50).map(e => `- ${e.name} (${e.muscle_group})`).join('\n') : 'No exercises yet - you can create new ones.'}
@@ -348,9 +529,36 @@ If the user needs an exercise that doesn't exist in their library, create it wit
 \`\`\`action
 {"action": "create_exercise", "exercises": [{"name": "Exercise Name", "muscle_group": "Chest/Back/Legs/Shoulders/Arms/Core/Cardio/Full Body/Other", "description": "Brief description"}]}
 \`\`\`
+
+${templates.length > 0 ? `
+**Reference Training Templates:**
+${formatTemplatesForAI(5)}
+
+Use these templates as structural inspiration when building programs. Adapt based on user's specific needs, available time, and equipment.
+
+IMPORTANT: When generating custom Workout Plans (PROPOSE_PLAN):
+1. **LIMIT THE OUTPUT TO 4 WEEKS MAX (Phase 1).**
+2. If the user asks for more (e.g. 12 weeks), EXPLICITLY STATE: "I've designed the first 4 weeks (Phase 1) to get you started. We can generate Phase 2 next." and ONLY provide the first 4 weeks in the JSON.
+3. This is CRITICAL to ensure the plan fits in the response.
+` : ''}
 `;
 
-        const systemPrompt = HYBRID_COACH_SYSTEM_PROMPT + userContext;
+        // Build conversation text for intent detection
+        const conversationText = conversationMessages.map(m => m.content).join(' ');
+
+        // Get dynamic prompt based on conversation intent (with LLM fallback)
+        const { prompt: dynamicBasePrompt, detectedIntents, usedLLM } = await buildDynamicPromptAsync(
+            conversationText,
+            GEMINI_API_KEY || ''
+        );
+
+        if (usedLLM) {
+            console.log('Used LLM for intent detection, found:', detectedIntents);
+        } else {
+            console.log('Keyword detection found:', detectedIntents);
+        }
+
+        const systemPrompt = dynamicBasePrompt + '\n\n---\n\n' + userContext;
 
         const contents = conversationMessages.map(msg => ({
             role: msg.role === 'assistant' ? 'model' : 'user',
@@ -367,7 +575,7 @@ If the user needs an exercise that doesn't exist in their library, create it wit
                     contents,
                     generationConfig: {
                         temperature: 0.7,
-                        maxOutputTokens: 2048,
+                        maxOutputTokens: 8192,
                     }
                 })
             }
@@ -399,40 +607,52 @@ If the user needs an exercise that doesn't exist in their library, create it wit
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         const today = new Date();
         const targetDay = days.indexOf(dayName);
-        if (targetDay === -1) return today.toISOString().split('T')[0];
 
-        const currentDay = today.getDay();
-        let daysUntil = targetDay - currentDay;
-        if (daysUntil <= 0) daysUntil += 7;
+        let dateToUse = today;
 
-        const targetDate = new Date(today);
-        targetDate.setDate(today.getDate() + daysUntil);
-        return targetDate.toISOString().split('T')[0];
+        if (targetDay !== -1) {
+            const currentDay = today.getDay();
+            let daysUntil = targetDay - currentDay;
+            if (daysUntil < 0) daysUntil += 7; // Allow 0 (today)
+
+            const targetDate = new Date(today);
+            targetDate.setDate(today.getDate() + daysUntil);
+            dateToUse = targetDate;
+        }
+
+        const year = dateToUse.getFullYear();
+        const month = String(dateToUse.getMonth() + 1).padStart(2, '0');
+        const day = String(dateToUse.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     };
 
-    const handleAddToCalendar = async () => {
-        if (!workoutPlan || isAddingWorkouts) return;
+    const handleAddToCalendar = async (plan: WorkoutPlan, msgId: string) => {
+        if (processingActionId === msgId) return;
 
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        setIsAddingWorkouts(true);
+        setProcessingActionId(msgId);
 
         try {
             const today = new Date();
             const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-            const weeksToSchedule = workoutPlan.weeks || 4;
+            const weeksToSchedule = plan.weeks || 4;
 
             for (let week = 0; week < weeksToSchedule; week++) {
-                for (const workout of workoutPlan.workouts) {
+                for (const workout of plan.workouts) {
                     const targetDayIndex = daysOfWeek.indexOf(workout.day_of_week);
                     if (targetDayIndex === -1) continue;
 
                     const workoutDate = new Date(today);
                     const currentDayIndex = workoutDate.getDay();
                     let daysUntilTarget = targetDayIndex - currentDayIndex;
-                    if (daysUntilTarget <= 0) daysUntilTarget += 7;
+                    if (daysUntilTarget < 0) daysUntilTarget += 7;
 
                     workoutDate.setDate(workoutDate.getDate() + daysUntilTarget + (week * 7));
-                    const scheduledDate = workoutDate.toISOString().split('T')[0];
+
+                    const year = workoutDate.getFullYear();
+                    const month = String(workoutDate.getMonth() + 1).padStart(2, '0');
+                    const day = String(workoutDate.getDate()).padStart(2, '0');
+                    const scheduledDate = `${year}-${month}-${day}`;
 
                     const exerciseIds = workout.exercises
                         .map(ex => findExerciseId(ex.name))
@@ -442,10 +662,10 @@ If the user needs an exercise that doesn't exist in their library, create it wit
                     workout.exercises.forEach(ex => {
                         const exerciseId = findExerciseId(ex.name);
                         if (exerciseId) {
-                            const numSets = ex.sets || 3;
+                            const numSets = (ex as any).sets || 3;
                             customSets[exerciseId] = Array(numSets).fill({
                                 weight: 0,
-                                reps: parseInt(ex.reps) || 10
+                                reps: parseInt((ex as any).reps) || 10
                             });
                         }
                     });
@@ -458,37 +678,33 @@ If the user needs an exercise that doesn't exist in their library, create it wit
                 }
             }
 
-            setAddSuccess(true);
-            setWorkoutPlan(null);
             await fetchWorkouts();
             await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
-            // Add success message
-            const successMessage: Message = {
-                role: 'assistant',
-                content: `✅ Done! I've added ${workoutPlan.weeks || 4} weeks of workouts to your calendar. Check your Home screen to see them!\n\nWould you like me to help with anything else?`
-            };
-            setMessages(prev => [...prev, successMessage]);
+            // Mark action as completed in history
+            setMessages(prev => prev.map(m => m.id === msgId ? { ...m, actionCompleted: true, actionSuccess: true } : m));
 
-            setTimeout(() => setAddSuccess(false), 3000);
         } catch (err) {
             console.error('Error adding workouts:', err);
             Alert.alert('Error', 'Failed to add workouts. Please try again.');
         } finally {
-            setIsAddingWorkouts(false);
+            setProcessingActionId(null);
         }
     };
 
     const handleNewChat = async () => {
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         setMessages([]);
-        setWorkoutPlan(null);
-        setAddSuccess(false);
         setTimeout(() => getInitialGreeting(), 100);
     };
 
     return (
         <ScreenLayout hideHeader>
+            <LiabilityWaiverModal
+                visible={showLiabilityModal}
+                onAgree={handleAgreeToTerms}
+                isUpdating={isUpdatingProfile}
+            />
             <View
                 style={[styles.keyboardView, { paddingBottom: keyboardHeight }]}
             >
@@ -513,33 +729,158 @@ If the user needs an exercise that doesn't exist in their library, create it wit
                     style={styles.messagesContainer}
                     contentContainerStyle={styles.messagesContent}
                     showsVerticalScrollIndicator={false}
-                    onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
+                    onContentSizeChange={() => {
+                        if (messages.length > 1) {
+                            scrollViewRef.current?.scrollToEnd({ animated: true });
+                        }
+                    }}
                 >
                     {messages.map((message, index) => (
-                        <View
-                            key={index}
-                            style={[
-                                styles.messageRow,
-                                message.role === 'user' ? styles.userRow : styles.assistantRow,
-                            ]}
-                        >
-                            {message.role === 'assistant' && (
-                                <View style={[styles.avatar, { backgroundColor: themeColors.glassBg }]}>
-                                    <Feather name="cpu" size={16} color="#c9a227" />
-                                </View>
-                            )}
+                        <View key={message.id || index} style={{ marginBottom: 16 }}>
                             <View
                                 style={[
-                                    styles.messageBubble,
-                                    message.role === 'user'
-                                        ? [styles.userBubble, { backgroundColor: '#1e3a5f' }]
-                                        : [styles.assistantBubble, { backgroundColor: themeColors.glassBg, borderColor: themeColors.glassBorder }],
+                                    styles.messageRow,
+                                    message.role === 'user' ? styles.userRow : styles.assistantRow,
                                 ]}
                             >
-                                <Text style={[styles.messageText, { color: themeColors.textPrimary }]}>
-                                    {message.content}
-                                </Text>
+                                {message.role === 'assistant' && (
+                                    <View style={[styles.avatar, { backgroundColor: themeColors.glassBg }]}>
+                                        <Feather name="cpu" size={16} color="#c9a227" />
+                                    </View>
+                                )}
+                                <View
+                                    style={[
+                                        styles.messageBubble,
+                                        message.role === 'user'
+                                            ? [styles.userBubble, { backgroundColor: '#1e3a5f' }]
+                                            : [styles.assistantBubble, { backgroundColor: themeColors.glassBg, borderColor: themeColors.glassBorder }],
+                                    ]}
+                                >
+                                    <Text style={[styles.messageText, { color: themeColors.textPrimary }]}>
+                                        {message.content}
+                                    </Text>
+                                </View>
                             </View>
+
+                            {/* Render Workout Plan if attached */}
+                            {message.workoutPlan && (
+                                <View style={[styles.planCard, { backgroundColor: themeColors.glassBg, borderColor: themeColors.glassBorder }]}>
+                                    <Text style={[styles.planTitle, { color: themeColors.textPrimary }]}>
+                                        {message.workoutPlan.plan_name || 'Your Workout Plan'}
+                                    </Text>
+                                    <Text style={[styles.planSummary, { color: themeColors.textSecondary }]}>
+                                        {message.workoutPlan.summary}
+                                    </Text>
+
+                                    <View style={styles.planWorkouts}>
+                                        {message.workoutPlan.workouts.slice(0, 4).map((workout, index) => (
+                                            <View
+                                                key={index}
+                                                style={[styles.planWorkoutItem, { borderLeftColor: workout.color || '#1e3a5f' }]}
+                                            >
+                                                <View style={styles.planWorkoutHeader}>
+                                                    <Text style={[styles.planWorkoutName, { color: themeColors.textPrimary }]}>
+                                                        {workout.name}
+                                                    </Text>
+                                                    <Text style={[styles.planWorkoutDay, { color: themeColors.textSecondary }]}>
+                                                        {workout.day_of_week}
+                                                    </Text>
+                                                </View>
+                                                <View style={styles.planExercises}>
+                                                    {workout.exercises.map((ex, i) => (
+                                                        <View key={i} style={[styles.exerciseTag, { backgroundColor: themeColors.inputBg }]}>
+                                                            <Text style={[styles.exerciseTagText, { color: themeColors.textSecondary }]}>
+                                                                {ex.name}
+                                                            </Text>
+                                                        </View>
+                                                    ))}
+                                                </View>
+                                            </View>
+                                        ))}
+                                    </View>
+
+                                    <Pressable
+                                        style={[
+                                            styles.addBtn,
+                                            (processingActionId === message.id || message.actionCompleted) && styles.addBtnDisabled
+                                        ]}
+                                        onPress={() => message.workoutPlan && handleAddToCalendar(message.workoutPlan, message.id)}
+                                        disabled={processingActionId === message.id || message.actionCompleted}
+                                    >
+                                        {processingActionId === message.id ? (
+                                            <ActivityIndicator color="#fff" size="small" />
+                                        ) : message.actionSuccess ? (
+                                            <>
+                                                <Feather name="check" size={18} color="#fff" />
+                                                <Text style={styles.addBtnText}>Added to Calendar</Text>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Feather name="calendar" size={18} color="#fff" />
+                                                <Text style={styles.addBtnText}>
+                                                    {message.workoutPlan.weeks === 1 && message.workoutPlan.workouts.length === 1
+                                                        ? `Add ${message.workoutPlan.workouts[0].name} to Calendar`
+                                                        : `Add ${message.workoutPlan.weeks || 4} Week${(message.workoutPlan.weeks || 4) > 1 ? 's' : ''} to Calendar`}
+                                                </Text>
+                                            </>
+                                        )}
+                                    </Pressable>
+                                </View>
+                            )}
+
+                            {/* Render Pending Action if attached */}
+                            {message.pendingAction && (
+                                <View style={[styles.pendingActionContainer, { backgroundColor: themeColors.bgSecondary, borderColor: themeColors.glassBorder }]}>
+                                    <View style={styles.pendingActionHeader}>
+                                        <Feather name="alert-circle" size={20} color={userColors.accent_color} />
+                                        <Text style={[styles.pendingActionTitle, { color: themeColors.textPrimary }]}>
+                                            {message.pendingAction.type === 'delete' ? 'Delete Workouts?' :
+                                                message.pendingAction.type === 'update' ? 'Update Workout?' :
+                                                    message.pendingAction.type === 'log_workout' ? 'Log Workout?' :
+                                                        message.pendingAction.type === 'add_exercise' ? 'Add Exercises?' :
+                                                            message.pendingAction.type === 'remove_exercise' ? 'Remove Exercise?' : 'Confirm Action'}
+                                        </Text>
+                                    </View>
+
+                                    <Text style={[styles.pendingActionDescription, { color: themeColors.textSecondary }]}>
+                                        {message.pendingAction.type === 'delete' ? `Are you sure you want to delete:\n${message.pendingAction.workoutNames?.join('\n')}` :
+                                            message.pendingAction.type === 'update' ? `Update "${message.pendingAction.workoutNames?.[0]}"?` :
+                                                message.pendingAction.type === 'log_workout' ? `Log this workout?\n${message.pendingAction.data?.name || 'Workout'}` :
+                                                    message.pendingAction.type === 'add_exercise' ? `Add to ${message.pendingAction.workoutNames?.[0]}:\n${message.pendingAction.data?.exercises?.map((e: any) => `• ${e.name}`).join('\n')}` :
+                                                        message.pendingAction.type === 'remove_exercise' ? `Remove "${message.pendingAction.data?.exercise_name}"?` :
+                                                            'Please confirm this change.'}
+                                    </Text>
+
+                                    {message.actionCompleted ? (
+                                        <View style={[styles.actionBtn, { backgroundColor: 'transparent', alignSelf: 'flex-start', paddingLeft: 0 }]}>
+                                            <Feather name="check" size={16} color="green" />
+                                            <Text style={[styles.actionBtnText, { color: 'green', marginLeft: 6 }]}>Completed</Text>
+                                        </View>
+                                    ) : (
+                                        <View style={styles.pendingActionButtons}>
+                                            <Pressable
+                                                style={[styles.actionBtn, { backgroundColor: themeColors.bgTertiary }]}
+                                                onPress={() => {
+                                                    // Cancel just marks it as completed (or removed?)
+                                                    setMessages(prev => prev.map(m => m.id === message.id ? { ...m, actionCompleted: true, content: m.content + '\n(Action Cancelled)' } : m));
+                                                }}
+                                            >
+                                                <Text style={[styles.actionBtnText, { color: themeColors.textPrimary }]}>Cancel</Text>
+                                            </Pressable>
+                                            <Pressable
+                                                style={[styles.actionBtn, { backgroundColor: userColors.accent_color }]}
+                                                onPress={() => message.pendingAction && handleConfirmAction(message.id, message.pendingAction)}
+                                            >
+                                                {processingActionId === message.id ? (
+                                                    <ActivityIndicator color="#000" size="small" />
+                                                ) : (
+                                                    <Text style={[styles.actionBtnText, { color: '#000' }]}>Confirm</Text>
+                                                )}
+                                            </Pressable>
+                                        </View>
+                                    )}
+                                </View>
+                            )}
                         </View>
                     ))}
 
@@ -558,68 +899,8 @@ If the user needs an exercise that doesn't exist in their library, create it wit
                         </View>
                     )}
 
-                    {/* Workout Plan Preview */}
-                    {workoutPlan && !addSuccess && (
-                        <View style={[styles.planCard, { backgroundColor: themeColors.glassBg, borderColor: themeColors.glassBorder }]}>
-                            <Text style={[styles.planTitle, { color: themeColors.textPrimary }]}>
-                                {workoutPlan.plan_name || 'Your Workout Plan'}
-                            </Text>
-                            <Text style={[styles.planSummary, { color: themeColors.textSecondary }]}>
-                                {workoutPlan.summary}
-                            </Text>
 
-                            <View style={styles.planWorkouts}>
-                                {workoutPlan.workouts.slice(0, 4).map((workout, index) => (
-                                    <View
-                                        key={index}
-                                        style={[styles.planWorkoutItem, { borderLeftColor: workout.color || '#1e3a5f' }]}
-                                    >
-                                        <View style={styles.planWorkoutHeader}>
-                                            <Text style={[styles.planWorkoutName, { color: themeColors.textPrimary }]}>
-                                                {workout.name}
-                                            </Text>
-                                            <Text style={[styles.planWorkoutDay, { color: themeColors.textSecondary }]}>
-                                                {workout.day_of_week}
-                                            </Text>
-                                        </View>
-                                        <View style={styles.planExercises}>
-                                            {workout.exercises.slice(0, 3).map((ex, i) => (
-                                                <View key={i} style={[styles.exerciseTag, { backgroundColor: themeColors.inputBg }]}>
-                                                    <Text style={[styles.exerciseTagText, { color: themeColors.textSecondary }]}>
-                                                        {ex.name}
-                                                    </Text>
-                                                </View>
-                                            ))}
-                                            {workout.exercises.length > 3 && (
-                                                <View style={[styles.exerciseTag, { backgroundColor: themeColors.inputBg }]}>
-                                                    <Text style={[styles.exerciseTagText, { color: themeColors.textMuted }]}>
-                                                        +{workout.exercises.length - 3}
-                                                    </Text>
-                                                </View>
-                                            )}
-                                        </View>
-                                    </View>
-                                ))}
-                            </View>
 
-                            <Pressable
-                                style={[styles.addBtn, isAddingWorkouts && styles.addBtnDisabled]}
-                                onPress={handleAddToCalendar}
-                                disabled={isAddingWorkouts}
-                            >
-                                {isAddingWorkouts ? (
-                                    <ActivityIndicator color="#fff" size="small" />
-                                ) : (
-                                    <>
-                                        <Feather name="calendar" size={18} color="#fff" />
-                                        <Text style={styles.addBtnText}>
-                                            Add {workoutPlan.weeks || 4} Weeks to Calendar
-                                        </Text>
-                                    </>
-                                )}
-                            </Pressable>
-                        </View>
-                    )}
 
                     <View style={{ height: 16 }} />
                 </ScrollView>
@@ -833,5 +1114,43 @@ const styles = StyleSheet.create({
     },
     sendBtnDisabled: {
         backgroundColor: 'transparent',
+    },
+    pendingActionContainer: {
+        margin: 16,
+        padding: 16,
+        borderRadius: 12,
+        borderWidth: 1,
+        marginBottom: 8,
+    },
+    pendingActionHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        marginBottom: 8,
+    },
+    pendingActionTitle: {
+        fontSize: 16,
+        fontWeight: '700',
+    },
+    pendingActionDescription: {
+        fontSize: 14,
+        marginBottom: 16,
+        lineHeight: 20,
+    },
+    pendingActionButtons: {
+        flexDirection: 'row',
+        gap: 12,
+        justifyContent: 'flex-end',
+    },
+    actionBtn: {
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 8,
+        minWidth: 80,
+        alignItems: 'center',
+    },
+    actionBtnText: {
+        fontWeight: '600',
+        fontSize: 14,
     },
 });

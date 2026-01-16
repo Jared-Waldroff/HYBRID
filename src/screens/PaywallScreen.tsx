@@ -3,15 +3,17 @@ import { View, Text, StyleSheet, Pressable, ScrollView, ActivityIndicator, Alert
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import ScreenLayout from '../components/ScreenLayout';
-import { useRevenueCat } from '../hooks/useRevenueCat';
+import { useRevenueCat } from '../context/RevenueCatContext';
 import * as Haptics from 'expo-haptics';
 import { useNavigation } from '@react-navigation/native';
 
 export default function PaywallScreen() {
-    const { themeColors } = useTheme();
+    const { themeColors, colors: userColors } = useTheme();
     const { purchasePro, restorePurchases, isLoading, isPro } = useRevenueCat();
     const navigation = useNavigation();
     const [isPurchasing, setIsPurchasing] = useState(false);
+
+    const accentColor = userColors.accent_color;
 
     const handlePurchase = async () => {
         setIsPurchasing(true);
@@ -45,11 +47,11 @@ export default function PaywallScreen() {
         <ScreenLayout hideHeader>
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 <View style={styles.header}>
-                    <View style={styles.iconContainer}>
-                        <MaterialCommunityIcons name="crown" size={64} color="#c9a227" />
+                    <View style={[styles.iconContainer, { shadowColor: accentColor }]}>
+                        <MaterialCommunityIcons name="crown" size={64} color={accentColor} />
                     </View>
                     <Text style={[styles.title, { color: themeColors.textPrimary }]}>
-                        Upgrade to <Text style={{ color: '#c9a227' }}>PRO</Text>
+                        Upgrade to <Text style={{ color: accentColor }}>PRO</Text>
                     </Text>
                     <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>
                         Unlock your full potential with unlimited AI coaching and advanced tools.
@@ -62,35 +64,33 @@ export default function PaywallScreen() {
                         title="Unlimited AI Coach"
                         desc="Generate personalized workout plans anytime."
                         colors={themeColors}
+                        accentColor={accentColor}
                     />
                     <FeatureItem
                         icon="calendar"
                         title="Event Training"
                         desc="Sync your training to your race or competition date."
                         colors={themeColors}
-                    />
-                    <FeatureItem
-                        icon="bar-chart-2"
-                        title="Advanced Analytics"
-                        desc="Track your progress with detailed charts."
-                        colors={themeColors}
+                        accentColor={accentColor}
                     />
                     <FeatureItem
                         icon="zap"
                         title="Support Development"
                         desc="Help us keep building new features!"
                         colors={themeColors}
+                        accentColor={accentColor}
                     />
                 </View>
 
                 <View style={styles.pricingContainer}>
-                    <View style={[styles.priceCard, { borderColor: '#c9a227', backgroundColor: 'rgba(201,162,39,0.05)' }]}>
-                        <View style={styles.bestValueTag}>
+                    <View style={[styles.priceCard, { borderColor: accentColor, backgroundColor: themeColors.glassBg }]}>
+                        <View style={[styles.bestValueTag, { backgroundColor: accentColor }]}>
                             <Text style={styles.bestValueText}>BEST VALUE</Text>
                         </View>
                         <Text style={[styles.priceTitle, { color: themeColors.textPrimary }]}>Monthly</Text>
-                        <Text style={styles.priceAmount}>
-                            <Text style={styles.currency}>$</Text>1.99<Text style={styles.period}>/mo</Text>
+                        <Text style={[styles.priceAmount, { color: accentColor }]}>
+                            <Text style={[styles.currency, { color: accentColor }]}>$</Text>1.99
+                            <Text style={[styles.period, { color: accentColor }]}>/mo</Text>
                         </Text>
                         <Text style={[styles.cancelText, { color: themeColors.textMuted }]}>Cancel anytime</Text>
                     </View>
@@ -98,7 +98,7 @@ export default function PaywallScreen() {
 
                 <View style={styles.actions}>
                     <Pressable
-                        style={[styles.subscribeBtn, isPurchasing && styles.disabledBtn]}
+                        style={[styles.subscribeBtn, { backgroundColor: accentColor, shadowColor: accentColor }, isPurchasing && styles.disabledBtn]}
                         onPress={handlePurchase}
                         disabled={isPurchasing}
                     >
@@ -128,11 +128,11 @@ export default function PaywallScreen() {
     );
 }
 
-function FeatureItem({ icon, title, desc, colors }: any) {
+function FeatureItem({ icon, title, desc, colors, accentColor }: any) {
     return (
         <View style={styles.featureItem}>
-            <View style={[styles.featureIcon, { backgroundColor: 'rgba(201,162,39,0.1)' }]}>
-                <Feather name={icon as any} size={24} color="#c9a227" />
+            <View style={[styles.featureIcon, { backgroundColor: `${accentColor}20` }]}>
+                <Feather name={icon as any} size={24} color={accentColor} />
             </View>
             <View style={styles.featureText}>
                 <Text style={[styles.featureTitle, { color: colors.textPrimary }]}>{title}</Text>
@@ -154,7 +154,6 @@ const styles = StyleSheet.create({
     },
     iconContainer: {
         marginBottom: 20,
-        shadowColor: '#c9a227',
         shadowOffset: { width: 0, height: 0 },
         shadowOpacity: 0.5,
         shadowRadius: 20,
@@ -212,7 +211,6 @@ const styles = StyleSheet.create({
     bestValueTag: {
         position: 'absolute',
         top: -12,
-        backgroundColor: '#c9a227',
         paddingHorizontal: 12,
         paddingVertical: 4,
         borderRadius: 12,
@@ -230,18 +228,15 @@ const styles = StyleSheet.create({
     priceAmount: {
         fontSize: 48,
         fontWeight: '800',
-        color: '#c9a227',
         marginBottom: 4,
     },
     currency: {
         fontSize: 24,
         fontWeight: '600',
-        color: '#c9a227',
     },
     period: {
         fontSize: 16,
         fontWeight: '500',
-        color: '#c9a227',
     },
     cancelText: {
         fontSize: 12,
@@ -250,12 +245,10 @@ const styles = StyleSheet.create({
         gap: 16,
     },
     subscribeBtn: {
-        backgroundColor: '#c9a227',
         height: 56,
         borderRadius: 28,
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: '#c9a227',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 10,

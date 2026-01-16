@@ -111,7 +111,7 @@ export function useExercises() {
                     muscle_group: data.muscle_group,
                     description: data.description || null,
                     is_default: false,
-                    created_by: user?.id,
+                    user_id: user?.id,
                 })
                 .select()
                 .single();

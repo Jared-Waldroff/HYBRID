@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Pressable, StyleSheet, ScrollView, Switch, Alert, Modal, TextInput, Image, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, Pressable, StyleSheet, ScrollView, Switch, Alert, Modal, TextInput, Image, ActivityIndicator, Keyboard, Platform, KeyboardAvoidingView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
@@ -8,14 +9,17 @@ import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useAthleteProfile } from '../hooks/useAthleteProfile';
+import { useRevenueCat } from '../context/RevenueCatContext';
 import { supabase } from '../lib/supabaseClient';
 import { spacing, radii, typography, colors, presetThemes } from '../theme';
 import ScreenLayout from '../components/ScreenLayout';
 
 export default function SettingsScreen() {
+    const navigation = useNavigation<any>();
     const { signOut, user } = useAuth();
     const { theme, toggleTheme, themeColors, colors: userColors, updateColors, showCF, updateShowCF, presetThemeId, updatePresetTheme } = useTheme();
     const { profile, updateProfile, fetchProfile, loading: profileLoading } = useAthleteProfile();
+    const { hasPromoAccess, applyPromoCode, removePromoCode, isPro } = useRevenueCat();
     const [showCustomPicker, setShowCustomPicker] = useState(false);
     const [editingColor, setEditingColor] = useState<'primary' | 'secondary'>('primary');
     const [customColor, setCustomColor] = useState('');
@@ -24,6 +28,30 @@ export default function SettingsScreen() {
     const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
     const [savingProfile, setSavingProfile] = useState(false);
+    const [promoCode, setPromoCode] = useState('');
+    const [applyingPromo, setApplyingPromo] = useState(false);
+    const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+    // Feedback State
+    const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+    const [feedbackText, setFeedbackText] = useState('');
+    const [sendingFeedback, setSendingFeedback] = useState(false);
+
+    // Track keyboard height for promo code input visibility
+    useEffect(() => {
+        const showSub = Keyboard.addListener(
+            Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+            (e) => setKeyboardHeight(e.endCoordinates.height)
+        );
+        const hideSub = Keyboard.addListener(
+            Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+            () => setKeyboardHeight(0)
+        );
+        return () => {
+            showSub.remove();
+            hideSub.remove();
+        };
+    }, []);
 
     // Initialize bio and display name from profile
     useEffect(() => {
@@ -118,6 +146,28 @@ export default function SettingsScreen() {
             Alert.alert('Error', 'Could not save profile.');
         } finally {
             setSavingProfile(false);
+        }
+    };
+
+    const handleSendFeedback = async () => {
+        if (!feedbackText.trim()) return;
+        setSendingFeedback(true);
+        try {
+            await supabase.from('feedback').insert({
+                user_id: user?.id,
+                content: feedbackText,
+                device_info: `${Platform.OS} ${Platform.Version}`,
+                app_version: '1.0.0'
+            });
+            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            Alert.alert('Thank You', 'Your feedback has been received!');
+            setFeedbackText('');
+            setShowFeedbackModal(false);
+        } catch (error) {
+            console.error('Feedback error:', error);
+            Alert.alert('Error', 'Could not send feedback. Please try again.');
+        } finally {
+            setSendingFeedback(false);
         }
     };
 
@@ -226,10 +276,17 @@ export default function SettingsScreen() {
         </Pressable>
     );
 
+    const scrollViewRef = useRef<ScrollView>(null);
+
     return (
         <ScreenLayout hideHeader>
 
-            <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
+            <ScrollView
+                ref={scrollViewRef}
+                style={styles.content}
+                contentContainerStyle={[styles.contentContainer, { paddingBottom: keyboardHeight > 0 ? 80 : spacing.md }]}
+                keyboardShouldPersistTaps="handled"
+            >
                 {/* Profile Section */}
                 <View style={[styles.section, styles.profileSection, { backgroundColor: themeColors.glassBg, borderColor: themeColors.glassBorder }]}>
                     <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>PROFILE</Text>
@@ -424,6 +481,139 @@ export default function SettingsScreen() {
                     </View>
                 </View>
 
+                {/* Promo Code Section */}
+                <View style={styles.section}>
+                    <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>Promo Code</Text>
+                    <View style={styles.sectionContent}>
+                        {hasPromoAccess ? (
+                            <View style={[styles.settingsRow, { backgroundColor: themeColors.inputBg }]}>
+                                <View style={styles.settingsRowLeft}>
+                                    <View style={[styles.iconContainer, { backgroundColor: userColors.accent_color }]}>
+                                        <Feather name="gift" size={18} color="#fff" />
+                                    </View>
+                                    <View>
+                                        <Text style={[styles.settingsLabel, { color: themeColors.textPrimary }]}>Pro Access Active</Text>
+                                        <Text style={[styles.settingsSubLabel, { color: '#14b8a6' }]}>via promo code</Text>
+                                    </View>
+                                </View>
+                                <Pressable
+                                    onPress={async () => {
+                                        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                        Alert.alert(
+                                            'Remove Promo Code',
+                                            'This will remove your promotional Pro access.',
+                                            [
+                                                { text: 'Cancel', style: 'cancel' },
+                                                {
+                                                    text: 'Remove',
+                                                    style: 'destructive',
+                                                    onPress: async () => {
+                                                        await removePromoCode();
+                                                        Alert.alert('Removed', 'Promo code has been removed.');
+                                                    }
+                                                }
+                                            ]
+                                        );
+                                    }}
+                                >
+                                    <Feather name="x-circle" size={20} color={themeColors.textMuted} />
+                                </Pressable>
+                            </View>
+                        ) : (
+                            <View style={[styles.settingsRow, { backgroundColor: themeColors.inputBg }]}>
+                                <View style={styles.settingsRowLeft}>
+                                    <View style={[styles.iconContainer, { backgroundColor: userColors.accent_color }]}>
+                                        <Feather name="gift" size={18} color="#fff" />
+                                    </View>
+                                    <TextInput
+                                        style={[styles.promoInlineInput, { color: themeColors.textPrimary }]}
+                                        value={promoCode}
+                                        onChangeText={setPromoCode}
+                                        placeholder="Enter code"
+                                        placeholderTextColor={themeColors.textMuted}
+                                        autoCapitalize="characters"
+                                        autoCorrect={false}
+                                        onFocus={() => {
+                                            // Scroll to bottom after a small delay to ensure keyboard is visible
+                                            setTimeout(() => {
+                                                scrollViewRef.current?.scrollToEnd({ animated: true });
+                                            }, 300);
+                                        }}
+                                    />
+                                </View>
+                                <Pressable
+                                    style={[styles.promoInlineBtn, { backgroundColor: userColors.accent_color, opacity: promoCode.length > 0 ? 1 : 0.5 }]}
+                                    disabled={promoCode.length === 0 || applyingPromo}
+                                    onPress={async () => {
+                                        setApplyingPromo(true);
+                                        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                                        const result = await applyPromoCode(promoCode);
+                                        setApplyingPromo(false);
+                                        if (result.success) {
+                                            Alert.alert('Success!', result.message);
+                                            setPromoCode('');
+                                        } else {
+                                            Alert.alert('Invalid Code', result.message);
+                                        }
+                                    }}
+                                >
+                                    {applyingPromo ? (
+                                        <ActivityIndicator color="#fff" size="small" />
+                                    ) : (
+                                        <Text style={styles.promoInlineBtnText}>Apply</Text>
+                                    )}
+                                </Pressable>
+                            </View>
+                        )}
+                    </View>
+                </View>
+
+                {/* Feedback Section */}
+                <View style={styles.section}>
+                    <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>Feedback</Text>
+                    <View style={styles.sectionContent}>
+                        <Pressable
+                            style={[styles.settingsRow, { backgroundColor: themeColors.inputBg }]}
+                            onPress={() => setShowFeedbackModal(true)}
+                        >
+                            <View style={styles.settingsRowLeft}>
+                                <View style={[styles.iconContainer, { backgroundColor: userColors.accent_color }]}>
+                                    <Feather name="message-square" size={18} color="#fff" />
+                                </View>
+                                <View>
+                                    <Text style={[styles.settingsLabel, { color: themeColors.textPrimary }]}>Leave Feedback</Text>
+                                    <Text style={[styles.settingsSubLabel, { color: themeColors.textMuted }]}>Anonymous & Confidential</Text>
+                                </View>
+                            </View>
+                            <Feather name="chevron-right" size={20} color={themeColors.textMuted} />
+                        </Pressable>
+                    </View>
+                </View>
+
+                {/* Admin Section (Hidden) */}
+                {user?.email === 'jared.waldroff@gmail.com' && (
+                    <View style={styles.section}>
+                        <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>Admin</Text>
+                        <View style={styles.sectionContent}>
+                            <Pressable
+                                style={[styles.settingsRow, { backgroundColor: themeColors.inputBg }]}
+                                onPress={() => navigation.navigate('Admin')}
+                            >
+                                <View style={styles.settingsRowLeft}>
+                                    <View style={[styles.iconContainer, { backgroundColor: '#0f766e' }]}>
+                                        <Feather name="shield" size={18} color="#fff" />
+                                    </View>
+                                    <View>
+                                        <Text style={[styles.settingsLabel, { color: themeColors.textPrimary }]}>View User Feedback</Text>
+                                        <Text style={[styles.settingsSubLabel, { color: themeColors.textMuted }]}>Admin Only</Text>
+                                    </View>
+                                </View>
+                                <Feather name="chevron-right" size={20} color={themeColors.textMuted} />
+                            </Pressable>
+                        </View>
+                    </View>
+                )}
+
                 {/* Danger Zone */}
                 <View style={styles.section}>
                     <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>Account</Text>
@@ -506,7 +696,73 @@ export default function SettingsScreen() {
                     </View>
                 </View>
             </Modal>
-        </ScreenLayout>
+
+            {/* Feedback Modal */}
+            <Modal
+                visible={showFeedbackModal}
+                animationType="slide"
+                transparent={true}
+                onRequestClose={() => setShowFeedbackModal(false)}
+            >
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    style={{ flex: 1 }}
+                >
+                    <Pressable
+                        style={styles.modalOverlay}
+                        onPress={() => setShowFeedbackModal(false)}
+                    >
+                        <Pressable
+                            style={[styles.modalContent, { backgroundColor: themeColors.bgSecondary }]}
+                            onPress={(e) => e.stopPropagation()}
+                        >
+                            <View style={styles.modalHeader}>
+                                <Text style={[styles.modalTitle, { color: themeColors.textPrimary }]}>Leave Feedback</Text>
+                                <Pressable onPress={() => setShowFeedbackModal(false)}>
+                                    <Feather name="x" size={24} color={themeColors.textSecondary} />
+                                </Pressable>
+                            </View>
+
+                            <Text style={[styles.inputLabel, { color: themeColors.textSecondary, marginBottom: spacing.sm }]}>
+                                Let us know what you think. Bugs, feature requests, or general thoughts!
+                            </Text>
+
+                            <TextInput
+                                style={[
+                                    styles.textInput,
+                                    styles.bioInput,
+                                    { backgroundColor: themeColors.inputBg, color: themeColors.textPrimary, borderColor: themeColors.inputBorder, minHeight: 120 }
+                                ]}
+                                value={feedbackText}
+                                onChangeText={setFeedbackText}
+                                placeholder="Type your feedback here..."
+                                placeholderTextColor={themeColors.textMuted}
+                                multiline
+                                numberOfLines={5}
+                                textAlignVertical="top"
+                                autoFocus
+                            />
+
+                            <Pressable
+                                style={[
+                                    styles.saveButton,
+                                    { backgroundColor: userColors.accent_color, marginTop: spacing.md },
+                                    !feedbackText.trim() && { opacity: 0.5 }
+                                ]}
+                                onPress={handleSendFeedback}
+                                disabled={sendingFeedback || !feedbackText.trim()}
+                            >
+                                {sendingFeedback ? (
+                                    <ActivityIndicator color="#fff" />
+                                ) : (
+                                    <Text style={styles.saveButtonText}>Send Anonymous Feedback</Text>
+                                )}
+                            </Pressable>
+                        </Pressable>
+                    </Pressable>
+                </KeyboardAvoidingView>
+            </Modal>
+        </ScreenLayout >
     );
 }
 
@@ -824,5 +1080,71 @@ const styles = StyleSheet.create({
     settingsSubLabel: {
         fontSize: typography.sizes.xs,
         marginTop: 2,
+    },
+    // Promo code styles
+    promoSection: {
+        marginBottom: spacing.xl,
+    },
+    promoActiveContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: spacing.md,
+        borderRadius: radii.lg,
+        borderWidth: 1,
+    },
+    promoActiveContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    promoActiveText: {
+        fontSize: typography.sizes.base,
+        fontWeight: typography.weights.semibold,
+    },
+    promoActiveSubtext: {
+        fontSize: typography.sizes.sm,
+        marginTop: 2,
+    },
+    promoRemoveBtn: {
+        padding: spacing.sm,
+    },
+    promoInputContainer: {
+        flexDirection: 'row',
+        gap: spacing.sm,
+    },
+    promoInput: {
+        flex: 1,
+        borderWidth: 2,
+        borderRadius: radii.md,
+        padding: spacing.sm,
+        fontSize: typography.sizes.base,
+    },
+    promoApplyBtn: {
+        paddingHorizontal: spacing.lg,
+        borderRadius: radii.md,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    promoApplyText: {
+        color: '#fff',
+        fontSize: typography.sizes.base,
+        fontWeight: typography.weights.semibold,
+    },
+    promoInlineInput: {
+        flex: 1,
+        fontSize: typography.sizes.base,
+        paddingVertical: spacing.xs,
+    },
+    promoInlineBtn: {
+        paddingHorizontal: spacing.md,
+        paddingVertical: spacing.sm,
+        borderRadius: radii.md,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    promoInlineBtnText: {
+        color: '#fff',
+        fontSize: typography.sizes.sm,
+        fontWeight: typography.weights.semibold,
     },
 });

@@ -66,28 +66,40 @@ describe('Workout Calculations', () => {
         const getDaysUntil = (eventDate: string) => {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            const event = new Date(eventDate);
+            const event = new Date(eventDate + 'T00:00:00');
             event.setHours(0, 0, 0, 0);
             const diffTime = event.getTime() - today.getTime();
-            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return Math.round(diffTime / (1000 * 60 * 60 * 24));
         };
 
         it('returns positive days for future events', () => {
             const futureDate = new Date();
+            futureDate.setHours(0, 0, 0, 0);
             futureDate.setDate(futureDate.getDate() + 30);
-            const dateStr = futureDate.toISOString().split('T')[0];
+            const year = futureDate.getFullYear();
+            const month = String(futureDate.getMonth() + 1).padStart(2, '0');
+            const day = String(futureDate.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
             expect(getDaysUntil(dateStr)).toBe(30);
         });
 
         it('returns 0 for today', () => {
-            const today = new Date().toISOString().split('T')[0];
-            expect(getDaysUntil(today)).toBe(0);
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
+            expect(getDaysUntil(dateStr)).toBe(0);
         });
 
         it('returns negative days for past events', () => {
             const pastDate = new Date();
+            pastDate.setHours(0, 0, 0, 0);
             pastDate.setDate(pastDate.getDate() - 5);
-            const dateStr = pastDate.toISOString().split('T')[0];
+            const year = pastDate.getFullYear();
+            const month = String(pastDate.getMonth() + 1).padStart(2, '0');
+            const day = String(pastDate.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
             expect(getDaysUntil(dateStr)).toBe(-5);
         });
     });

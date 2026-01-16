@@ -410,5 +410,700 @@ When building a training plan for the user's OWN event:
 2. Assess current fitness level
 3. Build a periodized plan working backward from event date
 4. Include taper period for races (1-2 weeks reduced volume)
-5. Match workout types to event demands (distance for marathon, hybrid for HYROX, etc.)`;
+5. Match workout types to event demands (distance for marathon, hybrid for HYROX, etc.)
+
+---
+
+## 🏃‍♂️ HYROX TRAINING PROTOCOLS
+
+### Race Structure Understanding
+HYROX = 8 km running (8 x 1km) + 8 functional workout stations:
+1. SkiErg (1000m)
+2. Sled Push (50m, Men: 152kg/Women: 102kg for Pro)
+3. Sled Pull (50m, same weights)
+4. Burpee Broad Jumps (80m)
+5. Rowing (1000m)
+6. Farmers Carry (200m, 2x24kg/2x16kg)
+7. Sandbag Lunges (100m, 20kg/10kg)
+8. Wall Balls (100 reps, 9kg/6kg to 3m/2.7m target)
+
+### HYROX Periodization (8-12 Week Prep)
+
+**Base Phase (Weeks 1-4)**
+- Build running volume: 25-35 km/week
+- 2-3 Zone 2 runs (40-60 min)
+- 1 tempo run (20-30 min at race pace)
+- 2-3 strength sessions focusing on movement patterns
+- Practice individual stations with light load
+
+**Build Phase (Weeks 5-8)**
+- Increase to 35-45 km/week
+- Add station-specific strength work
+- Introduce "doubles" (run + station + run)
+- Practice transitions (minimize rest)
+- SkiErg intervals: 4x500m @ race pace, 90s rest
+- Sled work: heavy singles for strength, lighter for endurance
+
+**Peak Phase (Weeks 9-11)**
+- Full race simulations (2 during this phase)
+- Reduce volume 20-30%, maintain intensity
+- Focus on pacing strategy
+- Mental rehearsal of race flow
+
+**Taper (Final Week)**
+- 50% volume reduction
+- Keep 2-3 short, sharp efforts
+- Rest legs, stay loose
+- Carb load final 2-3 days
+
+### HYROX-Specific Training Sessions
+
+**Roxzone Session (Threshold Training)**
+- 8x(200m run + 15 wall balls + 200m run)
+- Target: maintain consistent pace throughout
+- This is your "HYROX conditioning" workout
+
+**Station Endurance**
+- 1000m SkiErg + 500m Row, repeat 3x
+- Rest only when transitioning machines
+- Build capacity for sustained output
+
+**Running Efficiency**
+- 8x1km at target race pace, 90s recovery
+- Learn YOUR 1km split target
+- Practice negative splitting final 200m
+
+**Sled Power Development**
+- Heavy sled push: 6x25m @ competition weight + 20%
+- Full recovery between sets
+- Then: 3x50m @ competition weight for speed
+
+### HYROX Pacing Strategy
+- **1km runs**: Aim for consistent splits (not fastest early)
+- **Stations**: 80-85% effort, save legs for runs
+- **Transitions**: Walk first 20m after stations to recover
+- **Wall Balls**: Break early and often (sets of 10-15)
+- **Final 1km**: Leave something in tank for strong finish
+
+---
+
+## 🏋️ CROSSFIT COMPETITION TRAINING
+
+### GPP vs SPP Periodization
+
+**General Physical Preparedness (GPP) - Off-Season**
+- Broad base building across all modalities
+- Higher volume, moderate intensity
+- Fix weaknesses aggressively
+- Duration: 12-16 weeks
+
+**Sport-Specific Preparedness (SPP) - Competition Prep**
+- Reduce volume, increase intensity
+- Practice competition-style workouts
+- Simulate time domains of target event
+- Duration: 6-8 weeks before competition
+
+### CrossFit Energy System Development
+
+**Phosphagen System (0-10 seconds)**
+- Max effort power movements
+- Heavy Olympic lifts, short sprints
+- Full recovery between efforts
+
+**Glycolytic System (10 sec - 2 min)**
+- "The Pain Cave" - high lactate work
+- Grace, Isabel, short chippers
+- 1:2-1:3 work:rest initially
+
+**Oxidative System (2+ min)**
+- Longer workouts (10-20+ min)
+- Sustainable pacing
+- Classic CrossFit chippers
+
+### Benchmark Workout Standards
+
+**The Girls (Time Goals by Level)**
+| Workout | Beginner | Intermediate | Advanced | Elite |
+|---------|----------|--------------|----------|-------|
+| Fran | 8:00+ | 5:00-8:00 | 3:00-5:00 | <3:00 |
+| Grace | 5:00+ | 3:00-5:00 | 2:00-3:00 | <2:00 |
+| Helen | 15:00+ | 11:00-15:00 | 9:00-11:00 | <9:00 |
+| Diane | 10:00+ | 6:00-10:00 | 4:00-6:00 | <4:00 |
+
+### Gymnastics Skill Progression
+
+**Pull-up Pathway**
+Ring Rows → Banded Pull-ups → Strict Pull-ups → Kipping → Butterfly
+
+**Muscle-up Pathway**
+Strict Pull-ups + Dips → Transition drills → Banded MU → Kipping MU → Butterfly MU
+
+**Handstand Pathway**
+Wall walks → Wall-facing holds → Freestanding holds → Wall walks → Strict HSPU → Kipping HSPU
+
+### Weekly CrossFit Template (5-6 days)
+1. **Heavy Day**: Squat/Deadlift + Short metcon (<7 min)
+2. **Gymnastics + Aerobic**: Skills + Zone 2 work
+3. **Olympic Lifting**: Snatch/Clean focus + moderate metcon
+4. **Long Grind**: 20+ min workout, pacing focus
+5. **Mixed Modal**: Competition simulation
+6. **Active Recovery**: Mobility, light aerobic
+
+---
+
+## 🏃 RUNNING PROGRAM TEMPLATES
+
+### 5K Training (8 Weeks, Intermediate)
+
+**Weekly Structure**
+- Monday: Easy run (30-40 min Zone 2)
+- Tuesday: Speed work (intervals or tempo)
+- Wednesday: Cross-train or rest
+- Thursday: Easy run (30 min)
+- Friday: Rest
+- Saturday: Long run (45-60 min easy)
+- Sunday: Recovery or light jog
+
+**Speed Work Progression**
+- Weeks 1-2: 6x400m @ 5K pace, 90s rest
+- Weeks 3-4: 5x800m @ 5K pace, 2 min rest
+- Weeks 5-6: 3x1 mile @ 5K pace, 3 min rest
+- Weeks 7-8: 2x1.5 mile @ 5K pace, taper
+
+### 10K Training (10 Weeks)
+- Add tempo runs: 20-30 min sustained effort
+- Long run extends to 8-10 miles
+- Fartlek sessions for variety
+- Race 5K mid-cycle as fitness check
+
+### Half Marathon Training (12 Weeks)
+
+**Weekly Volume by Phase**
+- Base (Weeks 1-4): 20-25 miles/week
+- Build (Weeks 5-8): 25-35 miles/week
+- Peak (Weeks 9-10): 35-40 miles/week
+- Taper (Weeks 11-12): Reduce 30-50%
+
+**Key Workouts**
+- Long run: Build to 11-12 miles
+- Tempo: 4-6 miles @ goal pace + 15-20s
+- Intervals: 6-8x800m @ 10K pace
+
+### Marathon Training (16-18 Weeks)
+
+**Volume Progression**
+- Start: 25-30 miles/week minimum base
+- Peak: 40-55 miles/week (recreational) or 55-70+ (competitive)
+- Long run peaks at 20-22 miles, 3 weeks before race
+
+**The 3 Key Sessions/Week**
+1. Long Run (progressive increase)
+2. Tempo/Marathon Pace Work
+3. Interval/Speed Work
+
+**Taper Protocol**
+- 3 weeks out: -20% volume
+- 2 weeks out: -40% volume
+- Race week: -60% volume, stay sharp
+
+### Running Pace Zones (Based on Goal Race Pace)
+- Easy/Recovery: +60-90 sec/mile slower than race pace
+- Aerobic/Zone 2: +45-60 sec/mile slower  
+- Tempo/Threshold: +15-30 sec/mile slower (sustainable 45-60 min)
+- Race Pace: Goal pace
+- VO2max: -15-30 sec/mile faster (sustainable 3-5 min)
+- Speed: -30-45 sec/mile faster (sustainable 30-90 sec)
+
+---
+
+## 🏊‍♂️ TRIATHLON & SWIM/BIKE TRAINING
+
+### Triathlon Weekly Balance (Sprint/Olympic Distance)
+
+| Discipline | Beginner (hrs) | Intermediate (hrs) | Advanced (hrs) |
+|------------|----------------|---------------------|----------------|
+| Swim | 1.5-2 | 2-3 | 3-4 |
+| Bike | 2-3 | 3-5 | 5-8 |
+| Run | 1.5-2 | 2-3 | 3-5 |
+| Strength | 1-2 | 1-2 | 1-2 |
+
+### Swim Training for Triathletes
+
+**Technique Priorities**
+1. Body position (horizontal, head neutral)
+2. Catch and pull (early vertical forearm)
+3. Rotation and breathing
+4. Kick efficiency (2-beat for distance)
+
+**Basic Swim Session Structure**
+- Warm-up: 200-400m mixed strokes
+- Drills: 4-6x50m focus drills
+- Main set: Distance or intervals
+- Cool-down: 100-200m easy
+
+**Weekly Swim Sessions (3x)**
+1. Technique/Drill focused
+2. Threshold/Tempo sets
+3. Endurance/Distance
+
+### Cycling for Hybrid Athletes
+
+**Indoor vs Outdoor Balance**
+- Indoor: Structured intervals, controlled watts
+- Outdoor: Endurance rides, bike handling, mental break
+
+**Key Cycling Workouts**
+- Zone 2 Endurance: 60-90 min, conversational
+- Sweet Spot: 88-93% FTP, 2x20 min
+- VO2max: 4-6x3 min @ 115-120% FTP
+- Threshold: 2x15-20 min @ 95-100% FTP
+
+**Brick Workouts (Bike→Run)**
+- Start with short bike (30-45 min) + short run (10-15 min)
+- Progress to race-distance simulations
+- Focus on the transition feeling, not pushing hard on the run
+- Cadence: High cadence last 5 min of bike → easier run transition
+
+---
+
+## 🥎 KETTLEBELL TRAINING PROTOCOLS
+
+### RKC/StrongFirst Principles
+- Tension is strength: create total body tension on lifts
+- Power breathing: Biomechanical breathing match
+- The hip hinge: Foundation of all ballistic movements
+- Strength is a skill: Practice, don't just "workout"
+
+### Foundational Kettlebell Movements
+
+**The Big 6**
+1. Swing (hip hinge, posterior chain)
+2. Goblet Squat (squat pattern, mobility)
+3. Turkish Get-Up (total body, stability)
+4. Clean (rack position, power)
+5. Press (overhead strength, shoulder health)
+6. Snatch (ultimate test of conditioning)
+
+### Simple & Sinister Protocol
+
+**Daily Practice**
+- 100 Swings (sets of 10)
+- 10 Turkish Get-Ups (5 each side)
+- 5-6 days per week
+
+**Progression Standards**
+| Level | Swing Weight | TGU Weight |
+|-------|--------------|------------|
+| Timeless Simple (Women) | 24kg | 16kg |
+| Timeless Simple (Men) | 32kg | 32kg |
+| Timeless Sinister (Women) | 32kg | 24kg |
+| Timeless Sinister (Men) | 48kg | 48kg |
+
+**Time Goals**
+- Simple: Complete in 20 minutes
+- Sinister: Complete in 15 minutes
+
+### Kettlebell Conditioning Circuits
+
+**EMOM Swing Ladder**
+- Min 1: 10 swings
+- Min 2: 15 swings
+- Min 3: 20 swings
+- Min 4: 25 swings
+- Repeat 3-5 rounds
+
+**Armor Building Complex**
+- 2 Double Cleans + 1 Double Press + 3 Double Front Squats
+- EMOM for 20-30 min
+- Moderate weight, perfect form
+
+**Viking Warrior Conditioning (VWC)**
+- 15 sec work / 15 sec rest, 30-60 min
+- Snatch or Swing (one-arm switches)
+- Build to 80-100 snatches in 5 min for conditioning test
+
+---
+
+## 🧘 MOBILITY & RECOVERY PROTOCOLS
+
+### Functional Range Conditioning (FRC) Principles
+
+**CARs (Controlled Articular Rotations)**
+- Slow, controlled rotation through full ROM
+- Apply tension at end ranges
+- Daily practice, 2-3 rotations per joint
+- Order: Neck → Shoulders → Wrists → Spine → Hips → Knees → Ankles
+
+**PAILs/RAILs (Progressive/Regressive Angular Isometric Loading)**
+- Stretch to end range
+- PAILs: Push INTO the stretch, 20-30 sec
+- RAILs: Pull OUT of the stretch, 20-30 sec
+- Used to expand usable range of motion
+
+### Daily Mobility Routine (10-15 min)
+
+**Morning Wake-Up Flow**
+1. Cat-cow: 10 reps
+2. Deep squat hold: 2 min
+3. Hip 90/90 switches: 10 each side
+4. Shoulder CARs: 3 each direction
+5. Hip CARs: 3 each direction
+6. Thoracic rotations: 10 each side
+7. Dead hang: accumulate 1-2 min
+
+### Recovery Protocols by Modality
+
+**Active Recovery Sessions**
+- 20-30 min Zone 1 cardio (walking, easy bike)
+- Full body stretching routine
+- Foam rolling major muscle groups
+- No high-intensity or heavy loading
+
+**Sleep Optimization (Recovery Foundation)**
+- 7-9 hours minimum for training adaptation
+- Consistent sleep/wake times
+- Cool, dark room (65-68°F)
+- No screens 1 hour before bed
+- Magnesium, glycine, or tart cherry juice can help
+
+**Nutrition for Recovery**
+- Protein: 1.6-2.2g/kg bodyweight daily
+- Carbs: Replenish glycogen post-workout
+- Hydration: Half bodyweight (lbs) in ounces + extra for training
+- Anti-inflammatory foods: berries, fatty fish, turmeric
+
+### Deload Week Structure
+- Volume: -40-50% (fewer sets, shorter sessions)
+- Intensity: Maintain OR reduce with volume
+- Focus: Movement quality, mobility work
+- Include: Light cardio, stretching, sleep focus
+- Avoid: New movements, max attempts, competition
+
+---
+
+## 🎯 HYBRID ATHLETE PERIODIZATION
+
+### Multi-Sport Athlete Considerations
+
+**Interference Effect Management**
+- Separate strength and endurance by 6+ hours when possible
+- If same session: strength FIRST, then cardio
+- Prioritize the quality that is most important for your goal
+- Accept that you may not be elite at everything simultaneously
+
+**Priority Training Blocks**
+- Block 1 (4-6 weeks): Strength emphasis, maintenance cardio
+- Block 2 (4-6 weeks): Aerobic base building, maintenance strength
+- Block 3 (4-6 weeks): Sport-specific peaking
+- Transition weeks between blocks
+
+### Weekly Template for Hybrid Athletes
+
+**Option A: 5 Days (Strength + Endurance Balance)**
+| Day | AM | PM |
+|-----|----|----|
+| Mon | Strength (Lower) | - |
+| Tue | Zone 2 Cardio (45 min) | - |
+| Wed | Strength (Upper) | - |
+| Thu | Intervals/HIIT | - |
+| Fri | Strength (Full Body) | - |
+| Sat | Long Aerobic (60-90 min) | - |
+| Sun | Rest/Mobility | - |
+
+**Option B: 6 Days (Competition Prep)**
+| Day | AM | PM |
+|-----|----|----|
+| Mon | Strength | Zone 2 (optional) |
+| Tue | Sport-Specific Skills | - |
+| Wed | Strength | Zone 2 |
+| Thu | Intervals | - |
+| Fri | Active Recovery | - |
+| Sat | Long Workout/Race Sim | - |
+| Sun | Rest | - |
+
+---
+
+## 🏋️‍♂️ POWERLIFTING TRAINING
+
+### Competition Lifts
+1. **Squat**: Bar on back (high or low), hit depth (hip crease below knee)
+2. **Bench Press**: Pause on chest, press to lockout, butt stays down
+3. **Deadlift**: Conventional or sumo, lockout with shoulders back
+
+### Powerlifting Periodization Models
+
+**Linear Periodization (Beginner/Intermediate)**
+- Weeks 1-4: Hypertrophy (4x8-10 @ 70-75%)
+- Weeks 5-8: Strength (4x5-6 @ 80-85%)
+- Weeks 9-11: Peaking (3x3, 2x2, 1x1 @ 85-100%)
+- Week 12: Deload/Test
+
+**Block Periodization (Advanced)**
+- Accumulation Block (3-4 weeks): High volume, moderate intensity (60-75%)
+- Transmutation Block (3-4 weeks): Moderate volume, high intensity (75-85%)
+- Realization Block (2-3 weeks): Low volume, peak intensity (85-100%)
+
+**Daily Undulating Periodization (DUP)**
+| Day | Focus | Rep Range |
+|-----|-------|-----------|
+| Monday | Hypertrophy | 4x8-10 @ 70% |
+| Wednesday | Power | 5x3 @ 80% |
+| Friday | Strength | 5x5 @ 85% |
+
+### Powerlifting Accessories by Weak Point
+
+**Squat Weak Points**
+- Weak out of hole → Pause squats, tempo squats
+- Hips shoot up → Front squats, high-bar variations
+- Forward lean → SSB squats, leg press
+- Lockout issues → Goodmornings, hip thrusts
+
+**Bench Weak Points**
+- Weak off chest → Spoto press, larsen press
+- Sticking point mid-range → Pin press, board press
+- Lockout issues → Close-grip bench, JM press
+- Shoulder stability → DB press, overhead press
+
+**Deadlift Weak Points**
+- Weak off floor → Deficit deadlifts, pause deads
+- Weak at knees → Block pulls (below knee), RDLs
+- Lockout issues → Rack pulls, hip thrusts
+- Grip fails → Dead hangs, fat grips, hook grip practice
+
+### Meet Prep Timeline
+- 12 weeks out: Start structured program
+- 8 weeks out: Practice competition commands
+- 4 weeks out: Begin intensity peaking
+- 2 weeks out: Opener attempts only (90% of goal)
+- 1 week out: Light movement, rest, weight cut if needed
+- Meet day: Opener = guaranteed lift, 2nd = PR attempt, 3rd = reach goal
+
+### Powerlifting Standards (Intermediate, in kg)
+
+| Bodyweight | Squat | Bench | Deadlift | Total |
+|------------|-------|-------|----------|-------|
+| 66kg (M) | 140 | 100 | 170 | 410 |
+| 83kg (M) | 170 | 125 | 200 | 495 |
+| 105kg (M) | 200 | 145 | 230 | 575 |
+| 57kg (W) | 95 | 55 | 115 | 265 |
+| 72kg (W) | 115 | 70 | 140 | 325 |
+
+---
+
+## 💪 ADVANCED HYPERTROPHY TRAINING
+
+### Volume Landmarks (Dr. Mike Israetel / RP)
+
+| Muscle Group | MV (Min) | MEV | MAV | MRV (Max) |
+|--------------|----------|-----|-----|-----------|
+| Chest | 8 sets | 10 | 12-20 | 22+ |
+| Back | 8 sets | 10 | 14-22 | 25+ |
+| Shoulders | 6 sets | 8 | 12-20 | 22+ |
+| Biceps | 4 sets | 8 | 14-20 | 22+ |
+| Triceps | 4 sets | 6 | 10-14 | 18+ |
+| Quads | 6 sets | 8 | 12-18 | 20+ |
+| Hamstrings | 4 sets | 6 | 10-16 | 18+ |
+| Glutes | 0 sets | 4 | 8-12 | 16+ |
+| Calves | 6 sets | 8 | 12-16 | 20+ |
+
+*MV = Maintenance, MEV = Minimum Effective, MAV = Maximum Adaptive, MRV = Maximum Recoverable*
+
+### Hypertrophy Rep Ranges by Movement
+
+**Compound Movements**
+- Focus: 6-10 reps (moderate to heavy)
+- Rest: 2-3 minutes
+- Examples: Squat, bench, row, RDL, OHP
+
+**Isolation Movements**
+- Focus: 10-15 reps (moderate weight, feel the muscle)
+- Rest: 60-90 seconds
+- Examples: Curls, extensions, laterals, flyes
+
+**Lengthened Partial Emphasis**
+- Train muscles in stretched position for maximum growth
+- Examples: Incline curls, Romanian deadlifts, cable flyes
+
+### Advanced Hypertrophy Techniques
+
+**Mechanical Drop Sets**
+- Same weight, change position: Incline → Flat → Decline press
+
+**Myo-Reps**
+- Activation set (12-15 reps), rest 3-5 breaths, 3-5 reps x 4-5 mini-sets
+
+**Rest-Pause**
+- Hit failure, rest 10-15 sec, continue to failure, repeat 2-3x
+
+**Lengthened Partials**
+- After reaching failure, continue with partial reps in stretched position
+
+**Blood Flow Restriction (BFR)**
+- Light weight (20-30% 1RM), 30-15-15-15 reps, 30 sec rest
+- Bands at 7/10 tightness on upper arm/thigh
+
+### Training Splits by Frequency
+
+**3-Day Full Body**
+- Day 1: Horizontal push/pull focus + squat
+- Day 2: Vertical push/pull focus + hip hinge
+- Day 3: Mix of all patterns + lagging parts
+
+**4-Day Upper/Lower**
+- Day 1: Upper (horizontal focus)
+- Day 2: Lower (quad focus)
+- Day 3: Upper (vertical focus)
+- Day 4: Lower (posterior chain focus)
+
+**5-Day Bro Split (Higher Volume Per Session)**
+- Day 1: Chest + Side Delts
+- Day 2: Back + Rear Delts
+- Day 3: Legs
+- Day 4: Shoulders + Arms
+- Day 5: Chest/Back pump day
+
+**6-Day PPL (Optimal for Hypertrophy)**
+- Push A/Pull A/Legs A/Push B/Pull B/Legs B
+- Frequency: 2x per muscle per week
+- Volume: 10-12 sets per session per muscle group
+
+### Mesocycle Structure (6 weeks)
+- Week 1: 10 sets per muscle (ease in)
+- Week 2: 12 sets per muscle
+- Week 3: 14 sets per muscle
+- Week 4: 16 sets per muscle (overreach)
+- Week 5: 18 sets per muscle (overreach)
+- Week 6: 6-8 sets per muscle (deload)
+
+---
+
+## 🏋️ OLYMPIC WEIGHTLIFTING
+
+### The Competition Lifts
+
+**Snatch**
+- One continuous motion: floor to overhead
+- Catch in full squat with bar overhead
+- Stand to complete the lift
+
+**Clean & Jerk**
+- Clean: Floor to front rack (catch in squat)
+- Jerk: Front rack to overhead (split, power, or squat jerk)
+- Two separate movements, one lift
+
+### Snatch Progression
+
+**Learning Order**
+1. Overhead squat (establish position)
+2. Snatch grip behind-neck press (mobility)
+3. Snatch deadlift (bar path, positions)
+4. Hang power snatch (second pull, turnover)
+5. Power snatch from floor
+6. Full snatch (squat catch)
+7. Snatch variations (blocks, deficit, pause)
+
+**Common Snatch Issues**
+- Bar swings out → Stay over bar longer, pull back
+- Misses forward → Don't cut second pull short
+- Misses behind → More patience at hip, faster turnover
+- Can't catch low → OHS mobility, snatch balance work
+
+### Clean Progression
+
+**Learning Order**
+1. Front squat (rack position, mobility)
+2. Clean deadlift (positions, timing)
+3. Hang power clean (second pull, catch)
+4. Power clean from floor
+5. Full clean (squat catch)
+6. Clean variations (blocks, pause, hang)
+
+**Common Clean Issues**
+- Crashes into shoulders → Faster elbows, meet the bar
+- Misses forward → Drive through heels, stay balanced
+- Trouble standing → Front squat strength, core stability
+
+### Jerk Styles
+
+| Style | Description | Best For |
+|-------|-------------|----------|
+| Split Jerk | Step forward/back split | Most common, stable catch |
+| Power Jerk | Catch with feet together | Quick turnover athletes |
+| Squat Jerk | Catch in overhead squat | Very mobile athletes |
+
+### Olympic Lifting Program Structure
+
+**4-Day Classic Structure**
+| Day | Primary | Secondary |
+|-----|---------|-----------|
+| Mon | Snatch | Front Squat |
+| Tue | Clean & Jerk | Pulls |
+| Thu | Snatch variations | Overhead strength |
+| Fri | Clean variations | Back Squat |
+
+**Training Intensity Guidelines**
+- Snatch/CJ: Work up to daily max, 80-90% for reps
+- Squats: 3-5x3-5 @ 70-85%
+- Pulls: 3x3 @ 90-110% of lift max
+- Accessory: 3x8-12 moderate weight
+
+### Accessory Work for Olympic Lifters
+
+**Position Strength**
+- Overhead squat
+- Snatch balance
+- Pause front squat
+- Jerk recovery
+
+**Pulling Power**
+- Snatch/Clean pulls
+- Deficit pulls
+- Romanian deadlifts
+- Shrugs
+
+**Stability & Mobility**
+- Snatch grip press behind neck
+- Pause squats (bottom position)
+- Hip flexor stretches
+- Thoracic spine mobility
+
+### Olympic Lifting Standards (Intermediate)
+
+| Bodyweight | Snatch | Clean & Jerk |
+|------------|--------|--------------|
+| 73kg (M) | 90kg | 115kg |
+| 89kg (M) | 105kg | 135kg |
+| 109kg (M) | 115kg | 150kg |
+| 59kg (W) | 55kg | 70kg |
+| 71kg (W) | 65kg | 85kg |
+
+---
+
+## 📊 TRAINING TEMPLATES REFERENCE
+
+When building programs, consider these proven templates:
+
+**Strength Templates**
+- 5/3/1 (Wendler): 4-week waves, submaximal training
+- GZCL: Tier system, autoregulation friendly
+- Starting Strength: 3x5 linear progression (beginners)
+- PPL: Push/Pull/Legs split for hypertrophy
+
+**Running Templates**
+- Hal Higdon: Beginner-friendly marathon plans
+- Pfitzinger: Serious runners, higher mileage
+- 80/20 Running: Polarized approach by Matt Fitzgerald
+- Jack Daniels: VDOT-based training zones
+
+**CrossFit Templates**
+- CompTrain: Daily programming for competitors
+- Mayhem: Rich Froning's methodology
+- HWPO: Mat Fraser's approach
+- Invictus: Gymnastics and strength focus
+
+**Kettlebell Templates**
+- Simple & Sinister: Daily minimalist approach
+- Enter the Kettlebell: RKC fundamentals
+- Total Tension Complex: Strength focus
+- Viking Warrior Conditioning: Endurance focus`;
 

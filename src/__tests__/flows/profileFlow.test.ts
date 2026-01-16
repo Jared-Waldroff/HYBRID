@@ -8,7 +8,7 @@
  * 4. Cache handling
  */
 
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { renderHook, waitFor, act } from '@testing-library/react-native';
 import { useAthleteProfile } from '../../hooks/useAthleteProfile';
 import { mockSupabase, mockSupabaseResponse, mockSupabaseError } from '../mocks/supabase';
 import { MockAuthProvider } from '../test-utils';
@@ -94,14 +94,18 @@ describe('User Flow: Profile Management', () => {
         const updatedName = { ...initialProfile, display_name: 'Super Fit User' };
         mockSupabase.single.mockResolvedValueOnce(mockSupabaseResponse(updatedName));
 
-        await result.current.updateProfile({ display_name: 'Super Fit User' });
+        await act(async () => {
+            await result.current.updateProfile({ display_name: 'Super Fit User' });
+        });
         expect(result.current.profile?.display_name).toBe('Super Fit User');
 
         // Update bio
         const updatedBio = { ...updatedName, bio: 'Training for my first marathon!' };
         mockSupabase.single.mockResolvedValueOnce(mockSupabaseResponse(updatedBio));
 
-        await result.current.updateProfile({ bio: 'Training for my first marathon!' });
+        await act(async () => {
+            await result.current.updateProfile({ bio: 'Training for my first marathon!' });
+        });
         expect(result.current.profile?.bio).toBe('Training for my first marathon!');
     });
 
@@ -120,14 +124,18 @@ describe('User Flow: Profile Management', () => {
         const withFirstBadge = { ...initialProfile, badges: ['first_workout'] };
         mockSupabase.single.mockResolvedValueOnce(mockSupabaseResponse(withFirstBadge));
 
-        await result.current.addBadge('first_workout');
+        await act(async () => {
+            await result.current.addBadge('first_workout');
+        });
         expect(result.current.hasBadge('first_workout')).toBe(true);
 
         // User reaches 7-day streak - earns another badge
         const withStreakBadge = { ...withFirstBadge, badges: ['first_workout', 'week_warrior'] };
         mockSupabase.single.mockResolvedValueOnce(mockSupabaseResponse(withStreakBadge));
 
-        await result.current.addBadge('week_warrior');
+        await act(async () => {
+            await result.current.addBadge('week_warrior');
+        });
         expect(result.current.hasBadge('week_warrior')).toBe(true);
 
         // Check all badges
@@ -150,7 +158,9 @@ describe('User Flow: Profile Management', () => {
         const privateProfile = { ...initialProfile, is_private: true };
         mockSupabase.single.mockResolvedValueOnce(mockSupabaseResponse(privateProfile));
 
-        await result.current.updateProfile({ is_private: true });
+        await act(async () => {
+            await result.current.updateProfile({ is_private: true });
+        });
         expect(result.current.profile?.is_private).toBe(true);
     });
 });
@@ -169,6 +179,10 @@ describe('User Flow: Profile Cache Behavior', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        (AsyncStorage.getItem as jest.Mock).mockResolvedValue(null);
+        (AsyncStorage.setItem as jest.Mock).mockResolvedValue(undefined);
+        (AsyncStorage.removeItem as jest.Mock).mockResolvedValue(undefined);
+
         mockSupabase.from.mockReturnValue(mockSupabase);
         mockSupabase.select.mockReturnValue(mockSupabase);
         mockSupabase.eq.mockReturnValue(mockSupabase);
@@ -205,7 +219,9 @@ describe('User Flow: Profile Cache Behavior', () => {
 
         await waitFor(() => expect(result.current.loading).toBe(false));
 
-        await result.current.clearCache();
+        await act(async () => {
+            await result.current.clearCache();
+        });
 
         expect(AsyncStorage.removeItem).toHaveBeenCalledWith('cached_athlete_profile');
         expect(result.current.profile).toBeNull();

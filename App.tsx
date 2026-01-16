@@ -15,6 +15,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from './src/context/AuthContext';
 import { ThemeProvider } from './src/context/ThemeContext';
 import { PostDraftProvider } from './src/context/PostDraftContext';
+import { RevenueCatProvider } from './src/context/RevenueCatContext';
 import Navigation from './src/navigation';
 
 // Keep the splash screen visible while we fetch resources
@@ -68,12 +69,14 @@ export default function App() {
     <SafeAreaProvider onLayout={onLayoutRootView}>
       <AuthProvider>
         <ThemeProvider>
-          <PostDraftProvider>
-            <View style={styles.container}>
-              <StatusBar style="light" />
-              <Navigation />
-            </View>
-          </PostDraftProvider>
+          <RevenueCatProvider>
+            <PostDraftProvider>
+              <View style={styles.container}>
+                <StatusBar style="light" />
+                <Navigation />
+              </View>
+            </PostDraftProvider>
+          </RevenueCatProvider>
         </ThemeProvider>
       </AuthProvider>
     </SafeAreaProvider>

@@ -14,6 +14,8 @@ interface AthleteProfile {
     avatar_url?: string;
     badges?: string[];
     is_private?: boolean;
+    agreed_to_terms_at?: string;
+    ai_preferences?: string;
 }
 
 export function useAthleteProfile() {

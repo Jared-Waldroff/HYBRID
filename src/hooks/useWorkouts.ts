@@ -188,7 +188,7 @@ export function useWorkouts() {
                                     workout_exercise_id: weData.id,
                                     weight: set.weight,
                                     reps: set.reps,
-                                    is_completed: false,
+                                    is_completed: set.is_completed || false,
                                 });
                             });
                         } else {
@@ -234,6 +234,107 @@ export function useWorkouts() {
         } catch (err: any) {
             console.error('Error updating workout:', err);
             return { data: null, error: err.message };
+        }
+    };
+
+    const addExercisesToWorkout = async (
+        workoutId: string,
+        exerciseIds: string[],
+        customSets: Record<string, any[]> | null = null
+    ) => {
+        try {
+            // Get current max order_index
+            const workout = workouts.find(w => w.id === workoutId);
+            const currentMaxOrder = workout?.workout_exercises?.length > 0
+                ? Math.max(...workout.workout_exercises.map((we: any) => we.order_index))
+                : -1;
+
+            const workoutExercises = exerciseIds.map((exerciseId, index) => ({
+                workout_id: workoutId,
+                exercise_id: exerciseId,
+                order_index: currentMaxOrder + 1 + index,
+            }));
+
+            const { error: exerciseError } = await supabase
+                .from('workout_exercises')
+                .insert(workoutExercises);
+
+            if (exerciseError) throw exerciseError;
+
+            // Insert default sets for new exercises
+            // Note: This is simplified; ideally we'd fetch the new WE IDs to insert sets linked to them
+            // But since we need the IDs, we have to query them back or use a stored procedure.
+            // For now, we'll fetchWorkouts and let the user add sets manually or improve this later.
+            // OPTIONAL: If we need sets immediately, we have to query.
+
+            // Let's rely on fetchWorkouts() to refresh the view, and the user can add sets.
+            // OR if customSets are provided, we MUST query back.
+
+            // Re-query to get IDs for set insertion
+            const { data: newWEs } = await supabase
+                .from('workout_exercises')
+                .select('id, exercise_id')
+                .eq('workout_id', workoutId)
+                .in('exercise_id', exerciseIds);
+
+            if (newWEs && customSets) {
+                const setsToInsert: any[] = [];
+                newWEs.forEach(we => {
+                    const exerciseSets = customSets[we.exercise_id];
+                    if (exerciseSets) {
+                        exerciseSets.forEach(set => {
+                            setsToInsert.push({
+                                workout_exercise_id: we.id,
+                                weight: set.weight || 0,
+                                reps: set.reps || 0,
+                                is_completed: set.is_completed || false
+                            });
+                        });
+                    } else {
+                        // Default 3 sets
+                        for (let k = 0; k < 3; k++) setsToInsert.push({ workout_exercise_id: we.id, weight: 0, reps: 0, is_completed: false });
+                    }
+                });
+
+                if (setsToInsert.length > 0) {
+                    await supabase.from('sets').insert(setsToInsert);
+                }
+            } else if (newWEs) {
+                // Default sets if no customSets provided
+                const setsToInsert: any[] = [];
+                newWEs.forEach(we => {
+                    for (let k = 0; k < 3; k++) setsToInsert.push({ workout_exercise_id: we.id, weight: 0, reps: 0, is_completed: false });
+                });
+                await supabase.from('sets').insert(setsToInsert);
+            }
+
+            await fetchWorkouts();
+            return { error: null };
+        } catch (err: any) {
+            console.error('Error adding exercises:', err);
+            return { error: err.message };
+        }
+    };
+
+    const removeExerciseFromWorkout = async (workoutId: string, exerciseId: string) => {
+        try {
+            // Find the workout_exercise entry
+            // This assumes exercise_id is unique per workout (which it usually is, but strictly schema might allow duplicates)
+            // We'll delete based on workout_id + exercise_id
+
+            const { error } = await supabase
+                .from('workout_exercises')
+                .delete()
+                .eq('workout_id', workoutId)
+                .eq('exercise_id', exerciseId);
+
+            if (error) throw error;
+
+            await fetchWorkouts();
+            return { error: null };
+        } catch (err: any) {
+            console.error('Error removing exercise:', err);
+            return { error: err.message };
         }
     };
 
@@ -337,6 +438,8 @@ export function useWorkouts() {
         createWorkout,
         updateWorkout,
         deleteWorkout,
+        addExercisesToWorkout,
+        removeExerciseFromWorkout,
         getWorkoutsByDate,
         getRecentCompletedWorkouts,
     };
