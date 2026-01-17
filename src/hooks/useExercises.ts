@@ -209,6 +209,45 @@ export function useExercises() {
         }
     };
 
+    // Get the most recent weight and reps used for an exercise
+    const getLastExerciseSetValues = async (exerciseId: string): Promise<{ weight: number; reps: number } | null> => {
+        try {
+            const { data, error } = await supabase
+                .from('sets')
+                .select(`
+                    weight,
+                    reps,
+                    completed_at,
+                    workout_exercises!inner (
+                        exercise_id,
+                        workout:workouts!inner (
+                            user_id,
+                            is_completed
+                        )
+                    )
+                `)
+                .eq('workout_exercises.exercise_id', exerciseId)
+                .eq('workout_exercises.workout.user_id', user?.id)
+                .eq('workout_exercises.workout.is_completed', true)
+                .eq('is_completed', true)
+                .not('completed_at', 'is', null)
+                .order('completed_at', { ascending: false })
+                .limit(1);
+
+            if (error) throw error;
+            if (data && data.length > 0) {
+                return {
+                    weight: data[0].weight || 0,
+                    reps: data[0].reps || 0,
+                };
+            }
+            return null;
+        } catch (err: any) {
+            console.error('Error fetching last exercise values:', err);
+            return null;
+        }
+    };
+
     const getExerciseById = async (id: string) => {
         // First check local cache
         const cachedExercise = exercises.find(e => e.id === id);
@@ -271,6 +310,7 @@ export function useExercises() {
         updateExercise,
         deleteExercise,
         getExerciseHistory,
+        getLastExerciseSetValues,
         getExerciseById,
         searchExercises,
         getExercisesByMuscleGroup,

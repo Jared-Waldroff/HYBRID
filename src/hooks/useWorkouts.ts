@@ -192,14 +192,13 @@ export function useWorkouts() {
                                 });
                             });
                         } else {
-                            for (let i = 0; i < 3; i++) {
-                                setsToInsert.push({
-                                    workout_exercise_id: weData.id,
-                                    weight: 0,
-                                    reps: 0,
-                                    is_completed: false,
-                                });
-                            }
+                            // Create only 1 default set for new workouts
+                            setsToInsert.push({
+                                workout_exercise_id: weData.id,
+                                weight: 0,
+                                reps: 0,
+                                is_completed: false,
+                            });
                         }
                     }
                 }
@@ -291,8 +290,8 @@ export function useWorkouts() {
                             });
                         });
                     } else {
-                        // Default 3 sets
-                        for (let k = 0; k < 3; k++) setsToInsert.push({ workout_exercise_id: we.id, weight: 0, reps: 0, is_completed: false });
+                        // Default 1 set for new exercises
+                        setsToInsert.push({ workout_exercise_id: we.id, weight: 0, reps: 0, is_completed: false });
                     }
                 });
 
@@ -300,10 +299,10 @@ export function useWorkouts() {
                     await supabase.from('sets').insert(setsToInsert);
                 }
             } else if (newWEs) {
-                // Default sets if no customSets provided
+                // Default 1 set per exercise if no customSets provided
                 const setsToInsert: any[] = [];
                 newWEs.forEach(we => {
-                    for (let k = 0; k < 3; k++) setsToInsert.push({ workout_exercise_id: we.id, weight: 0, reps: 0, is_completed: false });
+                    setsToInsert.push({ workout_exercise_id: we.id, weight: 0, reps: 0, is_completed: false });
                 });
                 await supabase.from('sets').insert(setsToInsert);
             }

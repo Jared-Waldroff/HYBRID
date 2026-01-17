@@ -73,7 +73,7 @@ export default function WorkoutCard({ workout, onDelete }: WorkoutCardProps) {
             ]}
             onPress={handlePress}
         >
-            {/* Color accent bar */}
+            {/* Color accent bar - LEFT side */}
             <View style={[styles.colorBar, { backgroundColor: workout.color }]} />
 
             <View style={styles.content}>
@@ -155,6 +155,7 @@ export default function WorkoutCard({ workout, onDelete }: WorkoutCardProps) {
 
 const styles = StyleSheet.create({
     card: {
+        flexDirection: 'row',
         borderRadius: radii.lg,
         borderWidth: 1,
         overflow: 'hidden',
@@ -167,12 +168,13 @@ const styles = StyleSheet.create({
         elevation: 4,
     },
     colorBar: {
-        height: 4,
+        width: 4,
     },
     content: {
+        flex: 1,
         paddingTop: spacing.sm,
         paddingHorizontal: spacing.md,
-        paddingBottom: spacing.sm,
+        paddingBottom: spacing.md,
     },
     header: {
         flexDirection: 'row',

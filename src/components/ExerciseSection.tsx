@@ -10,6 +10,8 @@ import { useExercises } from '../hooks/useExercises';
 import { useTheme } from '../context/ThemeContext';
 import { RootStackParamList } from '../navigation';
 import { spacing, radii, typography, MIN_TOUCH_TARGET, colors } from '../theme';
+import NumberWheelPicker from './NumberWheelPicker';
+import { isCardioExercise } from '../lib/constants';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -42,9 +44,16 @@ export default function ExerciseSection({ workoutExercise, onSetToggle, onSetAdd
 
     const [sets, setSets] = useState(workoutExercise.sets || []);
     const [isExpanded, setIsExpanded] = useState(true);
+    const [pickerConfig, setPickerConfig] = useState<{
+        visible: boolean;
+        setId: string;
+        field: 'weight' | 'reps';
+        value: number;
+    }>({ visible: false, setId: '', field: 'weight', value: 0 });
     const debounceTimers = useRef<Record<string, NodeJS.Timeout>>({});
 
     const exercise = workoutExercise.exercise;
+    const isCardio = isCardioExercise(exercise || {});
 
     // Update sets from props when set count changes
     useEffect(() => {
@@ -134,6 +143,33 @@ export default function ExerciseSection({ workoutExercise, onSetToggle, onSetAdd
         }
     };
 
+    // Open wheel picker for weight or reps
+    const openPicker = (setId: string, field: 'weight' | 'reps', currentValue: number) => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        setPickerConfig({
+            visible: true,
+            setId,
+            field,
+            value: currentValue || 0,
+        });
+    };
+
+    // Handle value change from wheel picker
+    const handlePickerChange = (newValue: number) => {
+        const { setId, field } = pickerConfig;
+        // Update local state immediately
+        setSets((prev) =>
+            prev.map((s) => (s.id === setId ? { ...s, [field]: newValue } : s))
+        );
+        // Update in database
+        updateSet(setId, { [field]: newValue });
+        setPickerConfig(prev => ({ ...prev, value: newValue }));
+    };
+
+    const closePicker = () => {
+        setPickerConfig(prev => ({ ...prev, visible: false }));
+    };
+
     // Cleanup timers on unmount
     useEffect(() => {
         return () => {
@@ -173,10 +209,10 @@ export default function ExerciseSection({ workoutExercise, onSetToggle, onSetAdd
                             Set
                         </Text>
                         <Text style={[styles.headerCell, styles.weightCell, { color: themeColors.textTertiary }]}>
-                            lbs
+                            {isCardio ? 'Min' : 'lbs'}
                         </Text>
                         <Text style={[styles.headerCell, styles.repsCell, { color: themeColors.textTertiary }]}>
-                            Reps
+                            {isCardio ? 'Cal' : 'Reps'}
                         </Text>
                         <View style={styles.checkCell} />
                         <View style={styles.deleteCell} />
@@ -194,38 +230,38 @@ export default function ExerciseSection({ workoutExercise, onSetToggle, onSetAdd
                             <Text style={[styles.setNum, { color: themeColors.textSecondary }]}>
                                 {index + 1}
                             </Text>
-                            <TextInput
+                            {/* Weight/Time - Pressable for wheel picker */}
+                            <Pressable
                                 style={[
                                     styles.input,
                                     styles.weightCell,
                                     {
                                         backgroundColor: themeColors.inputBg,
                                         borderColor: themeColors.inputBorder,
-                                        color: themeColors.textPrimary,
                                     },
                                 ]}
-                                value={String(set.weight ?? '')}
-                                onChangeText={(value) => handleSetChange(set.id, 'weight', value)}
-                                keyboardType="decimal-pad"
-                                placeholder="0"
-                                placeholderTextColor={themeColors.textMuted}
-                            />
-                            <TextInput
+                                onPress={() => openPicker(set.id, 'weight', Number(set.weight) || 0)}
+                            >
+                                <Text style={[styles.inputText, { color: set.weight ? themeColors.textPrimary : themeColors.textMuted }]}>
+                                    {set.weight || '0'}
+                                </Text>
+                            </Pressable>
+                            {/* Reps/Calories - Pressable for wheel picker */}
+                            <Pressable
                                 style={[
                                     styles.input,
                                     styles.repsCell,
                                     {
                                         backgroundColor: themeColors.inputBg,
                                         borderColor: themeColors.inputBorder,
-                                        color: themeColors.textPrimary,
                                     },
                                 ]}
-                                value={String(set.reps ?? '')}
-                                onChangeText={(value) => handleSetChange(set.id, 'reps', value)}
-                                keyboardType="number-pad"
-                                placeholder="0"
-                                placeholderTextColor={themeColors.textMuted}
-                            />
+                                onPress={() => openPicker(set.id, 'reps', Number(set.reps) || 0)}
+                            >
+                                <Text style={[styles.inputText, { color: set.reps ? themeColors.textPrimary : themeColors.textMuted }]}>
+                                    {set.reps || '0'}
+                                </Text>
+                            </Pressable>
                             <Pressable
                                 style={[
                                     styles.checkButton,
@@ -259,6 +295,19 @@ export default function ExerciseSection({ workoutExercise, onSetToggle, onSetAdd
                     </Pressable>
                 </>
             )}
+
+            {/* Wheel Picker Modal */}
+            <NumberWheelPicker
+                visible={pickerConfig.visible}
+                value={pickerConfig.value}
+                onChange={handlePickerChange}
+                onClose={closePicker}
+                min={pickerConfig.field === 'weight' ? 0 : 1}
+                max={pickerConfig.field === 'weight' ? 500 : 100}
+                step={pickerConfig.field === 'weight' ? 5 : 1}
+                unit={isCardio ? (pickerConfig.field === 'weight' ? 'min' : 'cal') : (pickerConfig.field === 'weight' ? 'lbs' : 'reps')}
+                title={isCardio ? (pickerConfig.field === 'weight' ? 'Duration' : 'Calories') : (pickerConfig.field === 'weight' ? 'Weight' : 'Reps')}
+            />
         </View>
     );
 }
@@ -331,9 +380,13 @@ const styles = StyleSheet.create({
         height: MIN_TOUCH_TARGET,
         borderRadius: radii.md,
         borderWidth: 1,
-        textAlign: 'center',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    inputText: {
         fontSize: typography.sizes.lg,
         fontWeight: typography.weights.semibold,
+        textAlign: 'center',
     },
     checkCell: {
         width: MIN_TOUCH_TARGET,

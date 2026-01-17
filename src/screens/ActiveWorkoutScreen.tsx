@@ -9,6 +9,8 @@ import {
     Modal,
     TextInput,
     Alert,
+    KeyboardAvoidingView,
+    Platform,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -36,7 +38,7 @@ export default function ActiveWorkoutScreen() {
     const { id } = route.params;
     const { themeColors, colors: userColors } = useTheme();
     const { addBadge, hasBadge } = useAthleteProfile();
-    const { exercises, createExercise, fetchExercises } = useExercises();
+    const { exercises, createExercise, fetchExercises, getLastExerciseSetValues } = useExercises();
 
     const [workout, setWorkout] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -201,14 +203,23 @@ export default function ActiveWorkoutScreen() {
 
             if (weError) throw weError;
 
-            // Add one default set
+            // Fetch previous workout values for this exercise
+            let defaultWeight = 0;
+            let defaultReps = 0;
+            const previousValues = await getLastExerciseSetValues(exerciseId);
+            if (previousValues) {
+                defaultWeight = previousValues.weight;
+                defaultReps = previousValues.reps;
+            }
+
+            // Add one default set with previous values
             if (weData) {
                 const { data: setData, error: setError } = await supabase
                     .from('sets')
                     .insert({
                         workout_exercise_id: weData.id,
-                        weight: 0,
-                        reps: 0,
+                        weight: defaultWeight,
+                        reps: defaultReps,
                         is_completed: false,
                     })
                     .select()
@@ -394,6 +405,16 @@ export default function ActiveWorkoutScreen() {
                 contentContainerStyle={styles.contentContainer}
                 showsVerticalScrollIndicator={false}
             >
+                {/* Workout Name Header */}
+                <View style={styles.workoutHeader}>
+                    <Text style={[styles.workoutName, { color: themeColors.textPrimary }]}>
+                        {workout.name}
+                    </Text>
+                    <Text style={[styles.workoutDate, { color: themeColors.textSecondary }]}>
+                        {formatDate(workout.scheduled_date)}
+                    </Text>
+                </View>
+
                 {/* Color Bar */}
                 <View style={[styles.colorBar, { backgroundColor: workout.color }]} />
 
@@ -470,7 +491,11 @@ export default function ActiveWorkoutScreen() {
 
             {/* Add Exercise Modal */}
             <Modal visible={showAddExercise} animationType="slide" transparent>
-                <View style={styles.modalOverlay}>
+                <KeyboardAvoidingView
+                    style={styles.modalOverlay}
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    keyboardVerticalOffset={0}
+                >
                     <View style={[styles.modalContent, { backgroundColor: themeColors.bgSecondary }]}>
                         <View style={styles.modalHeader}>
                             <Text style={[styles.modalTitle, { color: themeColors.textPrimary }]}>Add Exercise</Text>
@@ -509,14 +534,45 @@ export default function ActiveWorkoutScreen() {
                                     onChangeText={setNewExerciseName}
                                     autoCapitalize="words"
                                 />
-                                <TextInput
-                                    style={[styles.createExerciseInput, { backgroundColor: themeColors.inputBg, borderColor: themeColors.inputBorder, color: themeColors.textPrimary }]}
-                                    placeholder="Muscle group (e.g., Chest, Back, Legs)"
-                                    placeholderTextColor={themeColors.textMuted}
-                                    value={newExerciseMuscle}
-                                    onChangeText={setNewExerciseMuscle}
-                                    autoCapitalize="words"
-                                />
+
+                                {/* Muscle Group Picker */}
+                                <Text style={[styles.muscleGroupLabel, { color: themeColors.textSecondary }]}>Muscle Group</Text>
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.muscleGroupScroll}>
+                                    {['Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Core', 'Quadriceps', 'Hamstrings', 'Glutes', 'Calves', 'Full Body', 'Cardio', 'Other'].map(group => (
+                                        <Pressable
+                                            key={group}
+                                            style={[
+                                                styles.muscleGroupChip,
+                                                { borderColor: themeColors.glassBorder },
+                                                newExerciseMuscle === group && styles.muscleGroupChipActive,
+                                            ]}
+                                            onPress={() => {
+                                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                                setNewExerciseMuscle(group);
+                                            }}
+                                        >
+                                            <Text style={[
+                                                styles.muscleGroupChipText,
+                                                { color: newExerciseMuscle === group ? '#c9a227' : themeColors.textSecondary },
+                                            ]}>
+                                                {group}
+                                            </Text>
+                                        </Pressable>
+                                    ))}
+                                </ScrollView>
+
+                                {/* Custom muscle group input if "Other" selected */}
+                                {newExerciseMuscle === 'Other' && (
+                                    <TextInput
+                                        style={[styles.createExerciseInput, { backgroundColor: themeColors.inputBg, borderColor: themeColors.inputBorder, color: themeColors.textPrimary, marginTop: 8 }]}
+                                        placeholder="Enter custom muscle group"
+                                        placeholderTextColor={themeColors.textMuted}
+                                        value={newExerciseMuscle === 'Other' ? '' : newExerciseMuscle}
+                                        onChangeText={(text) => setNewExerciseMuscle(text || 'Other')}
+                                        autoCapitalize="words"
+                                    />
+                                )}
+
                                 <TextInput
                                     style={[styles.createExerciseInput, styles.createExerciseTextArea, { backgroundColor: themeColors.inputBg, borderColor: themeColors.inputBorder, color: themeColors.textPrimary }]}
                                     placeholder="Description (optional) - How to perform"
@@ -582,7 +638,7 @@ export default function ActiveWorkoutScreen() {
                             )}
                         </ScrollView>
                     </View>
-                </View>
+                </KeyboardAvoidingView>
             </Modal>
 
             {/* Delete Confirm Dialog */}
@@ -965,5 +1021,42 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontWeight: typography.weights.semibold,
         fontSize: typography.sizes.base,
+    },
+    muscleGroupLabel: {
+        fontSize: typography.sizes.sm,
+        fontWeight: typography.weights.medium,
+        marginTop: spacing.sm,
+        marginBottom: spacing.xs,
+    },
+    muscleGroupScroll: {
+        marginBottom: spacing.sm,
+    },
+    muscleGroupChip: {
+        paddingHorizontal: spacing.md,
+        paddingVertical: spacing.sm,
+        borderRadius: radii.full,
+        borderWidth: 1,
+        marginRight: spacing.xs,
+    },
+    muscleGroupChipActive: {
+        backgroundColor: 'rgba(201, 162, 39, 0.15)',
+        borderColor: '#c9a227',
+    },
+    muscleGroupChipText: {
+        fontSize: typography.sizes.sm,
+        fontWeight: typography.weights.medium,
+    },
+    workoutHeader: {
+        alignItems: 'center',
+        marginBottom: spacing.md,
+    },
+    workoutName: {
+        fontSize: typography.sizes.xxl,
+        fontWeight: typography.weights.bold,
+        textAlign: 'center',
+    },
+    workoutDate: {
+        fontSize: typography.sizes.sm,
+        marginTop: spacing.xs,
     },
 });
