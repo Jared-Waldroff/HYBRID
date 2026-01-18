@@ -112,7 +112,7 @@ export default function WorkoutCard({ workout, onDelete }: WorkoutCardProps) {
                 {/* Exercise list */}
                 {exerciseNames.length > 0 && (
                     <View style={styles.exercises}>
-                        {exerciseNames.slice(0, 4).map((name, index) => (
+                        {exerciseNames.map((name, index) => (
                             <View key={index} style={styles.exerciseItem}>
                                 <View style={[styles.exerciseDot, { backgroundColor: workout.color }]} />
                                 <Text
@@ -123,11 +123,6 @@ export default function WorkoutCard({ workout, onDelete }: WorkoutCardProps) {
                                 </Text>
                             </View>
                         ))}
-                        {exerciseNames.length > 4 && (
-                            <Text style={[styles.moreText, { color: themeColors.textMuted }]}>
-                                +{exerciseNames.length - 4} more
-                            </Text>
-                        )}
                     </View>
                 )}
 

@@ -40,7 +40,7 @@ export default function EventDetailScreen() {
     const route = useRoute<EventDetailRouteProp>();
     const { user } = useAuth();
     const { themeColors, colors: userColors } = useTheme();
-    const { getEventById, joinEvent, leaveEvent, getTrainingPlan, updateEvent } = useSquadEvents();
+    const { getEventById, joinEvent, leaveEvent, getTrainingPlan, updateEvent, deleteEvent } = useSquadEvents();
     const { getParticipantProgress } = useEventWorkouts();
 
     const [event, setEvent] = useState<SquadEvent | null>(null);
@@ -753,8 +753,12 @@ export default function EventDetailScreen() {
                                                     text: 'Delete',
                                                     style: 'destructive',
                                                     onPress: async () => {
-                                                        // TODO: Add deleteEvent to hook
-                                                        navigation.goBack();
+                                                        const result = await deleteEvent(event.id);
+                                                        if (result.error) {
+                                                            Alert.alert('Error', result.error);
+                                                        } else {
+                                                            navigation.goBack();
+                                                        }
                                                     }
                                                 },
                                             ]

@@ -78,6 +78,47 @@ interface PendingAction {
     summary?: string;
 }
 
+// Animated Typing Indicator Component
+const TypingIndicator = () => {
+    const { themeColors } = useTheme();
+    // Create animated values for 3 dots
+    const opacity1 = useRef(new Animated.Value(0.3)).current;
+    const opacity2 = useRef(new Animated.Value(0.3)).current;
+    const opacity3 = useRef(new Animated.Value(0.3)).current;
+
+    useEffect(() => {
+        const animate = (anim: Animated.Value, delay: number) => {
+            Animated.loop(
+                Animated.sequence([
+                    Animated.timing(anim, {
+                        toValue: 1,
+                        duration: 500,
+                        useNativeDriver: true,
+                        delay: delay,
+                    }),
+                    Animated.timing(anim, {
+                        toValue: 0.3,
+                        duration: 500,
+                        useNativeDriver: true,
+                    }),
+                ])
+            ).start();
+        };
+
+        animate(opacity1, 0);
+        animate(opacity2, 250);
+        animate(opacity3, 500);
+    }, []);
+
+    return (
+        <View style={styles.typingIndicator}>
+            <Animated.View style={[styles.dot, { opacity: opacity1, backgroundColor: themeColors.textPrimary }]} />
+            <Animated.View style={[styles.dot, { opacity: opacity2, backgroundColor: themeColors.textPrimary }]} />
+            <Animated.View style={[styles.dot, { opacity: opacity3, backgroundColor: themeColors.textPrimary }]} />
+        </View>
+    );
+};
+
 export default function CoachScreen() {
     const { themeColors, colors: userColors } = useTheme();
     const { user } = useAuth();
@@ -890,11 +931,7 @@ IMPORTANT: When generating custom Workout Plans (PROPOSE_PLAN):
                                 <Feather name="cpu" size={16} color="#c9a227" />
                             </View>
                             <View style={[styles.messageBubble, styles.assistantBubble, { backgroundColor: themeColors.glassBg }]}>
-                                <View style={styles.typingIndicator}>
-                                    <View style={[styles.dot, styles.dot1]} />
-                                    <View style={[styles.dot, styles.dot2]} />
-                                    <View style={[styles.dot, styles.dot3]} />
-                                </View>
+                                <TypingIndicator />
                             </View>
                         </View>
                     )}
