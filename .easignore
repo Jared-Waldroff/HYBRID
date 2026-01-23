@@ -1,0 +1,27 @@
+# EAS Build Ignore File
+# These files are excluded from the production build bundle
+
+# Log files
+*.log
+
+# SQL migration files (for documentation only)
+*.sql
+
+# Test files
+src/__tests__/
+coverage/
+jest.config.js
+jest.setup.js
+
+# Documentation (not needed in app)
+docs/
+README.md
+
+# Development files
+.env.example
+*.txt
+
+# Error logs
+error*.log
+test_*.log
+final_*.log

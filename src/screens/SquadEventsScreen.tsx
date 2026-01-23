@@ -42,8 +42,9 @@ export default function SquadEventsScreen() {
     // Refresh events when screen comes into focus
     useFocusEffect(
         useCallback(() => {
+            // Always fetch fresh data when screen is focused
             loadEvents();
-        }, [loadEvents])
+        }, []) // Empty deps - load fresh every focus
     );
 
     // Load progress for my events

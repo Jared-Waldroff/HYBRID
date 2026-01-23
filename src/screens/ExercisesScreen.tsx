@@ -54,6 +54,7 @@ export default function ExercisesScreen() {
 
     const handleExercisePress = async (exercise: any) => {
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        // Navigate within Exercises stack to keep tab bar visible
         (navigation as any).navigate('ExerciseDetail', { exerciseId: exercise.id, exerciseName: exercise.name });
     };
 

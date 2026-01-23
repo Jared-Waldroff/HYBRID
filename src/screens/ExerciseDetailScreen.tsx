@@ -23,7 +23,7 @@ export default function ExerciseDetailScreen() {
     const navigation = useNavigation();
     const route = useRoute();
     const { exerciseId, exerciseName } = route.params as { exerciseId: string; exerciseName: string };
-    const { themeColors } = useTheme();
+    const { themeColors, colors: userColors } = useTheme();
     const { getExerciseById, getExerciseHistory } = useExercises();
     const { user } = useAuth();
 
@@ -114,7 +114,7 @@ export default function ExerciseDetailScreen() {
                                 <View
                                     style={[
                                         styles.barFill,
-                                        { height: `${(weight / maxWeight) * 100}%` },
+                                        { height: `${(weight / maxWeight) * 100}%`, backgroundColor: userColors.accent_color },
                                     ]}
                                 />
                             </View>
@@ -179,7 +179,7 @@ export default function ExerciseDetailScreen() {
                 <View style={styles.statsGrid}>
                     <View style={[styles.statCard, { backgroundColor: themeColors.glassBg, borderColor: themeColors.glassBorder }]}>
                         <Text style={[styles.statLabel, { color: themeColors.textSecondary }]}>Personal Record</Text>
-                        <Text style={[styles.statValue, styles.prValue]}>{stats.pr} lbs</Text>
+                        <Text style={[styles.statValue, { color: userColors.accent_color }]}>{stats.pr} lbs</Text>
                     </View>
                     <View style={[styles.statCard, { backgroundColor: themeColors.glassBg, borderColor: themeColors.glassBorder }]}>
                         <Text style={[styles.statLabel, { color: themeColors.textSecondary }]}>Sessions</Text>
@@ -222,7 +222,7 @@ export default function ExerciseDetailScreen() {
                                         </Text>
                                     </View>
                                     <View style={styles.historyRight}>
-                                        <Text style={[styles.historyWeight, { color: '#c9a227' }]}>
+                                        <Text style={[styles.historyWeight, { color: userColors.accent_color }]}>
                                             {h.weight} lbs
                                         </Text>
                                         <Text style={[styles.historyReps, { color: themeColors.textSecondary }]}>
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
     },
     barFill: {
         width: '100%',
-        backgroundColor: '#c9a227',
+        // backgroundColor applied inline for user theme
         borderRadius: 4,
     },
     barLabel: {
@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
         fontWeight: '700',
     },
     prValue: {
-        color: '#c9a227',
+        // Dynamic color applied inline
     },
     historyList: {},
     historyRow: {

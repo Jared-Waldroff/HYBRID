@@ -34,6 +34,9 @@ import { RootStackParamList } from '../navigation';
 
 const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
 
+// Feature flag: Set to false when ready to launch AI Coach
+const COACH_COMING_SOON = true;
+
 interface Message {
     id: string;
     role: 'user' | 'assistant';
@@ -78,8 +81,98 @@ interface PendingAction {
     summary?: string;
 }
 
+// Animated Typing Indicator Component
+const TypingIndicator = () => {
+    const { themeColors } = useTheme();
+    // Create animated values for 3 dots
+    const opacity1 = useRef(new Animated.Value(0.3)).current;
+    const opacity2 = useRef(new Animated.Value(0.3)).current;
+    const opacity3 = useRef(new Animated.Value(0.3)).current;
+
+    useEffect(() => {
+        const animate = (anim: Animated.Value, delay: number) => {
+            Animated.loop(
+                Animated.sequence([
+                    Animated.timing(anim, {
+                        toValue: 1,
+                        duration: 500,
+                        useNativeDriver: true,
+                        delay: delay,
+                    }),
+                    Animated.timing(anim, {
+                        toValue: 0.3,
+                        duration: 500,
+                        useNativeDriver: true,
+                    }),
+                ])
+            ).start();
+        };
+
+        animate(opacity1, 0);
+        animate(opacity2, 250);
+        animate(opacity3, 500);
+    }, []);
+
+    return (
+        <View style={styles.typingIndicator}>
+            <Animated.View style={[styles.dot, { opacity: opacity1, backgroundColor: themeColors.textPrimary }]} />
+            <Animated.View style={[styles.dot, { opacity: opacity2, backgroundColor: themeColors.textPrimary }]} />
+            <Animated.View style={[styles.dot, { opacity: opacity3, backgroundColor: themeColors.textPrimary }]} />
+        </View>
+    );
+};
+
 export default function CoachScreen() {
     const { themeColors, colors: userColors } = useTheme();
+
+    // Show Coming Soon screen if feature is disabled
+    if (COACH_COMING_SOON) {
+        return (
+            <ScreenLayout hideHeader>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 }}>
+                    <View style={{
+                        width: 100,
+                        height: 100,
+                        borderRadius: 50,
+                        backgroundColor: userColors.accent_color + '20',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        marginBottom: 24
+                    }}>
+                        <Feather name="cpu" size={48} color={userColors.accent_color} />
+                    </View>
+                    <Text style={{
+                        color: themeColors.textPrimary,
+                        fontSize: 28,
+                        fontWeight: '700',
+                        textAlign: 'center',
+                        marginBottom: 12
+                    }}>
+                        AI Coach
+                    </Text>
+                    <Text style={{
+                        color: userColors.accent_color,
+                        fontSize: 18,
+                        fontWeight: '600',
+                        textAlign: 'center',
+                        marginBottom: 16
+                    }}>
+                        Coming Soon
+                    </Text>
+                    <Text style={{
+                        color: themeColors.textSecondary,
+                        fontSize: 15,
+                        textAlign: 'center',
+                        lineHeight: 22,
+                        maxWidth: 300
+                    }}>
+                        Our AI-powered coach is being fine-tuned to help you build personalized training programs. Stay tuned!
+                    </Text>
+                </View>
+            </ScreenLayout>
+        );
+    }
+
     const { user } = useAuth();
     const {
         workouts,
@@ -890,11 +983,7 @@ IMPORTANT: When generating custom Workout Plans (PROPOSE_PLAN):
                                 <Feather name="cpu" size={16} color="#c9a227" />
                             </View>
                             <View style={[styles.messageBubble, styles.assistantBubble, { backgroundColor: themeColors.glassBg }]}>
-                                <View style={styles.typingIndicator}>
-                                    <View style={[styles.dot, styles.dot1]} />
-                                    <View style={[styles.dot, styles.dot2]} />
-                                    <View style={[styles.dot, styles.dot3]} />
-                                </View>
+                                <TypingIndicator />
                             </View>
                         </View>
                     )}
