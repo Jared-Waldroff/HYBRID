@@ -28,6 +28,7 @@ import ExerciseSection from '../components/ExerciseSection';
 import ConfirmDialog from '../components/ConfirmDialog';
 import ScreenLayout from '../components/ScreenLayout';
 import { colors, spacing, radii, typography, MIN_TOUCH_TARGET } from '../theme';
+import { useWorkouts } from '../hooks/useWorkouts'; // Assuming this hook exists and provides removeExerciseFromWorkout
 
 type ActiveWorkoutRouteProp = RouteProp<RootStackParamList, 'ActiveWorkout'>;
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -39,6 +40,7 @@ export default function ActiveWorkoutScreen() {
     const { themeColors, colors: userColors } = useTheme();
     const { addBadge, hasBadge } = useAthleteProfile();
     const { exercises, createExercise, fetchExercises, getLastExerciseSetValues } = useExercises();
+    const { removeExerciseFromWorkout } = useWorkouts(); // Added removeExerciseFromWorkout
 
     const [workout, setWorkout] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -55,6 +57,9 @@ export default function ActiveWorkoutScreen() {
     const [newExerciseMuscle, setNewExerciseMuscle] = useState('');
     const [newExerciseDescription, setNewExerciseDescription] = useState('');
     const [addingExercise, setAddingExercise] = useState(false);
+
+    // Delete exercise dialog state
+    const [exerciseToDelete, setExerciseToDelete] = useState<{ id: string, name: string } | null>(null);
 
     // KEEP SCREEN AWAKE during workout
     useEffect(() => {
@@ -365,6 +370,37 @@ export default function ActiveWorkoutScreen() {
         });
     };
 
+    // Handler for deleting an exercise
+    const handleDeleteExercise = (workoutExerciseId: string) => {
+        const we = workout.workout_exercises.find((w: any) => w.id === workoutExerciseId);
+        if (we) {
+            setExerciseToDelete({ id: we.exercise.id, name: we.exercise.name });
+        }
+    };
+
+    const confirmDeleteExercise = async () => {
+        if (!exerciseToDelete || !workout) return;
+
+        try {
+            await removeExerciseFromWorkout(workout.id, exerciseToDelete.id);
+            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+            // Remove from local state
+            setWorkout((prev: any) => {
+                if (!prev) return prev;
+                const updatedExercises = prev.workout_exercises.filter(
+                    (we: any) => we.exercise.id !== exerciseToDelete.id
+                );
+                return { ...prev, workout_exercises: updatedExercises };
+            });
+        } catch (err) {
+            console.error('Error removing exercise:', err);
+            Alert.alert('Error', 'Failed to remove exercise');
+        } finally {
+            setExerciseToDelete(null);
+        }
+    };
+
     if (loading) {
         return (
             <ScreenLayout hideHeader>
@@ -435,6 +471,7 @@ export default function ActiveWorkoutScreen() {
                             onSetToggle={handleSetToggle}
                             onSetAdd={handleSetAdd}
                             onSetDelete={handleSetDelete}
+                            onExerciseDelete={handleDeleteExercise}
                         />
                     ))}
                 </View>
@@ -664,6 +701,17 @@ export default function ActiveWorkoutScreen() {
                 confirmText={workout.is_completed ? 'Mark Incomplete' : 'Complete'}
                 onConfirm={handleCompleteWorkout}
                 onCancel={() => setShowCompleteConfirm(false)}
+            />
+
+            {/* Exercise Delete Confirm Dialog */}
+            <ConfirmDialog
+                visible={!!exerciseToDelete}
+                title="Remove Exercise"
+                message={`Are you sure you want to remove "${exerciseToDelete?.name}" from this workout?`}
+                confirmText="Remove"
+                variant="danger"
+                onConfirm={confirmDeleteExercise}
+                onCancel={() => setExerciseToDelete(null)}
             />
 
             {/* Incomplete Warning Dialog */}

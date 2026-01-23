@@ -47,7 +47,7 @@ export type RootStackParamList = {
     Onboarding: undefined;
     CreateWorkout: { date?: string };
     ActiveWorkout: { id: string };
-    ExerciseDetail: { id: string };
+    ExerciseDetail: { exerciseId: string; exerciseName: string };
     CrossFitWorkout: { id: string };
     AthleteProfile: { id: string };
     Notifications: undefined;
@@ -67,7 +67,7 @@ export type RootStackParamList = {
 export type MainTabParamList = {
     Home: NavigatorScreenParams<HomeStackParamList> | undefined;
     Calendar: undefined;
-    Exercises: undefined;
+    Exercises: NavigatorScreenParams<ExercisesStackParamList> | undefined;
     Coach: undefined;
     Squad: NavigatorScreenParams<SquadStackParamList>; // Updated for nested linking
     SettingsTab: undefined;
@@ -78,10 +78,15 @@ export type HomeStackParamList = {
     HomeMain: { selectedDate?: string; timestamp?: number } | undefined;
     ActiveWorkout: { id: string };
     CrossFitWorkout: { id: string };
-    ExerciseDetail: { id: string };
+    ExerciseDetail: { exerciseId: string; exerciseName: string };
     CreateWorkout: { date?: string };
     AthleteProfile: { id: string };
     ActivityFeed: { eventId?: string };
+};
+
+export type ExercisesStackParamList = {
+    ExercisesMain: undefined;
+    ExerciseDetail: { exerciseId: string; exerciseName: string };
 };
 
 export type SquadStackParamList = {
@@ -238,8 +243,18 @@ function MainTabs() {
             />
             <Tab.Screen
                 name="Exercises"
-                component={ExercisesScreen}
+                component={ExercisesStack}
                 options={{ tabBarLabel: 'Exercises' }}
+                listeners={({ navigation, route }) => ({
+                    tabPress: (e: any) => {
+                        const state = navigation.getState();
+                        const exercisesRoute = state.routes.find(r => r.name === 'Exercises');
+                        if (exercisesRoute && exercisesRoute.state && exercisesRoute.state.index > 0) {
+                            e.preventDefault();
+                            navigation.navigate('Exercises', { screen: 'ExercisesMain' });
+                        }
+                    },
+                })}
             />
             <Tab.Screen
                 name="Coach"
@@ -311,6 +326,30 @@ function HomeStack() {
             <HomeStackNav.Screen name="AthleteProfile" component={AthleteProfileScreen} />
             <HomeStackNav.Screen name="ActivityFeed" component={ActivityFeedScreen} />
         </HomeStackNav.Navigator>
+    );
+}
+
+const ExercisesStackNav = createNativeStackNavigator<ExercisesStackParamList>();
+
+function ExercisesStack() {
+    const { themeColors } = useTheme();
+
+    return (
+        <ExercisesStackNav.Navigator
+            id="ExercisesStack"
+            screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: themeColors.bgPrimary },
+                animation: 'slide_from_right',
+                gestureEnabled: true,
+                gestureDirection: 'horizontal',
+                fullScreenGestureEnabled: true,
+            }}
+            initialRouteName="ExercisesMain"
+        >
+            <ExercisesStackNav.Screen name="ExercisesMain" component={ExercisesScreen} />
+            <ExercisesStackNav.Screen name="ExerciseDetail" component={ExerciseDetailScreen} />
+        </ExercisesStackNav.Navigator>
     );
 }
 

@@ -34,9 +34,10 @@ interface ExerciseSectionProps {
     onSetToggle?: (setId: string, newComplete: boolean) => void;
     onSetAdd?: (newSet: any) => void;
     onSetDelete?: (setId: string) => void;
+    onExerciseDelete?: (workoutExerciseId: string) => void;
 }
 
-export default function ExerciseSection({ workoutExercise, onSetToggle, onSetAdd, onSetDelete }: ExerciseSectionProps) {
+export default function ExerciseSection({ workoutExercise, onSetToggle, onSetAdd, onSetDelete, onExerciseDelete }: ExerciseSectionProps) {
     const navigation = useNavigation<NavigationProp>();
     const { themeColors, colors: userColors } = useTheme();
     const { addSet, updateSet, deleteSet, toggleSetComplete, duplicateSet } = useSets();
@@ -139,7 +140,7 @@ export default function ExerciseSection({ workoutExercise, onSetToggle, onSetAdd
     const handleExerciseClick = () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         if (exercise?.id) {
-            navigation.navigate('ExerciseDetail', { id: exercise.id });
+            navigation.navigate('ExerciseDetail', { exerciseId: exercise.id, exerciseName: exercise.name });
         }
     };
 
@@ -180,10 +181,7 @@ export default function ExerciseSection({ workoutExercise, onSetToggle, onSetAdd
     return (
         <View style={[styles.container, { backgroundColor: themeColors.glassBg, borderColor: themeColors.glassBorder }]}>
             {/* Header */}
-            <Pressable
-                style={styles.header}
-                onPress={() => setIsExpanded(!isExpanded)}
-            >
+            <View style={styles.header}>
                 <Pressable style={styles.exerciseInfo} onPress={handleExerciseClick}>
                     <Text style={[styles.exerciseName, { color: themeColors.textPrimary }]}>
                         {exercise?.name}
@@ -192,14 +190,30 @@ export default function ExerciseSection({ workoutExercise, onSetToggle, onSetAdd
                         {exercise?.muscle_group}
                     </Text>
                 </Pressable>
-                <Pressable style={styles.expandButton}>
-                    <Feather
-                        name={isExpanded ? 'chevron-up' : 'chevron-down'}
-                        size={20}
-                        color={themeColors.textSecondary}
-                    />
-                </Pressable>
-            </Pressable>
+                <View style={styles.headerActions}>
+                    {onExerciseDelete && (
+                        <Pressable
+                            style={styles.headerButton}
+                            onPress={() => {
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                onExerciseDelete(workoutExercise.id);
+                            }}
+                        >
+                            <Feather name="trash-2" size={18} color={themeColors.textMuted} />
+                        </Pressable>
+                    )}
+                    <Pressable
+                        style={styles.headerButton}
+                        onPress={() => setIsExpanded(!isExpanded)}
+                    >
+                        <Feather
+                            name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                            size={20}
+                            color={themeColors.textSecondary}
+                        />
+                    </Pressable>
+                </View>
+            </View>
 
             {isExpanded && (
                 <>
@@ -339,6 +353,17 @@ const styles = StyleSheet.create({
         marginTop: 2,
     },
     expandButton: {
+        width: MIN_TOUCH_TARGET,
+        height: MIN_TOUCH_TARGET,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    headerActions: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.xs,
+    },
+    headerButton: {
         width: MIN_TOUCH_TARGET,
         height: MIN_TOUCH_TARGET,
         justifyContent: 'center',

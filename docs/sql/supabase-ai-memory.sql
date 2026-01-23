@@ -4,3 +4,4 @@ alter table public.athlete_profiles
 add column if not exists ai_preferences text;
 
 -- No new RLS needed as athlete_profiles already has policies (Users can view/update own profile)
+

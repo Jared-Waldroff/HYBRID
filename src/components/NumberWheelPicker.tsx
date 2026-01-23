@@ -89,13 +89,15 @@ export default function NumberWheelPicker({
 
     return (
         <Modal visible={visible} transparent animationType="slide">
-            <View style={styles.overlay}>
-                <View style={[styles.container, { backgroundColor: themeColors.bgSecondary }]}>
+            <Pressable style={styles.overlay} onPress={handleConfirm}>
+                <Pressable style={[styles.container, { backgroundColor: themeColors.bgSecondary }]} onPress={(e) => e.stopPropagation()}>
                     <View style={styles.header}>
                         <Text style={[styles.title, { color: themeColors.textPrimary }]}>{title}</Text>
                     </View>
 
                     <View style={styles.pickerContainer}>
+                        {/* Selection indicator */}
+                        <View style={[styles.selectionIndicator, { backgroundColor: userColors.accent_color + '20', borderColor: userColors.accent_color + '40' }]} pointerEvents="none" />
                         <FlatList
                             ref={flatListRef}
                             data={values}
@@ -108,6 +110,21 @@ export default function NumberWheelPicker({
                             decelerationRate="fast"
                             style={styles.flatList}
                             contentContainerStyle={styles.listContent}
+                            onMomentumScrollEnd={(e) => {
+                                const offsetY = e.nativeEvent.contentOffset.y;
+                                const index = Math.round(offsetY / ITEM_HEIGHT);
+                                if (index >= 0 && index < values.length && values[index] !== value) {
+                                    handleValueChange(values[index]);
+                                }
+                            }}
+                            onScrollEndDrag={(e) => {
+                                // Also handle when user stops dragging without momentum
+                                const offsetY = e.nativeEvent.contentOffset.y;
+                                const index = Math.round(offsetY / ITEM_HEIGHT);
+                                if (index >= 0 && index < values.length && values[index] !== value) {
+                                    handleValueChange(values[index]);
+                                }
+                            }}
                         />
                     </View>
 
@@ -117,8 +134,8 @@ export default function NumberWheelPicker({
                     >
                         <Text style={styles.confirmButtonText}>Done</Text>
                     </Pressable>
-                </View>
-            </View>
+                </Pressable>
+            </Pressable>
         </Modal>
     );
 }
@@ -146,6 +163,17 @@ const styles = StyleSheet.create({
     },
     pickerContainer: {
         height: ITEM_HEIGHT * VISIBLE_ITEMS,
+        position: 'relative',
+    },
+    selectionIndicator: {
+        position: 'absolute',
+        top: ITEM_HEIGHT * 2,
+        left: 0,
+        right: 0,
+        height: ITEM_HEIGHT,
+        borderTopWidth: 1,
+        borderBottomWidth: 1,
+        zIndex: 1,
     },
     flatList: {
         flex: 1,
