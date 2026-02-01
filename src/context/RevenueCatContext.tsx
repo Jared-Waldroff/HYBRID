@@ -4,8 +4,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Purchases, { CustomerInfo, PurchasesPackage, LOG_LEVEL } from 'react-native-purchases';
 
 const API_KEYS = {
-    apple: 'test_EWFKbyVLspUDscBZXpvsdfRwXnu',
-    google: 'test_EWFKbyVLspUDscBZXpvsdfRwXnu',
+    apple: 'sk_BmYJDuVltMPDnFpNFIDYwKCsynyCj',
+    google: 'sk_BmYJDuVltMPDnFpNFIDYwKCsynyCj',
 };
 
 // Valid promo codes that grant Pro access

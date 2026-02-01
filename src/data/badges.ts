@@ -303,6 +303,14 @@ export const BADGE_DEFINITIONS = {
         description: 'Returned from injury stronger',
         category: 'milestone',
         automatic: false
+    },
+    'morning_warrior': {
+        id: 'morning_warrior',
+        name: 'Morning Warrior',
+        emoji: '🌅',
+        description: 'Early bird who gets the workout in before dawn',
+        category: 'milestone',
+        automatic: false
     }
 }
 

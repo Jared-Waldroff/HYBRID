@@ -14,6 +14,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useActivityFeed } from '../hooks/useActivityFeed';
 import ScreenLayout from '../components/ScreenLayout';
 import FeedPostCard from '../components/FeedPostCard';
+import SquadUserModal from '../components/SquadUserModal';
 import { spacing, typography } from '../theme';
 import { RootStackParamList } from '../navigation';
 
@@ -24,11 +25,14 @@ export default function ActivityFeedScreen() {
     const navigation = useNavigation<NavigationProp>();
     const route = useRoute<ActivityFeedRouteProp>();
     const { themeColors, colors: userColors } = useTheme();
-    const { feed, loading, loadFeed, toggleLfg } = useActivityFeed();
+    const eventId = route.params?.eventId;
+    const { feed, loading, loadFeed, toggleLfg } = useActivityFeed(eventId);
 
     const [refreshing, setRefreshing] = React.useState(false);
 
-    const eventId = route.params?.eventId;
+    // Squad Modal State
+    const [selectedUser, setSelectedUser] = React.useState<{ id: string; display_name: string; avatar_url: string; badges?: string[] } | null>(null);
+    const [modalVisible, setModalVisible] = React.useState(false);
 
     const handleLoadFeed = useCallback(() => {
         loadFeed(eventId);
@@ -49,12 +53,22 @@ export default function ActivityFeedScreen() {
     };
 
     const handleComment = (postId: string) => {
-        // TODO: Open comments modal
-        console.log('Open comments for', postId);
+        navigation.navigate('Comments', { postId });
     };
 
-    const handleUserPress = (userId: string) => {
-        navigation.navigate('AthleteProfile', { id: userId });
+    const handleUserPress = (userId: string, user: any) => {
+        if (userId && user) {
+            setSelectedUser({
+                id: userId,
+                display_name: user?.display_name || 'Unknown',
+                avatar_url: user?.avatar_url,
+                badges: user?.badges
+            });
+            setModalVisible(true);
+        } else if (userId) {
+            // Fallback if no user object (shouldn't happen with updated FeedPostCard)
+            navigation.navigate('AthleteProfile', { id: userId });
+        }
     };
 
     const handleEventPress = (eventId: string) => {
@@ -108,6 +122,11 @@ export default function ActivityFeedScreen() {
                     )}
                 </ScrollView>
             )}
+            <SquadUserModal
+                visible={modalVisible}
+                onClose={() => setModalVisible(false)}
+                user={selectedUser}
+            />
         </ScreenLayout>
     );
 }

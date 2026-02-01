@@ -33,6 +33,7 @@ import EventCard from '../components/EventCard';
 import { useActivityFeed, FeedPost } from '../hooks/useActivityFeed';
 import { useSquadEvents, SquadEvent } from '../hooks/useSquadEvents';
 import { useSquad, SquadMember } from '../hooks/useSquad';
+import BadgeRow from '../components/BadgeRow';
 import { spacing, radii, typography } from '../theme';
 import { RootStackParamList } from '../navigation';
 import { SquadStackParamList } from '../navigation';
@@ -50,6 +51,7 @@ interface SearchResult {
     display_name?: string;
     avatar_url?: string;
     is_private?: boolean;
+    badges?: string[];
 }
 
 export default function SquadScreen({ route }: any) {
@@ -248,6 +250,7 @@ export default function SquadScreen({ route }: any) {
                 username: r.username,
                 display_name: r.display_name,
                 avatar_url: r.avatar_url,
+                badges: r.badges || [],
                 is_private: false // Default to logic handled in hook
             })));
         } catch (err) {
@@ -471,7 +474,7 @@ export default function SquadScreen({ route }: any) {
                         key={post.id}
                         post={post}
                         onLfg={() => handleLfg(post.id)}
-                        onComment={() => {/* TODO */ }}
+                        onComment={() => navigation.navigate('Comments', { postId: post.id })}
                         isOwner={user?.id === post.user_id}
                         onOptions={() => handlePostOptions(post)}
                     />
@@ -568,7 +571,12 @@ export default function SquadScreen({ route }: any) {
                     </View>
                     <View style={styles.memberInfo}>
                         <Text style={[styles.memberName, { color: themeColors.textPrimary }]}>{member.display_name}</Text>
-                        <Text style={[styles.memberBio, { color: themeColors.textSecondary }]}>@{member.username}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                            <Text style={[styles.memberBio, { color: themeColors.textSecondary }]}>@{member.username}</Text>
+                            {member.badges && member.badges.length > 0 && (
+                                <BadgeRow badges={member.badges} maxDisplay={3} userName={member.display_name} />
+                            )}
+                        </View>
                     </View>
                     {/* Add Remove Option? For now just profile link */}
                     <Pressable
@@ -595,7 +603,12 @@ export default function SquadScreen({ route }: any) {
                         </Text>
                     </View>
                     <View style={styles.memberInfo}>
-                        <Text style={[styles.memberName, { color: themeColors.textPrimary }]}>{request.display_name}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                            <Text style={[styles.memberName, { color: themeColors.textPrimary }]}>{request.display_name}</Text>
+                            {request.badges && request.badges.length > 0 && (
+                                <BadgeRow badges={request.badges} maxDisplay={2} userName={request.display_name} />
+                            )}
+                        </View>
                         <Text style={[styles.requestLabel, { color: themeColors.textMuted }]}>wants to join your Squad</Text>
                     </View>
                     <View style={styles.requestActions}>
@@ -782,9 +795,14 @@ export default function SquadScreen({ route }: any) {
                                                     </Text>
                                                 </View>
                                                 <View style={styles.resultInfo}>
-                                                    <Text style={[styles.resultName, { color: themeColors.textPrimary }]}>
-                                                        {result.display_name || result.username}
-                                                    </Text>
+                                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                                                        <Text style={[styles.resultName, { color: themeColors.textPrimary }]}>
+                                                            {result.display_name || result.username}
+                                                        </Text>
+                                                        {result.badges && result.badges.length > 0 && (
+                                                            <BadgeRow badges={result.badges} maxDisplay={2} userName={result.display_name || result.username} />
+                                                        )}
+                                                    </View>
                                                     {result.username && (
                                                         <Text style={[styles.resultUsername, { color: themeColors.textSecondary }]}>
                                                             @{result.username}

@@ -37,7 +37,10 @@ import CompleteEventWorkoutScreen from '../screens/CompleteEventWorkoutScreen';
 import NotificationSettingsScreen from '../screens/NotificationSettingsScreen';
 import ManageEventPlanScreen from '../screens/ManageEventPlanScreen';
 import PaywallScreen from '../screens/PaywallScreen';
+
 import AdminScreen from '../screens/AdminScreen';
+import CommentsScreen from '../screens/CommentsScreen';
+import BadgesScreen from '../screens/BadgesScreen';
 
 // Type definitions for navigation
 export type RootStackParamList = {
@@ -61,7 +64,9 @@ export type RootStackParamList = {
     ManageEventPlan: { eventId: string; eventName: string; eventDate: string; eventType: string };
     CompleteEventWorkout: { trainingWorkoutId: string; eventId: string };
     Paywall: { fromCoach?: boolean } | undefined;
+    Comments: { postId: string };
     Admin: undefined;
+    Badges: { user: any };
 };
 
 export type MainTabParamList = {
@@ -69,8 +74,9 @@ export type MainTabParamList = {
     Calendar: undefined;
     Exercises: NavigatorScreenParams<ExercisesStackParamList> | undefined;
     Coach: undefined;
-    Squad: NavigatorScreenParams<SquadStackParamList>; // Updated for nested linking
+    Squad: NavigatorScreenParams<SquadStackParamList>;
     SettingsTab: undefined;
+    BadgesTab: { id?: string } | undefined;
     NotificationsTab: undefined;
 };
 
@@ -82,6 +88,7 @@ export type HomeStackParamList = {
     CreateWorkout: { date?: string };
     AthleteProfile: { id: string };
     ActivityFeed: { eventId?: string };
+    Comments: { postId: string };
 };
 
 export type ExercisesStackParamList = {
@@ -98,6 +105,9 @@ export type SquadStackParamList = {
     SquadEvents: undefined;
     ActivityFeed: { eventId?: string };
     CompleteEventWorkout: { trainingWorkoutId: string; eventId: string };
+    Comments: { postId: string };
+    AthleteProfile: { id?: string };
+    Badges: { user: any };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -112,6 +122,7 @@ const TAB_ICONS: Record<keyof MainTabParamList, keyof typeof Feather.glyphMap> =
     Coach: 'user',
     Squad: 'users',
     SettingsTab: 'settings',
+    BadgesTab: 'award',
 };
 
 function MainTabs() {
@@ -183,9 +194,9 @@ function MainTabs() {
                     backgroundColor: userColors.accent_color,
                     transform: [{
                         translateX: position.interpolate({
-                            // position goes from 0-6 (7 tabs total)
-                            // Notifications slides off left, Settings slides off right
-                            inputRange: [0, 1, 2, 3, 4, 5, 6],
+                            // position goes from 0-7 (8 tabs total)
+                            // Notifications (0), Home(1)-Squad(5) visible, Settings(6), Badges(7) hidden right
+                            inputRange: [0, 1, 2, 3, 4, 5, 6, 7],
                             outputRange: [
                                 -screenWidth * 0.2,  // Notifications -> off screen left
                                 0,  // Home
@@ -193,7 +204,8 @@ function MainTabs() {
                                 screenWidth * 0.4,  // Exercises
                                 screenWidth * 0.6,  // Coach
                                 screenWidth * 0.8,  // Squad
-                                screenWidth,  // Settings -> off screen right
+                                screenWidth,         // Settings -> off screen right
+                                screenWidth * 1.2,   // Badges -> further right
                             ],
                             extrapolate: 'clamp',
                         }),
@@ -293,8 +305,21 @@ function MainTabs() {
             {/* Hidden Settings tab - accessible by swiping right from Squad */}
             <Tab.Screen
                 name="SettingsTab"
-                component={SettingsScreen}
-                options={{ tabBarLabel: 'Settings' }}
+                component={SettingsStack}
+                options={({ route }) => {
+                    const routeName = getFocusedRouteNameFromRoute(route);
+                    const isMainScreen = !routeName || routeName === 'SettingsMain';
+                    return {
+                        tabBarLabel: 'Settings',
+                        swipeEnabled: isMainScreen,
+                    };
+                }}
+            />
+            {/* Hidden Badges tab - accessible by swiping right from Settings */}
+            <Tab.Screen
+                name="BadgesTab"
+                component={AthleteProfileScreen}
+                options={{ tabBarLabel: 'Badges' }}
             />
         </Tab.Navigator>
     );
@@ -324,7 +349,10 @@ function HomeStack() {
             <HomeStackNav.Screen name="ExerciseDetail" component={ExerciseDetailScreen} />
             <HomeStackNav.Screen name="CreateWorkout" component={CreateWorkoutScreen} />
             <HomeStackNav.Screen name="AthleteProfile" component={AthleteProfileScreen} />
+
             <HomeStackNav.Screen name="ActivityFeed" component={ActivityFeedScreen} />
+            <HomeStackNav.Screen name="Comments" component={CommentsScreen} />
+            <HomeStackNav.Screen name="Badges" component={BadgesScreen} />
         </HomeStackNav.Navigator>
     );
 }
@@ -377,9 +405,38 @@ function SquadStack() {
             <SquadStackNav.Screen name="EventDetail" component={EventDetailScreen} />
             <SquadStackNav.Screen name="ManageEventPlan" component={ManageEventPlanScreen} />
             <SquadStackNav.Screen name="SquadEvents" component={SquadEventsScreen} />
+            <SquadStackNav.Screen name="AthleteProfile" component={AthleteProfileScreen} />
             <SquadStackNav.Screen name="ActivityFeed" component={ActivityFeedScreen} />
+
             <SquadStackNav.Screen name="CompleteEventWorkout" component={CompleteEventWorkoutScreen} />
+            <SquadStackNav.Screen name="Comments" component={CommentsScreen} />
+            <SquadStackNav.Screen name="Badges" component={BadgesScreen} />
         </SquadStackNav.Navigator>
+    );
+}
+
+const SettingsStackNav = createNativeStackNavigator<SettingsStackParamList>();
+
+function SettingsStack() {
+    const { themeColors } = useTheme();
+
+    return (
+        <SettingsStackNav.Navigator
+            id="SettingsStack"
+            screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: themeColors.bgPrimary },
+                animation: 'slide_from_right',
+                gestureEnabled: true,
+                gestureDirection: 'horizontal',
+                fullScreenGestureEnabled: true,
+            }}
+            initialRouteName="SettingsMain"
+        >
+            <SettingsStackNav.Screen name="SettingsMain" component={SettingsScreen} />
+            <SettingsStackNav.Screen name="Badges" component={BadgesScreen} />
+            <SettingsStackNav.Screen name="Admin" component={AdminScreen} />
+        </SettingsStackNav.Navigator>
     );
 }
 
@@ -422,7 +479,7 @@ function AppStack() {
                     animation: 'slide_from_bottom'
                 }}
             />
-            <Stack.Screen name="Admin" component={AdminScreen} />
+            {/* Admin moved to SettingsStack */}
         </Stack.Navigator>
     );
 }

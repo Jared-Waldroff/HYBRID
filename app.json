@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.jaredwaldroff.hybrid",
+      "bundleIdentifier": "com.walsansoftware.hybrid",
       "buildNumber": "1",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "HYBRID needs access to your photo library to upload photos to your posts and profile.",

@@ -1,0 +1,650 @@
+★ eas-cli@16.31.0 is now available.
+To upgrade, run:
+npm install -g eas-cli
+Proceeding with outdated version.
+
+(node:17817) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Resolved "production" environment for the build. Learn more: https://docs.expo.dev/eas/environment-variables/#setting-the-environment-for-your-builds
+Environment variables with visibility "Plain text" and "Sensitive" loaded from the "production" environment on EAS: EXPO_PUBLIC_GEMINI_API_KEY, EXPO_PUBLIC_SUPABASE_ANON_KEY, EXPO_PUBLIC_SUPABASE_URL.
+
+Specified value for "ios.bundleIdentifier" in app.json is ignored because an ios directory was detected in the project.
+EAS Build will use the value found in the native code.
+ios.buildNumber field in app config is ignored when version source is set to remote, but this value will still be in the manifest available via expo-constants. It's recommended to remove this value from app config.
+✔ Using remote iOS credentials (Expo server)
+
+If you provide your Apple account credentials we will be able to generate all necessary build credentials and fully validate them.
+This is optional, but without Apple account access you will need to provide all the missing values manually and we can only run minimal validation on them.
+[?25l[2K[1G[36m?[39m [1mDo you want to log in to your Apple account?[22m [90m›[39m [90m(Y/n)[39m[2K[1G[2K[1G[32m✔[39m [1mDo you want to log in to your Apple account?[22m [90m…[39m no
+[?25hNo problem! 👌 If any of the next steps will require Apple account access we will ask you again about it.
+Skipping Distribution Certificate validation on Apple Servers because we aren't authenticated.
+Skipping Provisioning Profile validation on Apple Servers because we aren't authenticated.
+
+Project Credentials Configuration
+
+Project                   @jaredwaldroff/hybrid
+Bundle Identifier         com.walsansoftware.hybrid
+                          
+App Store Configuration   
+                          
+Distribution Certificate  
+Serial Number             25F2AB5158EC8B6A64688B484FB4347C
+Expiration Date           Thu, 21 Jan 2027 17:02:13 PST
+Apple Team                7X293FTKZA (Jared Waldroff (Individual))
+Updated                   6 days ago
+                          
+Provisioning Profile      
+Developer Portal ID       L2466MPHHA
+Status                    active
+Expiration                Thu, 21 Jan 2027 17:02:13 PST
+Apple Team                7X293FTKZA (Jared Waldroff (Individual))
+Updated                   4 days ago
+                          
+All credentials are ready to build @jaredwaldroff/hybrid (com.walsansoftware.hybrid)
+
+✔ Push Notifications are set up
+⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files⠦ Compressing project files⠧ Compressing project files⠇ Compressing project files⠏ Compressing project files⠋ Compressing project files⠙ Compressing project files⠹ Compressing project files⠸ Compressing project files⠼ Compressing project files⠴ Compressing project files✔ Compressed project files 51s (194 MB)
+Skipping project fingerprint
+(node:21997) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[SETUP_WORKINGDIR] Preparing workingdir /var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928
+[START_BUILD] Starting build
+  "job": {
+    "type": "generic",
+    "platform": "ios",
+    "projectArchive": {
+      "type": "PATH",
+      "path": "/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-cli-nodejs/cba72593-27f1-4e91-b344-29c6db8b4fcd.tar.gz"
+    },
+    "projectRootDirectory": ".",
+    "builderEnvironment": {
+      "env": {}
+    },
+    "cache": {
+      "disabled": false,
+      "paths": [],
+      "clear": false
+    },
+    "updates": {},
+    "scheme": "HYBRID",
+    "username": "jaredwaldroff",
+    "version": {
+      "buildNumber": "2"
+    },
+    "experimental": {},
+    "mode": "build",
+    "triggeredBy": "EAS_CLI",
+    "appId": "ae4e3783-a643-4a7e-95d4-eb3108c0184a",
+    "initiatingUserId": "358bb26b-f09c-45f4-a36c-45f6f3ceeefe"
+  }
+Local build, skipping project archive refresh
+[READ_PACKAGE_JSON] Using package.json:
+[READ_PACKAGE_JSON] {
+  "name": "hybrid",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "dependencies": {
+    "@expo-google-fonts/inter": "^0.4.2",
+    "@expo/vector-icons": "^15.0.3",
+    "@google/generative-ai": "^0.24.1",
+    "@react-native-async-storage/async-storage": "^2.2.0",
+    "@react-native-community/datetimepicker": "^8.6.0",
+    "@react-navigation/bottom-tabs": "^7.9.0",
+    "@react-navigation/material-top-tabs": "^7.4.11",
+    "@react-navigation/native": "^7.1.26",
+    "@react-navigation/native-stack": "^7.9.0",
+    "@supabase/supabase-js": "^2.89.0",
+    "expo": "~54.0.30",
+    "expo-auth-session": "^7.0.10",
+    "expo-av": "~16.0.8",
+    "expo-calendar": "~15.0.8",
+    "expo-clipboard": "^8.0.8",
+    "expo-constants": "^18.0.13",
+    "expo-crypto": "^15.0.8",
+    "expo-device": "^8.0.10",
+    "expo-font": "^14.0.10",
+    "expo-haptics": "^15.0.8",
+    "expo-image": "~3.0.11",
+    "expo-image-picker": "^16.0.6",
+    "expo-keep-awake": "^15.0.8",
+    "expo-linear-gradient": "^15.0.8",
+    "expo-notifications": "^0.32.16",
+    "expo-secure-store": "^15.0.8",
+    "expo-splash-screen": "^31.0.13",
+    "expo-status-bar": "~3.0.9",
+    "expo-web-browser": "^15.0.10",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-chart-kit": "^6.12.0",
+    "react-native-pager-view": "^8.0.0",
+    "react-native-purchases": "^9.6.15",
+    "react-native-qrcode-svg": "^6.3.21",
+    "react-native-safe-area-context": "^5.6.2",
+    "react-native-screens": "~4.16.0",
+    "react-native-svg": "15.12.1",
+    "react-native-url-polyfill": "^3.0.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-native": "^5.4.3",
+    "@testing-library/react-native": "^13.3.3",
+    "@types/jest": "^30.0.0",
+    "@types/react": "~19.1.0",
+    "babel-preset-expo": "^54.0.9",
+    "jest": "^30.2.0",
+    "jest-expo": "^54.0.16",
+    "ts-jest": "^29.4.6",
+    "typescript": "~5.9.2"
+  },
+  "private": true
+}
+[INSTALL_DEPENDENCIES] Running "npm ci --include=dev" in /var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build directory
+[INSTALL_DEPENDENCIES] npm warn ERESOLVE overriding peer dependency
+[INSTALL_DEPENDENCIES] npm warn While resolving: jest-watch-typeahead@2.2.1
+[INSTALL_DEPENDENCIES] npm warn Found: jest@30.2.0
+[INSTALL_DEPENDENCIES] npm warn node_modules/jest
+[INSTALL_DEPENDENCIES] npm warn   dev jest@"^30.2.0" from the root project
+[INSTALL_DEPENDENCIES] npm warn   2 more (@testing-library/react-native, ts-jest)
+[INSTALL_DEPENDENCIES] npm warn
+[INSTALL_DEPENDENCIES] npm warn Could not resolve dependency:
+[INSTALL_DEPENDENCIES] npm warn peer jest@"^27.0.0 || ^28.0.0 || ^29.0.0" from jest-watch-typeahead@2.2.1
+[INSTALL_DEPENDENCIES] npm warn node_modules/jest-watch-typeahead
+[INSTALL_DEPENDENCIES] npm warn   jest-watch-typeahead@"2.2.1" from jest-expo@54.0.16
+[INSTALL_DEPENDENCIES] npm warn   node_modules/jest-expo
+[INSTALL_DEPENDENCIES] npm warn
+[INSTALL_DEPENDENCIES] npm warn Conflicting peer dependency: jest@29.7.0
+[INSTALL_DEPENDENCIES] npm warn node_modules/jest
+[INSTALL_DEPENDENCIES] npm warn   peer jest@"^27.0.0 || ^28.0.0 || ^29.0.0" from jest-watch-typeahead@2.2.1
+[INSTALL_DEPENDENCIES] npm warn   node_modules/jest-watch-typeahead
+[INSTALL_DEPENDENCIES] npm warn     jest-watch-typeahead@"2.2.1" from jest-expo@54.0.16
+[INSTALL_DEPENDENCIES] npm warn     node_modules/jest-expo
+[INSTALL_DEPENDENCIES] npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+[INSTALL_DEPENDENCIES] npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+[INSTALL_DEPENDENCIES] npm warn deprecated abab@2.0.6: Use your platform's native atob() and btoa() methods instead
+[INSTALL_DEPENDENCIES] npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+[INSTALL_DEPENDENCIES] npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+[INSTALL_DEPENDENCIES] npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+[INSTALL_DEPENDENCIES] npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+[INSTALL_DEPENDENCIES] npm warn deprecated whatwg-encoding@2.0.0: Use @exodus/bytes instead for a more spec-conformant and faster implementation
+[INSTALL_DEPENDENCIES] npm warn deprecated domexception@4.0.0: Use your platform's native DOMException instead
+[INSTALL_DEPENDENCIES] npm warn deprecated text-encoding@0.7.0: no longer maintained
+[INSTALL_DEPENDENCIES] npm warn deprecated @testing-library/jest-native@5.4.3: DEPRECATED: This package is no longer maintained.
+[INSTALL_DEPENDENCIES] npm warn deprecated Please use the built-in Jest matchers available in @testing-library/react-native v12.4+.
+[INSTALL_DEPENDENCIES] npm warn deprecated
+[INSTALL_DEPENDENCIES] npm warn deprecated See migration guide: https://callstack.github.io/react-native-testing-library/docs/migration/jest-matchers
+[INSTALL_DEPENDENCIES] added 1465 packages, and audited 1466 packages in 5s
+[INSTALL_DEPENDENCIES] 119 packages are looking for funding
+[INSTALL_DEPENDENCIES]   run `npm fund` for details
+[INSTALL_DEPENDENCIES] 3 vulnerabilities (2 moderate, 1 high)
+[INSTALL_DEPENDENCIES] 
+[INSTALL_DEPENDENCIES] To address all issues, run:
+[INSTALL_DEPENDENCIES]   npm audit fix
+[INSTALL_DEPENDENCIES] 
+[INSTALL_DEPENDENCIES] Run `npm audit` for details.
+The NODE_ENV environment variable is required but was not specified. Ensure the project is bundled with Expo CLI or NODE_ENV is set.
+Proceeding without mode-specific .env
+[READ_APP_CONFIG] Using app configuration:
+[READ_APP_CONFIG] {
+  "name": "HYBRID",
+  "slug": "hybrid",
+  "scheme": "hybridworkout",
+  "version": "1.0.0",
+  "orientation": "portrait",
+  "icon": "./assets/icon.png",
+  "userInterfaceStyle": "automatic",
+  "newArchEnabled": true,
+  "splash": {
+    "image": "./assets/splash-icon.png",
+    "resizeMode": "contain",
+    "backgroundColor": "#0a141f"
+  },
+  "ios": {
+    "supportsTablet": true,
+    "bundleIdentifier": "com.jaredwaldroff.hybrid",
+    "buildNumber": "1",
+    "infoPlist": {
+      "NSPhotoLibraryUsageDescription": "HYBRID needs access to your photo library to upload photos to your posts and profile.",
+      "NSCameraUsageDescription": "HYBRID needs access to your camera to take photos for your posts.",
+      "NSCalendarsUsageDescription": "HYBRID needs access to your calendar to sync your workouts.",
+      "ITSAppUsesNonExemptEncryption": false
+    }
+  },
+  "android": {
+    "package": "com.jaredwaldroff.hybrid",
+    "versionCode": 1,
+    "adaptiveIcon": {
+      "foregroundImage": "./assets/adaptive-icon.png",
+      "backgroundColor": "#0a141f"
+    },
+    "edgeToEdgeEnabled": true,
+    "predictiveBackGestureEnabled": false,
+    "permissions": [
+      "android.permission.READ_EXTERNAL_STORAGE",
+      "android.permission.WRITE_EXTERNAL_STORAGE",
+      "android.permission.READ_MEDIA_IMAGES",
+      "android.permission.READ_CALENDAR",
+      "android.permission.WRITE_CALENDAR",
+      "android.permission.RECORD_AUDIO"
+    ]
+  },
+  "web": {
+    "favicon": "./assets/favicon.png"
+  },
+  "plugins": [
+    [
+      "expo-image-picker",
+      {
+        "photosPermission": "HYBRID needs access to your photo library to upload photos to your posts and profile."
+      }
+    ],
+    [
+      "expo-calendar",
+      {
+        "calendarPermission": "HYBRID needs access to your calendar to sync your workouts."
+      }
+    ]
+  ],
+  "extra": {
+    "eas": {
+      "projectId": "ae4e3783-a643-4a7e-95d4-eb3108c0184a"
+    }
+  },
+  "sdkVersion": "54.0.0",
+  "platforms": [
+    "ios",
+    "android"
+  ]
+}
+[RUN_EXPO_DOCTOR] Running "expo doctor"
+[RUN_EXPO_DOCTOR] Running 17 checks on your project...
+[RUN_EXPO_DOCTOR] 14/17 checks passed. 3 checks failed. Possible issues detected:
+[RUN_EXPO_DOCTOR] Use the --verbose flag to see more details about passed checks.
+[RUN_EXPO_DOCTOR] 
+[RUN_EXPO_DOCTOR] ✖ Check Expo config (app.json/ app.config.js) schema
+[RUN_EXPO_DOCTOR] Error validating asset fields in /private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/app.json:
+[RUN_EXPO_DOCTOR]  Field: Android.adaptiveIcon.foregroundImage - the file extension should match the content, but the file extension is .png while the file content at './assets/adaptive-icon.png' is of type jpg.
+[RUN_EXPO_DOCTOR]  Field: Android.adaptiveIcon.foregroundImage - field 'Android.adaptiveIcon.foregroundImage' should point to .png image but the file at './assets/adaptive-icon.png' has type jpg.
+[RUN_EXPO_DOCTOR]  Field: Android.adaptiveIcon.foregroundImage - image should be square, but the file at './assets/adaptive-icon.png' has dimensions 1014x1024.
+[RUN_EXPO_DOCTOR]  Field: Splash.image - the file extension should match the content, but the file extension is .png while the file content at './assets/splash-icon.png' is of type jpg.
+[RUN_EXPO_DOCTOR]  Field: Splash.image - field 'Splash.image' should point to .png image but the file at './assets/splash-icon.png' has type jpg.
+[RUN_EXPO_DOCTOR]  Field: icon - the file extension should match the content, but the file extension is .png while the file content at './assets/icon.png' is of type jpg.
+[RUN_EXPO_DOCTOR]  Field: icon - field 'icon' should point to .png image but the file at './assets/icon.png' has type jpg.
+[RUN_EXPO_DOCTOR]  Field: icon - image should be square, but the file at './assets/icon.png' has dimensions 1014x1024.
+[RUN_EXPO_DOCTOR] Advice:
+[RUN_EXPO_DOCTOR] Resolve schema errors in your app config. Learn more: https://docs.expo.dev/workflow/configuration/
+[RUN_EXPO_DOCTOR] ✖ Check for app config fields that may not be synced in a non-CNG project
+[RUN_EXPO_DOCTOR] This project contains native project folders but also has native configuration properties in app.json, indicating it is configured to use Prebuild. When the android/ios folders are present, EAS Build will not sync the following properties: scheme, orientation, icon, userInterfaceStyle, splash, ios, android, plugins. 
+[RUN_EXPO_DOCTOR] 
+[RUN_EXPO_DOCTOR] Advice:
+[RUN_EXPO_DOCTOR] Add '/ios' to your .easignore file if you intend to use CNG / Prebuild. Learn more: https://docs.expo.dev/workflow/prebuild/#usage-with-eas-build
+[RUN_EXPO_DOCTOR] 
+[RUN_EXPO_DOCTOR] ✖ Check that packages match versions required by installed Expo SDK
+[RUN_EXPO_DOCTOR] 
+[RUN_EXPO_DOCTOR] ❗ Major version mismatches
+[RUN_EXPO_DOCTOR] package                                 expected  found    
+[RUN_EXPO_DOCTOR] expo-image-picker                       ~17.0.10  16.1.4   
+[RUN_EXPO_DOCTOR] react-native-pager-view                 6.9.1     8.0.0    
+[RUN_EXPO_DOCTOR] @types/jest                             29.5.14   30.0.0   
+[RUN_EXPO_DOCTOR] jest                                    ~29.7.0   30.2.0   
+[RUN_EXPO_DOCTOR] 
+[RUN_EXPO_DOCTOR] ⚠️ Minor version mismatches
+[RUN_EXPO_DOCTOR] package                                 expected  found    
+[RUN_EXPO_DOCTOR] @react-native-community/datetimepicker  8.4.4     8.6.0    
+[RUN_EXPO_DOCTOR] 
+[RUN_EXPO_DOCTOR] 🔧 Patch version mismatches
+[RUN_EXPO_DOCTOR] package                                 expected  found    
+[RUN_EXPO_DOCTOR] expo                                    ~54.0.32  54.0.30  
+[RUN_EXPO_DOCTOR] expo-font                               ~14.0.11  14.0.10  
+[RUN_EXPO_DOCTOR] babel-preset-expo                       ~54.0.10  54.0.9   
+[RUN_EXPO_DOCTOR] 
+[RUN_EXPO_DOCTOR] Changelogs:
+[RUN_EXPO_DOCTOR] - expo-font → https://github.com/expo/expo/blob/sdk-54/packages/expo-font/CHANGELOG.md
+[RUN_EXPO_DOCTOR] - expo-image-picker → https://github.com/expo/expo/blob/sdk-54/packages/expo-image-picker/CHANGELOG.md
+[RUN_EXPO_DOCTOR] 
+[RUN_EXPO_DOCTOR] 8 packages out of date.
+[RUN_EXPO_DOCTOR] Advice:
+[RUN_EXPO_DOCTOR] Use 'npx expo install --check' to review and upgrade your dependencies.
+[RUN_EXPO_DOCTOR] To ignore specific packages, add them to "expo.install.exclude" in package.json. Learn more: https://expo.fyi/dependency-validation
+[RUN_EXPO_DOCTOR] 3 checks failed, indicating possible issues with the project.
+[RUN_EXPO_DOCTOR] Command "expo doctor" failed.
+Error: npx -y expo-doctor exited with non-zero code: 1
+    at ChildProcess.completionListener (/Users/jaredwaldroff/.npm/_npx/51b74c4db9e60cb6/node_modules/@expo/spawn-async/build/spawnAsync.js:42:23)
+    at Object.onceWrapper (node:events:623:12)
+    at ChildProcess.emit (node:events:508:20)
+    at maybeClose (node:internal/child_process:1084:16)
+    at ChildProcess._handle.onexit (node:internal/child_process:304:5)
+    ...
+    at spawnAsync (/Users/jaredwaldroff/.npm/_npx/51b74c4db9e60cb6/node_modules/@expo/spawn-async/build/spawnAsync.js:7:23)
+    at spawn (/Users/jaredwaldroff/.npm/_npx/51b74c4db9e60cb6/node_modules/@expo/turtle-spawn/dist/index.js:16:47)
+    at runExpoDoctor (/Users/jaredwaldroff/.npm/_npx/51b74c4db9e60cb6/node_modules/@expo/build-tools/dist/common/setup.js:124:52)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async /Users/jaredwaldroff/.npm/_npx/51b74c4db9e60cb6/node_modules/@expo/build-tools/dist/common/setup.js:103:17
+    at async BuildContext.runBuildPhase (/Users/jaredwaldroff/.npm/_npx/51b74c4db9e60cb6/node_modules/@expo/build-tools/dist/context.js:123:28)
+    at async setupAsync (/Users/jaredwaldroff/.npm/_npx/51b74c4db9e60cb6/node_modules/@expo/build-tools/dist/common/setup.js:101:9)
+    at async buildAsync (/Users/jaredwaldroff/.npm/_npx/51b74c4db9e60cb6/node_modules/@expo/build-tools/dist/builders/ios.js:81:5)
+    at async runBuilderWithHooksAsync (/Users/jaredwaldroff/.npm/_npx/51b74c4db9e60cb6/node_modules/@expo/build-tools/dist/builders/common.js:12:13)
+    at async Object.iosBuilder (/Users/jaredwaldroff/.npm/_npx/51b74c4db9e60cb6/node_modules/@expo/build-tools/dist/builders/ios.js:68:16)
+[PREPARE_CREDENTIALS] Preparing credentials
+[PREPARE_CREDENTIALS] Creating keychain
+[PREPARE_CREDENTIALS] Preparing credentials for target 'HYBRID'
+[PREPARE_CREDENTIALS] Getting distribution certificate fingerprint and common name
+[PREPARE_CREDENTIALS] Fingerprint = "4E29AC58E93AB4D6E3F96C1FABDAF27150F0E3FF", common name = iPhone Distribution: Jared Waldroff (7X293FTKZA)
+[PREPARE_CREDENTIALS] Writing distribution certificate to /var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/617de526-88f0-4566-ad11-314850e578cb.p12
+[PREPARE_CREDENTIALS] Importing distribution certificate into the keychain
+[PREPARE_CREDENTIALS] Initializing provisioning profile
+[PREPARE_CREDENTIALS] Validating whether the distribution certificate has been imported successfully
+[PREPARE_CREDENTIALS] Verifying whether the distribution certificate and provisioning profile match
+[PREBUILD] Skipped running "expo prebuild" because the "ios" directory already exists. Learn more about the build process: https://docs.expo.dev/build-reference/ios-builds/
+[INSTALL_PODS] Using Expo modules
+[INSTALL_PODS] [Expo] Enabling modular headers for pod ExpoModulesCore
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-RCTAppDelegate
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-RCTFabric
+[INSTALL_PODS] [Expo] Enabling modular headers for pod ReactAppDependencyProvider
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-Core
+[INSTALL_PODS] [Expo] Enabling modular headers for pod ReactCodegen
+[INSTALL_PODS] [Expo] Enabling modular headers for pod RCTRequired
+[INSTALL_PODS] [Expo] Enabling modular headers for pod RCTTypeSafety
+[INSTALL_PODS] [Expo] Enabling modular headers for pod ReactCommon
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-NativeModulesApple
+[INSTALL_PODS] [Expo] Enabling modular headers for pod Yoga
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-Fabric
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-graphics
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-utils
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-featureflags
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-debug
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-ImageManager
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-rendererdebug
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-jsi
+[INSTALL_PODS] [Expo] Enabling modular headers for pod React-renderercss
+[INSTALL_PODS] [Expo] Enabling modular headers for pod hermes-engine
+[INSTALL_PODS] [Expo] Enabling modular headers for pod glog
+[INSTALL_PODS] [Expo] Enabling modular headers for pod boost
+[INSTALL_PODS] [Expo] Enabling modular headers for pod DoubleConversion
+[INSTALL_PODS] [Expo] Enabling modular headers for pod fast_float
+[INSTALL_PODS] [Expo] Enabling modular headers for pod fmt
+[INSTALL_PODS] [Expo] Enabling modular headers for pod RCT-Folly
+[INSTALL_PODS] [Expo] Enabling modular headers for pod SocketRocket
+[INSTALL_PODS] [Expo] Enabling modular headers for pod SDWebImage
+[INSTALL_PODS] [Expo] Enabling modular headers for pod SDWebImageAVIFCoder
+[INSTALL_PODS] [Expo] Enabling modular headers for pod SDWebImageSVGCoder
+[INSTALL_PODS] [Expo] Enabling modular headers for pod SDWebImageWebPCoder
+[INSTALL_PODS] [Expo] Enabling modular headers for pod libavif
+[INSTALL_PODS] Found 8 modules for target `HYBRID`
+[INSTALL_PODS] link_native_modules! {ios_packages: [{configurations: [], name: "@react-native-async-storage/async-storage", root: "/private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/node_modules/@react-native-async-storage/async-storage", path: "../node_modules/@react-native-async-storage/async-storage", podspec_path: "/private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/node_modules/@react-native-async-storage/async-storage/RNCAsyncStorage.podspec", script_phases: []}, {configurations: [], name: "@react-native-community/datetimepicker", root: "/private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/node_modules/@react-native-community/datetimepicker", path: "../node_modules/@react-native-community/datetimepicker", podspec_path: "/private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/node_modules/@react-native-community/datetimepicker/RNDateTimePicker.podspec", script_phases: []}, {configurations: [], name: "expo", root: "/private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/node_modules/expo", path: "../node_modules/expo", podspec_path: "/private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/node_modules/expo/Expo.podspec", script_phases: []}, {configurations: [], name: "react-native-pager-view", root: "/private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/node_modules/react-native-pager-view", path: "../node_modules/react-native-pager-view", podspec_path: "/private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/node_modules/react-native-pager-view/react-native-pager-view.podspec", script_phases: []}, {configurations: [], name: "react-native-purchases", root: "/private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/node_modules/react-native-purchases", path: "../node_modules/react-native-purchases", podspec_path: "/private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/node_modules/react-native-purchases/RNPurchases.podspec", script_phases: []}, {configurations: [], name: "react-native-safe-area-context", root: "/private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/node_modules/react-native-safe-area-context", path: "../node_modules/react-native-safe-area-context", podspec_path: "/private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/node_modules/react-native-safe-area-context/react-native-safe-area-context.podspec", script_phases: []}, {configurations: [], name: "react-native-screens", root: "/private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/node_modules/react-native-screens", path: "../node_modules/react-native-screens", podspec_path: "/private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/node_modules/react-native-screens/RNScreens.podspec", script_phases: []}, {configurations: [], name: "react-native-svg", root: "/private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/node_modules/react-native-svg", path: "../node_modules/react-native-svg", podspec_path: "/private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/node_modules/react-native-svg/RNSVG.podspec", script_phases: []}], ios_project_root_path: "/private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/ios", react_native_path: "../node_modules/react-native"}
+[INSTALL_PODS] Auto-linking React Native modules for target `HYBRID`: RNCAsyncStorage, RNDateTimePicker, RNPurchases, RNSVG, RNScreens, react-native-pager-view, and react-native-safe-area-context
+[INSTALL_PODS] Framework build type is static library
+[INSTALL_PODS] [ReactNativeDependencies] Setting up ReactNativeDependencies...
+[INSTALL_PODS] [ReactNativeDependencies] Building from source: false
+[INSTALL_PODS] [ReactNativeDependencies] Using release tarball
+[INSTALL_PODS] [ReactNativeDependencies] Using tarball from URL: https://repo1.maven.org/maven2/com/facebook/react/react-native-artifacts/0.81.5/react-native-artifacts-0.81.5-reactnative-dependencies-debug.tar.gz
+[INSTALL_PODS] % Total    % Received %
+[INSTALL_PODS] Xferd  Average Speed   Time    Time     Time  Current
+[INSTALL_PODS]                                  Dload  Upload   Total   Spent    Left  Speed
+[INSTALL_PODS]   0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+[INSTALL_PODS] 20 18.3M   20 3903k    0     0
+[INSTALL_PODS] 25.5M      0 --:--:-- --:--:-- --:--:-- 25.4M
+[INSTALL_PODS] 100 18.3M  100 18.3M    0     0  66.9M
+[INSTALL_PODS] 0 --:--:-- --:--:-- --:--:-- 66.7M
+[INSTALL_PODS] % Total    % Received % Xferd
+[INSTALL_PODS] Average Speed   Time    Time     Time  Current
+[INSTALL_PODS]                                  Dload  Upload   Total   Spent    Left  Speed
+[INSTALL_PODS]   0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+[INSTALL_PODS] 100  9.9M  100  9.9M    0     0  4
+[INSTALL_PODS] 7.2M      0 --:--:-- --:--:-- --:--:-- 47.3M
+[INSTALL_PODS] [ReactNativeDependencies] Source: {http: "https://repo1.maven.org/maven2/com/facebook/react/react-native-artifacts/0.81.5/react-native-artifacts-0.81.5-reactnative-dependencies-debug.tar.gz"}
+[INSTALL_PODS] [ReactNativeCore] Setting up ReactNativeCore...
+[INSTALL_PODS] [ReactNativeCore] Building from source: false
+[INSTALL_PODS] [ReactNativeCore] Using tarball from URL: https://repo1.maven.org/maven2/com/facebook/react/react-native-artifacts/0.81.5/react-native-artifacts-0.81.5-reactnative-core-debug.tar.gz
+[INSTALL_PODS] % Total    % Received % X
+[INSTALL_PODS] ferd  Average Speed   Time    Time     Time  Current
+[INSTALL_PODS]                                  Dload  Upload   Total   Spent    Left  Speed
+[INSTALL_PODS]   0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+[INSTALL_PODS] 61 78.5M   61 48.2M    0     0  85.8M
+[INSTALL_PODS] 0 --:--:-- --:--:-- --:--:-- 85.8M
+[INSTALL_PODS] 100 78.5M  100 78.5M    0     0  94.6M
+[INSTALL_PODS] 0 --:--:-- --:--:-- --:--:-- 94.5M
+[INSTALL_PODS] % Total    % Received % Xferd  Av
+[INSTALL_PODS] erage Speed   Time    Time     Time  Current
+[INSTALL_PODS]                                  Dload  Upload   Total   Spent    Left  Speed
+[INSTALL_PODS]   0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+[INSTALL_PODS] 100 26.3M  100 26.3M    0     0  72.1M      0
+[INSTALL_PODS] --:--:-- --:--:-- --:--:-- 72.3M
+[INSTALL_PODS] [ReactNativeCore] Source: {http: "https://repo1.maven.org/maven2/com/facebook/react/react-native-artifacts/0.81.5/react-native-artifacts-0.81.5-reactnative-core-debug.tar.gz"}
+[INSTALL_PODS] Configuring the target with the New Architecture
+[INSTALL_PODS] [ReactNativeCore] Using React Native Core and React Native Dependencies prebuilt versions.
+[INSTALL_PODS] [36m[1m[Codegen][0m Analyzing /private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/package.json[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m [33mSearching for codegen-enabled libraries in the app.[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m [33mThe "codegenConfig" field is not defined in package.json. Assuming there is nothing to generate at the app level.[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m [33mSearching for codegen-enabled libraries in react-native.config.js[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Found @react-native-async-storage/async-storage[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Found @react-native-community/datetimepicker[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Found react-native-pager-view[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Found react-native-safe-area-context[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Found react-native-screens[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Found react-native-svg[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Processing rnasyncstorage[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m [33mSearching for podspec in the project dependencies.[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Supported Apple platforms: ios, macos, tvos, visionos for rnasyncstorage[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Processing RNDateTimePickerCGen[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m [33mSearching for podspec in the project dependencies.[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Supported Apple platforms: ios, visionos for RNDateTimePickerCGen[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Processing pagerview[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m [33mSearching for podspec in the project dependencies.[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Supported Apple platforms: ios, visionos for pagerview[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Processing safeareacontext[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m [33mSearching for podspec in the project dependencies.[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Supported Apple platforms: ios, macos, tvos, visionos for safeareacontext[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Processing rnscreens[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m [33mSearching for podspec in the project dependencies.[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Supported Apple platforms: ios, tvos, visionos for rnscreens[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Processing rnsvg[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m [33mSearching for podspec in the project dependencies.[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Supported Apple platforms: ios, macos, tvos, visionos for rnsvg[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generating Native Code for rnasyncstorage - ios[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generated artifacts: /private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/ios/build/generated/ios[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generating Native Code for RNDateTimePickerCGen - ios[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generated artifacts: /private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/ios/build/generated/ios[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generating Native Code for pagerview - ios[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generated artifacts: /private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/ios/build/generated/ios[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generating Native Code for safeareacontext - ios[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generated artifacts: /private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/ios/build/generated/ios[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generating Native Code for rnscreens - ios[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generated artifacts: /private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/ios/build/generated/ios[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generating Native Code for rnsvg - ios[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generated artifacts: /private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/ios/build/generated/ios[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generating RCTThirdPartyComponentsProvider.h[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generated artifact: /private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/ios/build/generated/ios/RCTThirdPartyComponentsProvider.h[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generating RCTThirdPartyComponentsProvider.mm[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generated artifact: /private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/ios/build/generated/ios/RCTThirdPartyComponentsProvider.mm[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generating RCTModulesProvider.h[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generated artifact: /private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/ios/build/generated/ios/RCTModuleProviders.h[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generating RCTModuleProviders.mm[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generated artifact: /private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/ios/build/generated/ios/RCTModuleProviders.mm[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generating RCTAppDependencyProvider[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generated artifact: /private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/ios/build/generated/ios/RCTAppDependencyProvider.h[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generated artifact: /private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/ios/build/generated/ios/RCTAppDependencyProvider.mm[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generated podspec: /private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/ios/build/generated/ios/ReactAppDependencyProvider.podspec[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m Generated podspec: /private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/ios/build/generated/ios/ReactCodegen.podspec[0m
+[INSTALL_PODS] [36m[1m[Codegen][0m [33mDone.[0m
+[INSTALL_PODS] [ReactNativeDependencies] Using release tarball
+[INSTALL_PODS] [ReactNativeDependencies] Using tarball from URL: https://repo1.maven.org/maven2/com/facebook/react/react-native-artifacts/0.81.5/react-native-artifacts-0.81.5-reactnative-dependencies-debug.tar.gz
+[INSTALL_PODS] Analyzing dependencies
+[INSTALL_PODS] Downloading dependencies
+[INSTALL_PODS] Installing EXImageLoader 5.1.0 (was 6.0.0)
+[INSTALL_PODS] Installing Expo 54.0.30 (was 54.0.32)
+[INSTALL_PODS] Installing ExpoFont 14.0.10 (was 14.0.11)
+[INSTALL_PODS] Installing ExpoImagePicker 16.1.4 (was 17.0.10)
+[INSTALL_PODS] Installing RNDateTimePicker 8.6.0 (was 8.4.4)
+[INSTALL_PODS] Installing SwiftUIIntrospect (1.3.0)
+[INSTALL_PODS] Installing react-native-pager-view 8.0.0 (was 6.9.1)
+[INSTALL_PODS] Generating Pods project
+[INSTALL_PODS] Setting USE_HERMES build settings
+[INSTALL_PODS] Setting REACT_NATIVE_PATH build settings
+[INSTALL_PODS] Setting SWIFT_ACTIVE_COMPILATION_CONDITIONS build settings
+[INSTALL_PODS] [Ccache]: Removing Ccache from CC, LD, CXX & LDPLUSPLUS build settings
+[INSTALL_PODS] Setting SWIFT_ENABLE_EXPLICIT_MODULES build settings
+[INSTALL_PODS] [SPM] Cleaning old SPM dependencies from Pods project
+[INSTALL_PODS] [SPM] Adding SPM dependencies to Pods project
+[INSTALL_PODS] [Privacy Manifest Aggregation] Appending aggregated reasons to existing PrivacyInfo.xcprivacy file.
+[INSTALL_PODS] [Privacy Manifest Aggregation] Reading .xcprivacy files to aggregate all used Required Reason APIs.
+[INSTALL_PODS] Setting CLANG_CXX_LANGUAGE_STANDARD to c++20 on /private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/ios/HYBRID.xcodeproj
+[INSTALL_PODS] ==================== DEPRECATION NOTICE =====================
+[INSTALL_PODS] Calling `pod install` directly is deprecated in React Native
+[INSTALL_PODS] because we are moving away from Cocoapods toward alternative
+[INSTALL_PODS] solutions to build the project.
+[INSTALL_PODS] * If you are using Expo, please run:
+[INSTALL_PODS] `npx expo run:ios`
+[INSTALL_PODS] * If you are using the Community CLI, please run:
+[INSTALL_PODS] `yarn ios`
+[INSTALL_PODS] =============================================================
+[INSTALL_PODS] Pod install took 10 [s] to run
+[INSTALL_PODS] Integrating client project
+[INSTALL_PODS] Pod installation complete! There are 98 dependencies from the Podfile and 107 total pods installed.
+[INSTALL_PODS] [Expo] Adding '[Expo Autolinking] Run Codegen with autolinking' build phase to ReactCodegen
+[CONFIGURE_XCODE_PROJECT] Configuring Xcode project
+[CONFIGURE_XCODE_PROJECT] Assigning provisioning profile '*[expo] com.walsansoftware.hybrid AppStore 2026-01-24T00:45:14.231Z' (Apple Team ID: 7X293FTKZA) to target 'HYBRID'
+[CONFIGURE_XCODE_PROJECT] Updating versions in /var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/ios/HYBRID/Info.plist
+[EAGER_BUNDLE] Starting Metro Bundler
+[EAGER_BUNDLE] iOS ./index.ts ▓▓▓▓▓▓▓▓░░░░░░░░ 54.7% (621/840)
+[EAGER_BUNDLE] iOS Bundled 4952ms index.ts (1603 modules)
+[EAGER_BUNDLE] Writing bundle output to: /var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/j510dofw2l/main.jsbundle
+[EAGER_BUNDLE] Copying 53 asset files
+[EAGER_BUNDLE] Done writing bundle output
+[RUN_FASTLANE] Creating Gymfile
+[RUN_FASTLANE] Gymfile created
+[RUN_FASTLANE] Top level ::CompositeIO is deprecated, require 'multipart/post' and use `Multipart::Post::CompositeReadIO` instead!
+[RUN_FASTLANE] Top level ::Parts is deprecated, require 'multipart/post' and use `Multipart::Post::Parts` instead!
+[RUN_FASTLANE] Successfully loaded '/private/var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/build/ios/Gymfile' 📄
+[RUN_FASTLANE] 
+[RUN_FASTLANE] +--------------------------------------------------------------+
+[RUN_FASTLANE] |               Detected Values from './Gymfile'               |
+[RUN_FASTLANE] +-----------------------+--------------------------------------+
+[RUN_FASTLANE] | suppress_xcode_output | true                                 |
+[RUN_FASTLANE] | clean                 | false                                |
+[RUN_FASTLANE] | scheme                | HYBRID                               |
+[RUN_FASTLANE] | configuration         | Release                              |
+[RUN_FASTLANE] | export_options        | {method: "app-store",                |
+[RUN_FASTLANE] |                       | provisioningProfiles:                |
+[RUN_FASTLANE] |                       | {"com.walsansoftware.hybrid" =>      |
+[RUN_FASTLANE] |                       | "c222f774-62ce-4e15-9fd1-6a709365f1  |
+[RUN_FASTLANE] |                       | 6d"}}                                |
+[RUN_FASTLANE] | export_xcargs         | OTHER_CODE_SIGN_FLAGS="--keychain    |
+[RUN_FASTLANE] |                       | /var/folders/sy/ydkb61gj1_v4vz3jng9  |
+[RUN_FASTLANE] |                       | bfxgc0000gn/T/eas-build-a9e8ebcf-7c  |
+[RUN_FASTLANE] |                       | 95-495c-b30f-664590f654f9.keychain"  |
+[RUN_FASTLANE] | disable_xcpretty      | true                                 |
+[RUN_FASTLANE] | buildlog_path         | /var/folders/sy/ydkb61gj1_v4vz3jng9  |
+[RUN_FASTLANE] |                       | bfxgc0000gn/T/eas-build-local-nodej  |
+[RUN_FASTLANE] |                       | s/5c7ba9d4-09dd-45d3-82b8-84d071989  |
+[RUN_FASTLANE] |                       | 928/logs                             |
+[RUN_FASTLANE] | output_directory      | ./build                              |
+[RUN_FASTLANE] +-----------------------+--------------------------------------+
+[RUN_FASTLANE] 
+[RUN_FASTLANE] Resolving Swift Package Manager dependencies...
+[RUN_FASTLANE] $ xcodebuild -resolvePackageDependencies -workspace ./HYBRID.xcworkspace -scheme HYBRID -configuration Release
+[RUN_FASTLANE] ▸ Command line invocation:
+[RUN_FASTLANE] ▸     /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -resolvePackageDependencies -workspace ./HYBRID.xcworkspace -scheme HYBRID -configuration Release
+[RUN_FASTLANE] ▸ User defaults from command line:
+[RUN_FASTLANE] ▸     IDEPackageSupportUseBuiltinSCM = YES
+[RUN_FASTLANE] ▸ resolved source packages:
+[RUN_FASTLANE] $ xcodebuild -showBuildSettings -workspace ./HYBRID.xcworkspace -scheme HYBRID -configuration Release 2>&1
+[RUN_FASTLANE] Detected provisioning profile mapping: {"com.walsansoftware.hybrid": "c222f774-62ce-4e15-9fd1-6a709365f16d"}
+[RUN_FASTLANE] 
+[RUN_FASTLANE] +-----------------------------------------------------------------------------+
+[RUN_FASTLANE] |                           Summary for gym 2.231.1                           |
+[RUN_FASTLANE] +--------------------------------------+--------------------------------------+
+[RUN_FASTLANE] | workspace                            | ./HYBRID.xcworkspace                 |
+[RUN_FASTLANE] | scheme                               | HYBRID                               |
+[RUN_FASTLANE] | clean                                | false                                |
+[RUN_FASTLANE] | output_directory                     | ./build                              |
+[RUN_FASTLANE] | output_name                          | HYBRID                               |
+[RUN_FASTLANE] | configuration                        | Release                              |
+[RUN_FASTLANE] | silent                               | false                                |
+[RUN_FASTLANE] | skip_package_ipa                     | false                                |
+[RUN_FASTLANE] | skip_package_pkg                     | false                                |
+[RUN_FASTLANE] | export_options.method                | app-store                            |
+[RUN_FASTLANE] | export_options.provisioningProfiles  | c222f774-62ce-4e15-9fd1-6a709365f16  |
+[RUN_FASTLANE] | .com.walsansoftware.hybrid           | d                                    |
+[RUN_FASTLANE] | export_xcargs                        | OTHER_CODE_SIGN_FLAGS="--keychain    |
+[RUN_FASTLANE] |                                      | /var/folders/sy/ydkb61gj1_v4vz3jng9  |
+[RUN_FASTLANE] |                                      | bfxgc0000gn/T/eas-build-a9e8ebcf-7c  |
+[RUN_FASTLANE] |                                      | 95-495c-b30f-664590f654f9.keychain"  |
+[RUN_FASTLANE] | build_path                           | /Users/jaredwaldroff/Library/Develo  |
+[RUN_FASTLANE] |                                      | per/Xcode/Archives/2026-01-27        |
+[RUN_FASTLANE] | result_bundle                        | false                                |
+[RUN_FASTLANE] | buildlog_path                        | /var/folders/sy/ydkb61gj1_v4vz3jng9  |
+[RUN_FASTLANE] |                                      | bfxgc0000gn/T/eas-build-local-nodej  |
+[RUN_FASTLANE] |                                      | s/5c7ba9d4-09dd-45d3-82b8-84d071989  |
+[RUN_FASTLANE] |                                      | 928/logs                             |
+[RUN_FASTLANE] | destination                          | generic/platform=iOS                 |
+[RUN_FASTLANE] | suppress_xcode_output                | true                                 |
+[RUN_FASTLANE] | xcodebuild_formatter                 | xcpretty                             |
+[RUN_FASTLANE] | build_timing_summary                 | false                                |
+[RUN_FASTLANE] | disable_xcpretty                     | true                                 |
+[RUN_FASTLANE] | skip_profile_detection               | false                                |
+[RUN_FASTLANE] | xcodebuild_command                   | xcodebuild                           |
+[RUN_FASTLANE] | skip_package_dependencies_resolutio  | false                                |
+[RUN_FASTLANE] | n                                    |                                      |
+[RUN_FASTLANE] | disable_package_automatic_updates    | false                                |
+[RUN_FASTLANE] | use_system_scm                       | false                                |
+[RUN_FASTLANE] | generate_appstore_info               | false                                |
+[RUN_FASTLANE] | xcode_path                           | /Applications/Xcode.app              |
+[RUN_FASTLANE] +--------------------------------------+--------------------------------------+
+[RUN_FASTLANE] $ set -o pipefail && xcodebuild -workspace ./HYBRID.xcworkspace -scheme HYBRID -configuration Release -destination 'generic/platform=iOS' -archivePath /Users/jaredwaldroff/Library/Developer/Xcode/Archives/2026-01-27/HYBRID\ 2026-01-27\ 17.42.40.xcarchive archive | tee /var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-local-nodejs/5c7ba9d4-09dd-45d3-82b8-84d071989928/logs/HYBRID-HYBRID.log > /dev/null
+[RUN_FASTLANE]     Run script build phase '[CP-User] [Hermes] Replace Hermes for the right configuration, if needed' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'hermes-engine' from project 'Pods')
+[RUN_FASTLANE] ▸ ** ARCHIVE FAILED **
+[RUN_FASTLANE] ▸ The following build commands failed:
+[RUN_FASTLANE] ▸ 	Archiving workspace HYBRID with scheme HYBRID
+[RUN_FASTLANE] ▸ (1 failure)
+[RUN_FASTLANE] Exit status: 65
+[RUN_FASTLANE] 
+[RUN_FASTLANE] +---------------------------------------+
+[RUN_FASTLANE] |           Build environment           |
+[RUN_FASTLANE] +-------------+-------------------------+
+[RUN_FASTLANE] | xcode_path  | /Applications/Xcode.app |
+[RUN_FASTLANE] | gym_version | 2.231.1                 |
+[RUN_FASTLANE] | sdk         | iPhoneOS18.2.sdk        |
+[RUN_FASTLANE] +-------------+-------------------------+
+[RUN_FASTLANE] 
+[RUN_FASTLANE] Looks like fastlane ran into a build/archive error with your project
+[RUN_FASTLANE] It's hard to tell what's causing the error, so we wrote some guides on how
+[RUN_FASTLANE] to troubleshoot build and signing issues: https://docs.fastlane.tools/codesigning/getting-started/
+[RUN_FASTLANE] Before submitting an issue on GitHub, please follow the guide above and make
+[RUN_FASTLANE] sure your project is set up correctly.
+[RUN_FASTLANE] fastlane uses `xcodebuild` commands to generate your binary, you can see the
+[RUN_FASTLANE] the full commands printed out in yellow in the above log.
+[RUN_FASTLANE] Make sure to inspect the output above, as usually you'll find more error information there
+[RUN_FASTLANE] 
+[RUN_FASTLANE] [!] Error building the application - see the log above
+[RUN_FASTLANE] Error: The "Run fastlane" step failed because of an error in the Xcode build process. We automatically detected following errors in your Xcode build logs:
+- Provisioning profile "*[expo] com.walsansoftware.hybrid AppStore 2026-01-24T00:45:14.231Z" doesn't support the Push Notifications capability. (in target 'HYBRID' from project 'HYBRID')
+Refer to "Xcode Logs" below for additional, more detailed logs.
+[CLEAN_UP_CREDENTIALS] Destroying keychain - /var/folders/sy/ydkb61gj1_v4vz3jng9bfxgc0000gn/T/eas-build-a9e8ebcf-7c95-495c-b30f-664590f654f9.keychain
+[CLEAN_UP_CREDENTIALS] Removing provisioning profile
+
+Build failed
+The "Run fastlane" step failed because of an error in the Xcode build process. We automatically detected following errors in your Xcode build logs:
+- Provisioning profile "*[expo] com.walsansoftware.hybrid AppStore 2026-01-24T00:45:14.231Z" doesn't support the Push Notifications capability. (in target 'HYBRID' from project 'HYBRID')
+Refer to "Xcode Logs" below for additional, more detailed logs.
+Error: The "Run fastlane" step failed because of an error in the Xcode build process. We automatically detected following errors in your Xcode build logs:
+- Provisioning profile "*[expo] com.walsansoftware.hybrid AppStore 2026-01-24T00:45:14.231Z" doesn't support the Push Notifications capability. (in target 'HYBRID' from project 'HYBRID')
+Refer to "Xcode Logs" below for additional, more detailed logs.
+    at resolveBuildPhaseErrorAsync (/Users/jaredwaldroff/.npm/_npx/51b74c4db9e60cb6/node_modules/@expo/build-tools/dist/buildErrors/detectError.js:69:12)
+    at async BuildContext.handleBuildPhaseErrorAsync (/Users/jaredwaldroff/.npm/_npx/51b74c4db9e60cb6/node_modules/@expo/build-tools/dist/context.js:192:28)
+    at async BuildContext.runBuildPhase (/Users/jaredwaldroff/.npm/_npx/51b74c4db9e60cb6/node_modules/@expo/build-tools/dist/context.js:135:35)
+    at async buildAsync (/Users/jaredwaldroff/.npm/_npx/51b74c4db9e60cb6/node_modules/@expo/build-tools/dist/builders/ios.js:196:9)
+    at async runBuilderWithHooksAsync (/Users/jaredwaldroff/.npm/_npx/51b74c4db9e60cb6/node_modules/@expo/build-tools/dist/builders/common.js:12:13)
+    at async Object.iosBuilder (/Users/jaredwaldroff/.npm/_npx/51b74c4db9e60cb6/node_modules/@expo/build-tools/dist/builders/ios.js:68:16)
+    at async buildIosAsync (/Users/jaredwaldroff/.npm/_npx/51b74c4db9e60cb6/node_modules/eas-cli-local-build-plugin/dist/ios.js:44:12)
+    at async buildAsync (/Users/jaredwaldroff/.npm/_npx/51b74c4db9e60cb6/node_modules/eas-cli-local-build-plugin/dist/build.js:59:29)
+    at async main (/Users/jaredwaldroff/.npm/_npx/51b74c4db9e60cb6/node_modules/eas-cli-local-build-plugin/dist/main.js:16:9)
+npx -y eas-cli-local-build-plugin@1.0.243 eyJqb2IiOnsidHlwZSI6ImdlbmVyaWMiLCJwbGF0Zm9ybSI6ImlvcyIsInByb2plY3RBcmNoaXZlIjp7InR5cGUiOiJQQVRIIiwicGF0aCI6Ii92YXIvZm9sZGVycy9zeS95ZGtiNjFnajFfdjR2ejNqbmc5YmZ4Z2MwMDAwZ24vVC9lYXMtY2xpLW5vZGVqcy9jYmE3MjU5My0yN2YxLTRlOTEtYjM0NC0yOWM2ZGI4YjRmY2QudGFyLmd6In0sInByb2plY3RSb290RGlyZWN0b3J5IjoiLiIsImJ1aWxkZXJFbnZpcm9ubWVudCI6eyJlbnYiOnt9fSwiY2FjaGUiOnsiZGlzYWJsZWQiOmZhbHNlLCJwYXRocyI6W10sImNsZWFyIjpmYWxzZX0sInNlY3JldHMiOnsiYnVpbGRDcmVkZW50aWFscyI6eyJIWUJSSUQiOnsicHJvdmlzaW9uaW5nUHJvZmlsZUJhc2U2NCI6Ik1JSXdrQVlKS29aSWh2Y05BUWNDb0lJd2dUQ0NNSDBDQVFFeEN6QUpCZ1VyRGdNQ0dnVUFNSUlnblFZSktvWklodmNOQVFjQm9JSWdqZ1NDSUlvOFAzaHRiQ0IyWlhKemFXOXVQU0l4TGpBaUlHVnVZMjlrYVc1blBTSlZWRVl0T0NJL1BnbzhJVVJQUTFSWlVFVWdjR3hwYzNRZ1VGVkNURWxESUNJdEx5OUJjSEJzWlM4dlJGUkVJRkJNU1ZOVUlERXVNQzh2UlU0aUlDSm9kSFJ3T2k4dmQzZDNMbUZ3Y0d4bExtTnZiUzlFVkVSekwxQnliM0JsY25SNVRHbHpkQzB4TGpBdVpIUmtJajRLUEhCc2FYTjBJSFpsY25OcGIyNDlJakV1TUNJK0NqeGthV04wUGdvSlBHdGxlVDVCY0hCSlJFNWhiV1U4TDJ0bGVUNEtDVHh6ZEhKcGJtYythbUZ5WldSM1lXeGtjbTltWm1oNVluSnBaQ0F6WVdJMk9Ea3dPRGxrWWpKaU5qSm1ZVEUzT1RWa09HVTJaRFJoTmpReFlUd3ZjM1J5YVc1blBnb0pQR3RsZVQ1QmNIQnNhV05oZEdsdmJrbGtaVzUwYVdacFpYSlFjbVZtYVhnOEwydGxlVDRLQ1R4aGNuSmhlVDRLQ1R4emRISnBibWMrTjFneU9UTkdWRXRhUVR3dmMzUnlhVzVuUGdvSlBDOWhjbkpoZVQ0S0NUeHJaWGsrUTNKbFlYUnBiMjVFWVhSbFBDOXJaWGsrQ2drOFpHRjBaVDR5TURJMkxUQXhMVEkwVkRBd09qUTFPakUwV2p3dlpHRjBaVDRLQ1R4clpYaytVR3hoZEdadmNtMDhMMnRsZVQ0S0NUeGhjbkpoZVQ0S0NRazhjM1J5YVc1blBtbFBVend2YzNSeWFXNW5QZ29KQ1R4emRISnBibWMrZUhKUFV6d3ZjM1J5YVc1blBnb0pDVHh6ZEhKcGJtYytkbWx6YVc5dVQxTThMM04wY21sdVp6NEtDVHd2WVhKeVlYaytDZ2s4YTJWNVBrbHpXR052WkdWTllXNWhaMlZrUEM5clpYaytDZ2s4Wm1Gc2MyVXZQZ29KUEd0bGVUNUVaWFpsYkc5d1pYSkRaWEowYVdacFkyRjBaWE04TDJ0bGVUNEtDVHhoY25KaGVUNEtDUWs4WkdGMFlUNU5TVWxHZEhwRFEwSktLMmRCZDBsQ1FXZEpVVXBtUzNKVlZtcHphVEp3YTJGSmRFbFVOMUV3WmtSQlRrSm5hM0ZvYTJsSE9YY3dRa0ZSYzBaQlJFSXhUVlZSZDFGbldVUldVVkZFUkVSMFFtTklRbk5hVTBKWVlqTktjMXBJWkhCYVIxVm5Va2RXTWxwWGVIWmpSMVo1U1VaS2JHSkhSakJoVnpsMVkzbENSRnBZU2pCaFYxcHdXVEpHTUdGWE9YVkpSVVl4WkVkb2RtTnRiREJsVkVWTVRVRnJSMEV4VlVWRGQzZERVbnBOZUVWNlFWSkNaMDVXUWtGdlRVTnJSbmRqUjNoc1NVVnNkVmw1TkhoRGVrRktRbWRPVmtKQldWUkJiRlpVVFVJMFdFUlVTVEpOUkVWNVRXcEJlRTFFU1hoT1JtOVlSRlJKTTAxRVJYbE5ha0Y0VFVSSmVFMHhiM2RuV2tsNFIycEJXVUpuYjBwcmFXRktheTlKYzFwQlJVSkVRVzh6VjBSSk5VMHdXbFZUTVhCQ1RWUnJkMDUzV1VSV1VWRkVSRVJDY0ZWSGFIWmliVlZuVWtkc2VtUklTbkJaYmxZd1lWYzVkVTlwUWt0WldFcHNXa05DV0ZsWGVHdGpiVGx0V21sQmIwNHhaM2xQVkU1SFZrVjBZVkZUYTNoRmVrRlNRbWRPVmtKQmMwMURhbVJaVFdwcmVsSnNVa3hYYTBWNFJucEJWa0puVGxaQ1FXOU5SR3R3YUdOdFZtdEpSbVJvWWtkU2VXSXlXbTFOVVhOM1ExRlpSRlpSVVVkRmQwcFdWWHBEUTBGVFNYZEVVVmxLUzI5YVNXaDJZMDVCVVVWQ1FsRkJSR2RuUlZCQlJFTkRRVkZ2UTJkblJVSkJUVkE1VDNGVU9GQnlNVEZxY2pCcVprWmFOV2dyVUhWTVIyWm5OMjgyZUhSNlQxZERka1ZwV1hReVUwdE5jbWhMZFhOd05IVTVVbmhuUTNKdVUyNUZUamRsV0VaNVJuaFNUMnRyTWxOek1Hd3ZkVko1WlRsTlEwWlBhMnhHTjB4dUsycE9ZVlY0Y0dSRVRXWTBTekJUUjBoUGNGVlhhM2xTUzJoeU1WZzJiMjlUTDNoeE5WRkZXVmhpVkZCRWJEVkpMMU5qTlZSS05YbERRamwzVkVsc1lUTTBlSGhqWTJoWkx6RkJhVGgyVGxWbk1UVkdiQ3M1ZURsRFNsWlZNV2s0UlRONFNtRkpia0ZEUW1SME0xQmFNV0ZQVlVFclpGcGlaVEZTYlZoUVZtWlJSbk5xTWtwNWExa3hTRXR1VnpZMVIzazRhelJxWVdoUGFuRnNObmRXVDFGeEsyMTNNamN2Y1RCMGFFMTVPVk51Wm1NNVUxVnpiRGRzZG1OWWNpdDNkMWxrWXpkdFRXNHZkRXAxTWpFMk0yTlRVMmRZTTFWalZHTmtiMjlHWkZvNFlVNVdjRWt6YTA4MmExbDVSRFV4YjJWVFYwSnpRMEYzUlVGQllVOURRV2xOZDJkblNXWk5RWGRIUVRGVlpFVjNSVUl2ZDFGRFRVRkJkMGgzV1VSV1VqQnFRa0puZDBadlFWVkRaamRCUmxwRU5YSXlVVXRyYUVzMVNtbG9ha1JLWm5Od04wbDNZMEZaU1V0M1dVSkNVVlZJUVZGRlJWcEVRbWxOUXpCSFEwTnpSMEZSVlVaQ2VrRkRhR2xHYjJSSVVuZFBhVGgyV1RKV2VXUklUWFZaV0VKM1lrZFZkVmt5T1hSTU0yUXpXa2hLYmsxNU5XdGFXRWwzVFZGWlNVdDNXVUpDVVZWSVRVRkhSMHBYYURCa1NFRTJUSGs1ZGxrelRuZE1iVVozWTBkNGJFeHRUblppVXpsMldUTk9kMDFFVFhSa00yUnJZMjFqZWsxRVNYZG5aMFZsUW1kT1ZraFRRVVZuWjBWV1RVbEpRa1ZVUTBOQlVUQkhRMU54UjFOSllqTlpNbEZHUVZSRFFpOTZRMEozZDFsSlMzZFpRa0pSVlVoQlowbDNaMkpaVFdkaVRsTmFWM2h3V1ZjMWFscFRRblppYVVJd1lVZHNla2xIVG14amJsSndXbTFzYWxsWVVteEpSMG8xU1VkR2RXVlRRbmRaV0Vvd1pWTkNhR016VGpGaVYxWjZTVWRHYWxreVZuZGtSMFoxV1RKVloySXlXV2RrUjJoc1NVaFNiMXBYTkdkWldFSjNZa2RzYWxsWFNuTmFVMEo2WkVkR2RWcEhSbmxhUTBJd1dsaEtkR041UW1oaWJWRm5XVEk1ZFZwSGJEQmhWemwxWTNsQ2RscHBRakZqTWxWelNVZE9iR051VW5CYWJXeHFXVmhTYkVsSVFuWmlSMnhxWlZOQ2FHSnRVV2RaTWxaNVpFZHNiV0ZYVG1oa1IyeDJZbWxDZDJOdFJtcGtSMnhxV2xOQ2VtUkhSakJhVnpGc1ltNVNla3hxUVROQ1oyZHlRbWRGUmtKUlkwTkJVbGx5WVVoU01HTklUVFpNZVRrelpETmpkVmxZUW5kaVIxVjFXVEk1ZEV3eVRteGpibEp3V20xc2FsbFlVbXhaV0ZZd1lVYzVlV0ZZVWpWTWVrRlhRbWRPVmtoVFZVSkJaamhGUkVSQlMwSm5aM0pDWjBWR1FsRmpSRUY2UVdSQ1owNVdTRkUwUlVablVWVkVVMkZOSzJOdGF5OUtiVXBUU0RkalJXMXdWVGxqUjIxVGNXOTNSR2RaUkZaU01GQkJVVWd2UWtGUlJFRm5aVUZOUWsxSFEybHhSMU5KWWpOWk1sRkhRVkZSUWtGbU9FVkJaMVZCVFVFd1IwTlRjVWRUU1dJelJGRkZRa04zVlVGQk5FbENRVkZDTWl0R05EaE9NbUZxYzBkWGVGUmhaRFJFWVZoemJrZ3phRFpFUzNCclpHSnVPVnAxUjI0d1JqWlZVR2t6UVU0eU5uWkNjMlZEUjFwR1dITjZlQ3NyT1c1TVVGTXZSMlJDTVZoQk1rZGpVRlphTW5CT1ZGZ3dVbGh2TVRod1YydE9RbUpDY1VsTGJFeHpPRUpySzFaVlJEaHdMMFJvZEhaRVdYRkxaRTg1TDBzclZrTkhjRTl2UzBSaU1sZEdibU15VjJKMlZEaG9VMUJGVEZvM1NpOVZVa1JPV2prM1ppdEdMemxYUzFod1ZqQmtPWFZMUkROSk1qSmpNbHBuWkV0cVlXWk1OQ3MzT0ROSFpGWnNMMDFUZGtaSFUySldkSGhzVUZsWU15dHlaU3RyVVVoT0wxRk9URUpOVUc5dVRYQTRaVWR4YVRkVFFXSkZURVF6U3pWc1REVnRRMjEwZEdablNIWjROR1kxZFRWeFowSmpaV0pKTVdwUFNFMXJXVVpOV2psaVZHMVdiR3RHYzNWaUwxcDNPVEZuTldrelQwZzJkQzlTYkVGRk9VWkxZVlJNUjFWdUswWXplRTlPVFZOWmJXTmtjbXc4TDJSaGRHRStDZ2s4TDJGeWNtRjVQZ29LQ1R4clpYaytSRVZTTFVWdVkyOWtaV1F0VUhKdlptbHNaVHd2YTJWNVBnb0pQR1JoZEdFK1RVbEpUbTVSV1VwTGIxcEphSFpqVGtGUlkwTnZTVWxPYW1wRFEwUlpiME5CVVVWNFJGUkJURUpuYkdkb2EyZENXbEZOUlVGblJYZG5aMDVqUW1kcmNXaHJhVWM1ZHpCQ1FuZEhaMmRuVGs1Q1NVbEVVMVJIUTBFd1ZYZEVRWGRJVm0xV2VXTXliSFppWjBsQ1FWUkJUa1JCYUZGVlJrWkVZVWRXYW1GM1JVSkJSRUZSUkVGd1ZXRlhNV3hXUnpsTllWaGFiRUZuU1VKaGVrRlVSRUUxU21NeGFHcGlNbEpzVkZkR2RWbFhaR3hhUVVWQ1FVUkJZVVJCYUZWYVYwWjBWRzFHZEZwUmQwOVRiVVo1V2xkUloxWXlSbk5hU0VwMldtMVpkMGhSZDAxUk0wcHNXVmhTY0dJeU5VVlpXRkpzUm5jd2VVNXFRWGhOYWxGM1RVUlJNVTFVVW1GTlFqUk5SR3hTYkZsWE1VcGFSMVoxWkVkc2JXRlhWbmxOUVhkTlEycGtXVTFxYTNwU2JGSk1WMnRGZDBoM2QwOVNXR2gzWVZoS2FHUkhiSFppYTFKb1pFZFZXRVJVU1ROTlJFVjVUV3BCZUUxRVNYaE5NVzkzU1VGM1dGVklTblphYld4eldsVlNjR016VW5saFYwb3haRWRzZG1Kc1VqVmpSMVZOUWxaT1ZWUXhTa1pOUTBWTlEwWkNjMWxZVW0xaU0wcDBUVUpWVFVFeWJGQlZkM2RGWlVoS1VGVjNkMGxrYld4NllWYzVkVlF4VFhkTGQzZGlVVmhDZDJKSGJHcFpXRkp3WWpJMVNscEhWblZrUjJ4dFlWZFdlVlZJU214YWJXdzBUVUYzVFVOcVpGbE5hbXQ2VW14U1RGZHJSWGRNUVhkRlZsWldTbEpCZDJ0WmVrbDVUVzFaTTA1NlVYUk9ha3BxV2xNd01GcFVSVEZNVkd4dFdrUkZkRTV0UlROTlJHdDZUbXBXYlUxVVdtdE5SSE5OUmxWU2JHUnRWbk5pTTBKc1kydE9iR051VW5CYWJXeHFXVmhTYkdONlFXbENRMFJEWjNwd09EVkdha2xrVEM4eVUxcFNRWHBpVTB4eVNsaHBkSEZIZERFek5qVTFZbGxaYUhCcGEyWlVRa0pFUVd4Q1kwaENTbEpGTldoaVYxVk5Ua2R3YUdOdFZtdGtNa1p6V2toS2RscHRXbTlsVjBwNVlWZFJaMDB5Um1sT2FtYzFUVVJuTlZwSFNYbFphbGw1V20xRmVFNTZhekZhUkdoc1RtMVJNRmxVV1RCTlYwVjNVM2QzUlZSdFJuUmFVWGhFUzJ4MGJHVklRblpZVTBKcVlqSXdkV1F5Um5Oak1rWjFZekk1YldSSVpHaGpiVlYxWVVoc2FXTnRiR3RKUlVaM1kwWk9NR0l6U214SlJFbDNUV3BaZEUxRVJYUk5hbEpWVFVSQk5rNUVWVFpOVkZGMVRXcE5lRmRxUTBOQlVsRk5SRVZXZFdSSGJEQmlSMVowV2xjMU1HTXpRME5CVVVsRFFWRkhkMmRtZDNkUVozZFhXVmhDZDJKSGJHcFpXRkp3WWpJMGRHRlhVbXhpYmxKd1dtMXNiR05uZDJ0T01XZDVUMVJPUjFaRmRHRlJVelZxWWpJd2RXUXlSbk5qTWtaMVl6STViV1JJWkdoamJWVjFZVWhzYVdOdGJHdE5RakJOUkRKR2QyTjVNV3hpYmxwd1kyMDVkV0pYVm5Wa1FYZExZMGhLZGxwSVZtcGtSMngyWW1wQldVUkNUbWxhV0ZKb1RGaEtiR05IT1hsa1NFMTBXVmRPTUdGWVdteEJVVWd2VFVSRlRVa3lUblppVXpWb1kwaENjMXBUTld0YVdGcHNZa2M1ZDFwWVNYVmtSMVpvWWxNeGNGcEhWblZrUjJ4dFlWZFdlVVJCYnpOWFJFazFUVEJhVlZNeGNFSk5RazFOUkcxa2JHUkRNVEJaV0U1eVRGZEdjMkpIT1ROQlVVVkJUVVJyVFVadGRHeGxWMDV2V1Zkc2RVeFhSbXBaTWxaNlkza3hibU50T1RGalNFMTNTSGQzVFU0eFozbFBWRTVIVmtWMFlWRlROSEZFUVRscVlqSXdkVmxZUW5kaVIxVjFaRWM1Y2xwWE5tZG5aMmM0VFVsSlExRjZRME5CWTIxblFYZEpRa0ZuU1VsTVkxZzRhVTVNUmxNMVZYZERaMWxKUzI5YVNYcHFNRVZCZDAxM1ducEZZazFDYTBkQk1WVkZRWGQzVTFGWVFuZGlSMVZuVlcwNWRtUkRRa1JSVTBGMFNVVmplazFUV1hkS1FWbEVWbEZSVEVSQ01VSmpTRUp6V2xOQ1JGcFlTakJoVjFwd1dUSkdNR0ZYT1hWSlJVWXhaRWRvZG1OdGJEQmxWRVZVVFVKRlIwRXhWVVZEWjNkTFVWaENkMkpIVldkVFZ6VnFUR3BGVEUxQmEwZEJNVlZGUW1oTlExWldUWGRJYUdOT1RWUlJkMDVFVFhkTlZHZDRUMVJCTWxkb1kwNU5lbXQzVGtSTmQwMVVaM2hQVkVFeVYycENiazFTYzNkSFVWbEVWbEZSUkVSQ1NrSmpTRUp6V2xOQ1UySXlPVEJKUlU1Q1NVTXdaMUo2VFhoS2FrRnJRbWRPVmtKQmMwMUlWVVozWTBkNGJFbEZUbXhqYmxKd1dtMXNhbGxZVW5CaU1qUm5VVmhXTUdGSE9YbGhXRkkxVFZKTmQwVlJXVVJXVVZGTFJFRndRbU5JUW5OYVUwSktZbTFOZFUxUmMzZERVVmxFVmxGUlIwVjNTbFpWZWtJeVRVSkJSMEo1Y1VkVFRUUTVRV2RGUjBKVGRVSkNRVUZwUVRKSlFVSkthbkJNZWpGQlkzRlVkR3Q1U25sblVrMWpNMUpEVmpoalYycFVia2hqUmtKaVdrUjFWMjFDVTNBeldraDBabFJxYWxSMWVIaEZkRmd2TVVnM1dYbFpiRE5LTmxsU1lsUjZRbEJGVm05QkwxWm9XVVJMV0RGRWVYaE9RakJqVkdSa2NWaHNOV1IyVFZaNmRFczFNVGRKUkhaWmRWWlVXbGh3Yld0UGJFVkxUV0ZPUTAxRlFYZElVVmxFVmxJd1QwSkNXVVZHVEhWM00zRkdXVTAwYVdGd1NYRmFNM0kyT1RZMkwyRjVlVk55VFVFNFIwRXhWV1JGZDBWQ0wzZFJSazFCVFVKQlpqaDNSR2RaUkZaU01GQkJVVWd2UWtGUlJFRm5SVWROUVc5SFEwTnhSMU5OTkRsQ1FVMUVRVEpuUVUxSFZVTk5VVU5FTm1OSVJVWnNOR0ZZVkZGWk1tVXpkamxIZDA5QlJWcE1kVTRyZVZKb1NFWkVMek50Wlc5NWFIQnRkazkzWjFCVmJsQlhWSGh1VXpSaGRDdHhTWGhWUTAxSE1XMXBhRVJMTVVFelZWUTRNazVSZWpZd2FXMVBiRTB5TjJwaVpHOVlkREpSWm5sR1RXMHJXV2hwWkVSclRFWXhka3hWWVdkTk5rSm5SRFUyUzNsTFJFTkRRWFZaZDJkblNuUnZRVTFEUVZGSlEwTkVUVTQzZG1rdlZFZG5kVTFCYjBkRFEzRkhVMDAwT1VKQlRVUk5SMk40UjNwQldrSm5UbFpDUVUxTlJXdEdkMk5IZUd4SlJrcDJZak5SWjFFd1JXZE1VMEpJVFhwRmJVMURVVWRCTVZWRlEzZDNaRkZZUW5kaVIxVm5VVEpXZVdSSGJHMWhWMDVvWkVkc2RtSnBRa0prV0ZKdllqTktjR1JJYTNoRmVrRlNRbWRPVmtKQmIwMURhMFozWTBkNGJFbEZiSFZaZVRSNFEzcEJTa0puVGxaQ1FWbFVRV3hXVkUxQ05GaEVWRVV6VFVSSmVVMXFTWGxOYWsxNVRXeHZXRVJVVFhsTlJFbDRUMFJCZDAxRVFYZE5SbTkzWTJwRmJVMURVVWRCTVZWRlFYZDNaRkZZUW5kaVIxVm5WVE5zZW1SSFZuUkpSV3gxWkVkV2JtTnRSakJoVnpsMVNVVk9Ra2xFVVhoS2FrRnJRbWRPVmtKQmMwMUlWVVozWTBkNGJFbEZUbXhqYmxKd1dtMXNhbGxZVW5CaU1qUm5VVmhXTUdGSE9YbGhXRkkxVFZKTmQwVlJXVVJXVVZGTFJFRndRbU5JUW5OYVUwSktZbTFOZFUxUmMzZERVVmxFVmxGUlIwVjNTbFpWZWtKYVRVSk5SMEo1Y1VkVFRUUTVRV2RGUjBORGNVZFRUVFE1UVhkRlNFRXdTVUZDUVZweWNFWmFkbVphT0c0d1l6UXlhbkJKWWxaek1WVk9iVkpMZVZwU2IyMW1ja3BKU0RkcE9WWm5VRE5QU25FMmVHeElUSGszZGs4MlVVSjBRVVZVVWtoNFlVcHhNbWR1UTJ0c2FYVlliVUp0T1ZCbVJuRnFaMlpqZDJkbVVYZEVkMWxFVmxJd1ZFRlJTQzlDUVZWM1FYZEZRaTk2UVdaQ1owNVdTRk5OUlVkRVFWZG5RbE0zYzA0MmFGZEVUMGx0Y1ZOTGJXUTJLM1psZFhZeWMzTnJjWHBDUjBKblozSkNaMFZHUWxGalFrRlJVVFpOUkdkM1RtZFpTVXQzV1VKQ1VWVklUVUZIUjB0dGFEQmtTRUUyVEhrNWRsa3pUbmRNYlVaM1kwZDRiRXh0VG5aaVV6bDJXVE5PZDAxRVRYUlpXRUozWWtkV2VXSXlPVEJaTWtadVRYcEJNMEpuVGxaSVVqaEZUVVJCZFUxRGVXZExjVUZ2YUdsYWIyUklVbmRQYVRoMldUTktjMHh0Um5kalIzaHNURzFPZG1KVE9XaGpTRUp6V2xoS2RtSXpVbXBaVjJONlRHMU9lV0pFUVdSQ1owNVdTRkUwUlVablVWVmxhMlUyVDBsdlZrcEZaMmxTY3pJcmFuaHZhMlY2VVVSTGJXdDNSR2RaUkZaU01GQkJVVWd2UWtGUlJFRm5SVWROUWtGSFEybHhSMU5KWWpOWk1sRkhRV2hGUlVGblZVRk5RVzlIUTBOeFIxTk5ORGxDUVUxRVFUSmpRVTFIVVVOTlFsVk5jVmszUjNJMVduQmhObVZtTTFaNlZVRXhiSE55YkV4VldVMWhUR1IxUXpONFlVeDRRMWg2WjIxMVRuSnpaVTQ0VFdOUmJtVnhaVTlwWmpKeVpIZEpkMWxVVFdjNFUyNHZLMWxqZVhKcGJrbGFSREV5WlRGSGF6Qm5TWFprY2pWblNYQkllREZVY0RFelRGUnBlR2x4Vnk5eldVb3pSWEJRTVZOVWR5OU5jWGxOU1VsRVFucERRMEZ4TW1kQmQwbENRV2RKU1VZMFEyOU9SMXByTm5OemQwTm5XVWxMYjFwSmVtb3dSVUYzU1hkamFrVnRUVU5SUjBFeFZVVkJkM2RrVVZoQ2QySkhWV2RWTTJ4NlpFZFdkRWxGYkhWa1IxWnVZMjFHTUdGWE9YVkpSVTVDU1VSUmVFcHFRV3RDWjA1V1FrRnpUVWhWUm5kalIzaHNTVVZPYkdOdVVuQmFiV3hxV1ZoU2NHSXlOR2RSV0ZZd1lVYzVlV0ZZVWpWTlVrMTNSVkZaUkZaUlVVdEVRWEJDWTBoQ2MxcFRRa3BpYlUxMVRWRnpkME5SV1VSV1VWRkhSWGRLVmxWNlFXVkdkekI1VGtSRmVFMXFRWGROZWtsM1RrUldZVVozTUhsUFJFVjVUVlJSZUU5RVFYZE5la0poVFVVMGVFdHFRVzlDWjA1V1FrRk5UVWxXWkZoU1JrbG5WVWhLZG1SdGJIcGhWemwxWVZjMWJrbEdRbmxpTWxwd1lrZFZaMVV5Ykc1aWJXeDFXbnBGVkUxQ1JVZEJNVlZGUTJkM1MxRllRbmRpUjFWblUxYzFha3hxUlV4TlFXdEhRVEZWUlVKb1RVTldWazEzVjFSQlZFSm5ZM0ZvYTJwUFVGRkpRa0puWjNGb2EycFBVRkZOUWtKM1RrTkJRVlF4YkVaelQzZGtVbFZRZUc1bFVtMUJiRmg2Tms5TFl6bHpWRFZRVmtoTVpEbDBiRXBtU0N0SU4xbDNSM2xuYUhWdmIxVTJNREFyTTNaV2NtdFlNVXBxVGxsTVprOVVjVzB6VDJ4a01sVXJaM3BSTmprNWJ6UkpRbFI2UTBOQlZYTjNSRUZaUkZaU01GUkJVVWd2UWtGSmQwRkVRV1pDWjA1V1NGTk5SVWRFUVZkblFsSTJVamR2Tkdsb1ZXdFRRMHBIZW1JMlVFZHBVamRPUVUxeFlWUkNRa0puWjNKQ1owVkdRbEZqUWtGUlVURk5SRTEzVFZGWlNVdDNXVUpDVVZWSVRVRkhSMHBYYURCa1NFRTJUSGs1ZGxrelRuZE1iVVozWTBkNGJFeHRUblppVXpsMldUTk9kMDFFVFhSWldFNXdXVEpGTUUxRVRYZG5XbGxIUVRGVlpFbEJVMEpxYWtOQ2FYcERRbWxCV1VwTGIxcEphSFprYWxwQlZVSk5TSE4zWlZGWlNVdDNXVUpDVVZWSVFXZEpkMkpSZUhKV1IyaHdZM2xDYWxwWVNqQmhWMXB3V1RKR01GcFRRbkJqZVVJd1lubENhVnBUUWpGak1sWnJTVWRXTkZreWVERmpNbXd5V2xkNE5VbEhXblpqYVVKdFpGYzFhbVJIYkhaaWJrMW5ZVmMxTUZwWVNuVlpWM2RuWkVjNFoxRllRbmRpUjFWblZVaEtkbHBJVm1wa1NFMW5XVmMxYTB3eU9YbEpSVVozWTBkNGJFbElRbmxpTWs1c1l6Tk9iR041TkhkSVVWbEVWbEl3VDBKQ1dVVkdUMnhUZW1jeWQzaHZaMkZhVlhFMGJYaEhVRGhrZDJWU2VGSTRUVUUwUjBFeFZXUkVkMFZDTDNkUlJVRjNTVWhuUkVGUVFtZHJjV2hyYVVjNU1rNXJSRUpOUlVGblZVRk5RVzlIUTBOeFIxTk5ORGxDUVUxRFFUQm5RVTFGVlVOSlVVUjJiWEo0Wkc5R2NHMWlSMU0xZWxSbFZIRldUekJPT0ZoSVlrOUhSQ3RvWTJFelozTTVNWEYwYjFwblNXZGxRMUJhZHpSblNGTlVNekVyTkcxUWEwYzFXVFJHWldaWkx6bFpOR1JoVUZoS2FHb3hhbThyVURVd2VHZG5TRlZOU1VsQ01FRkpRa0ZVUWl0TlNFbDRTbXBCYTBKblRsWkNRVTFOU0ZWR2QyTkhlR3hKUms0MVl6TlNiR0pUUWtwaWJsSnNXak5LYUdSSGJIWmlhVUpFVVZOQk1FMVRXWGRLUVZsRVZsRlJURVJDTVVKalNFSnpXbE5DUkZwWVNqQmhWMXB3V1RKR01HRlhPWFZKUlVZeFpFZG9kbU50YkRCbFZFVlVUVUpGUjBFeFZVVkRaM2RMVVZoQ2QySkhWV2RUVnpWcVRHcEZURTFCYTBkQk1WVkZRbWhOUTFaV1RVTkRRbVZCY1VSU2JWcFBja3hOUVhOSFExZERSMU5CUm14QmQxRkRRV0ZEUWpWNlFWbENaMnR4YUd0cFJ6bDNNRUpEVVUxNFEzZFpTa3R2V2tsb2RtTk9RVkZqUWsxQ2QwZERVM0ZIVTBsaU0wUlJSVXBDVkVWUVJuY3dlVTVxUVhoTmFsRjNUVVJSTVUxVVVtRk5RMmRIUTFOeFIxTkpZak5FVVVWS1RrUkZZazFDYTNkRGQxbEtXVWxhU1VGWFZVUkNRVWxDYjFGdlIwTkRjVWRUVFRRNVFrRk5RMDFET0VkRFUzRkhVMGxpTTBSUlJVcENSRVZwUWtORFZuWlFWRmhGYWpKWWNWWjBkSFpvUkZaTFZVUlNNSFI2UW1OclkxUndkMWRGZWtoNlluTkVRVFZJYWtKVFFtZHJjV2hyYVVjNWR6QkNRMUU0ZUZKVVFrUk5RVzlIUTBOeFIxTkpZak5FVVUxSVRVRTBSME5EY1VkVFNXSXpSRkZOUTBGblNVRm5SRUZPUW1kbmNXaHJhVWM1ZHpCRVFXZEpRbEZFUVVoQ1oxVnlSR2ROUTBKNlFVNUNaMmR4YUd0cFJ6bDNNRVJCWjBsQ1MwUkJTMEpuWjNGb2EycFBVRkZSUkVGblVrbE5SVmxEU1ZGRFJESnViRFJ6Ym5SYU5tcEdZa2xUTkRORGVHbHdXRFpYTm1rMFZpdDFTalV5ZFdoR1FrTnZNbk5ZVVVsb1FWQlJRMjA0VjBKSEwyNXpWV28ySzBwVGFtWTNSVWhrVmtWU1NTc3ZiakJEWkVKVFR5dExXVnA1VVhjOEwyUmhkR0UrQ2drSkNRa0pDUWtKQ1FrSkNRa0pDZ2tKQ1R4clpYaytVRkJSUTJobFkyczhMMnRsZVQ0S0NUeG1ZV3h6WlM4K0Nnb0pQR3RsZVQ1RmJuUnBkR3hsYldWdWRITThMMnRsZVQ0S0NUeGthV04wUGdvSkNUeHJaWGsrWW1WMFlTMXlaWEJ2Y25SekxXRmpkR2wyWlR3dmEyVjVQZ29KQ1R4MGNuVmxMejRLQ1FrSkNRb0pDUWtKUEd0bGVUNWhjSE10Wlc1MmFYSnZibTFsYm5ROEwydGxlVDRLQ1FrOGMzUnlhVzVuUG5CeWIyUjFZM1JwYjI0OEwzTjBjbWx1Wno0S0NRa0pDUW9KQ1FrSlBHdGxlVDVoY0hCc2FXTmhkR2x2YmkxcFpHVnVkR2xtYVdWeVBDOXJaWGsrQ2drSlBITjBjbWx1Wno0M1dESTVNMFpVUzFwQkxtTnZiUzUzWVd4ellXNXpiMlowZDJGeVpTNW9lV0p5YVdROEwzTjBjbWx1Wno0S0NRa0pDUW9KQ1FrSlBHdGxlVDVyWlhsamFHRnBiaTFoWTJObGMzTXRaM0p2ZFhCelBDOXJaWGsrQ2drSlBHRnljbUY1UGdvSkNRa0pQSE4wY21sdVp6NDNXREk1TTBaVVMxcEJMaW84TDNOMGNtbHVaejRLQ1FrSkNUeHpkSEpwYm1jK1kyOXRMbUZ3Y0d4bExuUnZhMlZ1UEM5emRISnBibWMrQ2drSlBDOWhjbkpoZVQ0S0NRa0pDUW9KQ1FrSlBHdGxlVDVuWlhRdGRHRnpheTFoYkd4dmR6d3ZhMlY1UGdvSkNUeG1ZV3h6WlM4K0Nna0pDUWtLQ1FrSkNUeHJaWGsrWTI5dExtRndjR3hsTG1SbGRtVnNiM0JsY2k1MFpXRnRMV2xrWlc1MGFXWnBaWEk4TDJ0bGVUNEtDUWs4YzNSeWFXNW5QamRZTWprelJsUkxXa0U4TDNOMGNtbHVaejRLQ1FrS0NUd3ZaR2xqZEQ0S0NUeHJaWGsrUlhod2FYSmhkR2x2YmtSaGRHVThMMnRsZVQ0S0NUeGtZWFJsUGpJd01qY3RNREV0TWpKVU1ERTZNREk2TVROYVBDOWtZWFJsUGdvSlBHdGxlVDVPWVcxbFBDOXJaWGsrQ2drOGMzUnlhVzVuUGlwYlpYaHdiMTBnWTI5dExuZGhiSE5oYm5OdlpuUjNZWEpsTG1oNVluSnBaQ0JCY0hCVGRHOXlaU0F5TURJMkxUQXhMVEkwVkRBd09qUTFPakUwTGpJek1WbzhMM04wY21sdVp6NEtDVHhyWlhrK1ZHVmhiVWxrWlc1MGFXWnBaWEk4TDJ0bGVUNEtDVHhoY25KaGVUNEtDUWs4YzNSeWFXNW5QamRZTWprelJsUkxXa0U4TDNOMGNtbHVaejRLQ1R3dllYSnlZWGsrQ2drOGEyVjVQbFJsWVcxT1lXMWxQQzlyWlhrK0NnazhjM1J5YVc1blBrcGhjbVZrSUZkaGJHUnliMlptUEM5emRISnBibWMrQ2drOGEyVjVQbFJwYldWVWIweHBkbVU4TDJ0bGVUNEtDVHhwYm5SbFoyVnlQak0yTXp3dmFXNTBaV2RsY2o0S0NUeHJaWGsrVlZWSlJEd3ZhMlY1UGdvSlBITjBjbWx1Wno1ak1qSXlaamMzTkMwMk1tTmxMVFJsTVRVdE9XWmtNUzAyWVRjd09UTTJOV1l4Tm1ROEwzTjBjbWx1Wno0S0NUeHJaWGsrVm1WeWMybHZiand2YTJWNVBnb0pQR2x1ZEdWblpYSStNVHd2YVc1MFpXZGxjajRLUEM5a2FXTjBQZ284TDNCc2FYTjBQcUNDRFQ4d2dnUTBNSUlESEtBREFnRUNBZ2c5V2ZnMzZ0SFluekFOQmdrcWhraUc5dzBCQVFzRkFEQnpNUzB3S3dZRFZRUUREQ1JCY0hCc1pTQnBVR2h2Ym1VZ1EyVnlkR2xtYVdOaGRHbHZiaUJCZFhSb2IzSnBkSGt4SURBZUJnTlZCQXNNRjBObGNuUnBabWxqWVhScGIyNGdRWFYwYUc5eWFYUjVNUk13RVFZRFZRUUtEQXBCY0hCc1pTQkpibU11TVFzd0NRWURWUVFHRXdKVlV6QWVGdzB5TkRFeU1UWXhPVEl4TURGYUZ3MHlPVEV5TVRFeE9ERXpOVGxhTUZreE5UQXpCZ05WQkFNTUxFRndjR3hsSUdsUWFHOXVaU0JQVXlCUWNtOTJhWE5wYjI1cGJtY2dVSEp2Wm1sc1pTQlRhV2R1YVc1bk1STXdFUVlEVlFRS0RBcEJjSEJzWlNCSmJtTXVNUXN3Q1FZRFZRUUdFd0pWVXpDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTkNUTWF2NFV4N2ZyUjR2WlBmSlRkZVd2bDlMUFhsa1hFUHVLY05BMHZvdkhLQzJ2QkZ6Ny9BaXNOL2UrZm5PVmVQMVFnRzFJMlZCRWp2M2ZFWjlpUk5GbFVUc2xwVmlacGVRQXdEWjRLN0YyYkdjSUMyVzRJWHRiMnZUVXRPRFBOUUJJeVhwNWNiVUVkaDVxZ2pDM1JWWTllK0trMHNOUys0TnRvZVRkUkVRVmNzTWVBZmJOM0JHTzVmNnhPdDRLZUQwN0hqallkcEFWNEFIdTRpY3BjZEpiY2dtMDVVZlRTR2lqV2h6Z3g3bVdWcUZsbFZVc0pVdUpkeDNEV0dIZ1kySnBBTjdQQUIzTElscVdkTmtSTmwwcFZ1S3NWSmhYMjRFTU5UejRoQTBESldNUytGNzFpdUZnL0luT1kxd0NDUGlGSWovay9RdGJVd200b3MzaGkwQ0F3RUFBYU9CNVRDQjRqQU1CZ05WSFJNQkFmOEVBakFBTUI4R0ExVWRJd1FZTUJhQUZHL3hsUmhpWE9ESThjWHRiQmpKNE5Oa1VwZ2dNRUFHQ0NzR0FRVUZCd0VCQkRRd01qQXdCZ2dyQmdFRkJRY3dBWVlrYUhSMGNEb3ZMMjlqYzNBdVlYQndiR1V1WTI5dEwyOWpjM0F3TXkxaGFYQmpZVEEzTUM4R0ExVWRId1FvTUNZd0pLQWlvQ0NHSG1oMGRIQTZMeTlqY213dVlYQndiR1V1WTI5dEwyRnBjR05oTG1OeWJEQWRCZ05WSFE0RUZnUVV2TFhGNmIzOHk5Q2UzSlN3SHZnaGxGei9DUzR3RGdZRFZSMFBBUUgvQkFRREFnZUFNQThHQ1NxR1NJYjNZMlFHT2dRQ0JRQXdEUVlKS29aSWh2Y05BUUVMQlFBRGdnRUJBREkwd3VsM3FsL2d4c3FpODNkWjU0cG51UEZSOC91dzlwZS9zUkdqNGFFOHV5T1M2UktUb25FZHZQR2FjVytrUEc4MmtyYmdSNEtpaytQbnVJKzczeVZFWWdMUHpiejMrNDJLQ1hCNFpjSVpUU1hMY21JaDVLbG8rUkNhTG5vUEtMNm1Bd2JSVldFZnIzejRsTlJ4RHVMVEpWU0x6cTNWYUFkYnZTMTd4MkpGZWJtcGgwejRHRHVBcmhCTGNkaDRLK1lLcjVybjJVM002bHUzbzVkVmErd05vSGpId0xEUHk5d1FURENTRTNHVTFxL2c3TW5weVp2T0pUTHVFUTBoRnlTTDhaVXVJbUpHUlgvZzI5Y1dWTUc1UHRQYWlybGw5clMwSTM5NFhkbHlkbVJqcHdoVng5bTNsTnNqdi9PVHA5UUVSRU1OeXVKV3NpdVVLS1E5Y29jd2dnUkVNSUlETEtBREFnRUNBZ2hjWThya1NqZFR5VEFOQmdrcWhraUc5dzBCQVFzRkFEQmlNUXN3Q1FZRFZRUUdFd0pWVXpFVE1CRUdBMVVFQ2hNS1FYQndiR1VnU1c1akxqRW1NQ1FHQTFVRUN4TWRRWEJ3YkdVZ1EyVnlkR2xtYVdOaGRHbHZiaUJCZFhSb2IzSnBkSGt4RmpBVUJnTlZCQU1URFVGd2NHeGxJRkp2YjNRZ1EwRXdIaGNOTVRjd05URXdNakV5TnpNd1doY05NekF4TWpNeE1EQXdNREF3V2pCek1TMHdLd1lEVlFRRERDUkJjSEJzWlNCcFVHaHZibVVnUTJWeWRHbG1hV05oZEdsdmJpQkJkWFJvYjNKcGRIa3hJREFlQmdOVkJBc01GME5sY25ScFptbGpZWFJwYjI0Z1FYVjBhRzl5YVhSNU1STXdFUVlEVlFRS0RBcEJjSEJzWlNCSmJtTXVNUXN3Q1FZRFZRUUdFd0pWVXpDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTWxGYWdFUFBvTUVoc2Y4djl4ZThCNkI3aGN3YzJNbUx0NDllaVROa3o1UE9VZTZkYjd6d05MeFdhS3JILzRLaGp6Wkxab0g4ZzVydVNtUkdsOGlDb3Z4Y2xnRnJreExSTVY1cDRBOHNJamdqQXduaEYwWjVZY1pOc3ZqeFhhM3NQUkJjbEgwQlZ5RFM2SnRwbEc0OFNiZmUxNnRaUXpHc3BoUmpMdDlHMHpCVHNnSXg5THRaQXUwM1J1TlQwQjlHNDlJbHBKYjg5Q1lmdG04cEJrT21XRzdRVjBCekZ0M2VuMGswTnpUVS8vRDNNV1VMTFphVFk0WUl6bTkyY1pTUHRIeTlDV0tvU3FIL2RnTVJpbFIvKzBYYklrbGE0ZS9pbWtVbjNlZnd4VzNhTE9JUmIyRTVnWUNRV1FQclNvb3VCWEo0S3luaXJweUJEU3llSXo0c29VQ0F3RUFBYU9CN0RDQjZUQVBCZ05WSFJNQkFmOEVCVEFEQVFIL01COEdBMVVkSXdRWU1CYUFGQ3ZRYVVlVWRnbis5R3VOTGtDbTkwZE5md2hlTUVRR0NDc0dBUVVGQndFQkJEZ3dOakEwQmdnckJnRUZCUWN3QVlZb2FIUjBjRG92TDI5amMzQXVZWEJ3YkdVdVkyOXRMMjlqYzNBd015MWhjSEJzWlhKdmIzUmpZVEF1QmdOVkhSOEVKekFsTUNPZ0lhQWZoaDFvZEhSd09pOHZZM0pzTG1Gd2NHeGxMbU52YlM5eWIyOTBMbU55YkRBZEJnTlZIUTRFRmdRVWIvR1ZHR0pjNE1qeHhlMXNHTW5nMDJSU21DQXdEZ1lEVlIwUEFRSC9CQVFEQWdFR01CQUdDaXFHU0liM1kyUUdBaElFQWdVQU1BMEdDU3FHU0liM0RRRUJDd1VBQTRJQkFRQTZ6NnlZamI2U0lDRUpyWlh6c1Z3aCtqWXRWeUJFZEhOa2tnaXpscXozYlpmNld6UTRKODhTUnRNOEVmQUh5Wm1Rc2RIb0VRbWw0NlZyYkdNSVA1NGwrdFdabkV6bTVjNk9zazFvN0l1cm82SlBpaEVWUHR3VUt4ekdSTFp2WjhWYlQ1VXBMWWRjUDl5REhuZFA3ZHBVcHkzbkU0SEJZOFJVQ3h0TENtb29JZ2pVTjVKOGYyY29YNjg5UDdlc1dSMDROR1JhN2pOS0dVSkVLY1RLR0d2aHdWTXRMZlJOd2hYMk16SVllUEVtYjRwTjY1Uk1vK2ovRDdNRGkyWGE2eTdZWlZDZjNKK0szekdvaEZUY1VsSkIwcklUSFRGR1I0aGZQdTdEOG93akJKWHJySW8rZ213R255N2ppME9hWWxzMERmU1p6eXp1dW5LR0dTT2wvSTYxTUlJRXV6Q0NBNk9nQXdJQkFnSUJBakFOQmdrcWhraUc5dzBCQVFVRkFEQmlNUXN3Q1FZRFZRUUdFd0pWVXpFVE1CRUdBMVVFQ2hNS1FYQndiR1VnU1c1akxqRW1NQ1FHQTFVRUN4TWRRWEJ3YkdVZ1EyVnlkR2xtYVdOaGRHbHZiaUJCZFhSb2IzSnBkSGt4RmpBVUJnTlZCQU1URFVGd2NHeGxJRkp2YjNRZ1EwRXdIaGNOTURZd05ESTFNakUwTURNMldoY05NelV3TWpBNU1qRTBNRE0yV2pCaU1Rc3dDUVlEVlFRR0V3SlZVekVUTUJFR0ExVUVDaE1LUVhCd2JHVWdTVzVqTGpFbU1DUUdBMVVFQ3hNZFFYQndiR1VnUTJWeWRHbG1hV05oZEdsdmJpQkJkWFJvYjNKcGRIa3hGakFVQmdOVkJBTVREVUZ3Y0d4bElGSnZiM1FnUTBFd2dnRWlNQTBHQ1NxR1NJYjNEUUVCQVFVQUE0SUJEd0F3Z2dFS0FvSUJBUURra2FrSkg1SGJIa2RRNndYdFhubUVMZXMyb2xkTVZleUxHWW5lK1V0czlRZXJJakFDNkJnKytGQUowMzlCcUpqNTBjcG1uQ1JyRWRDanUrUWJLc01mbFo1NkRLUkhpMXZVRmpjenk4UVBUYzRVYWRISkdYTDFYUTdWZjErYjhpVUR1bFdQVFYwTjhXUTFJeFZMRlZrZHM1VDM5cHllejFDNndWaFFaNDhJdENEM3k2d3NJRzl3dGo4Qk1JeTNRODhQblQzekswa29Hc2orenJXNUR0bGVITmJMUGJVNnJmUVBEZ0NTQzdFaEZpNTAxVHdOMjJJV3E2Tnhra2RUVmNHdkwwR3orUHZqY00zbW8weEZmaDlNYTFDV1FZbkVkR0lMRUlOQmh6T0tnYkV3V094YUJES01hTE9QSGQ1bGMvOW5YbVc4U2RoMm56TVVaYUYzbE1rdEFnTUJBQUdqZ2dGNk1JSUJkakFPQmdOVkhROEJBZjhFQkFNQ0FRWXdEd1lEVlIwVEFRSC9CQVV3QXdFQi96QWRCZ05WSFE0RUZnUVVLOUJwUjVSMkNmNzBhNDB1UUtiM1IwMS9DRjR3SHdZRFZSMGpCQmd3Rm9BVUs5QnBSNVIyQ2Y3MGE0MHVRS2IzUjAxL0NGNHdnZ0VSQmdOVkhTQUVnZ0VJTUlJQkJEQ0NBUUFHQ1NxR1NJYjNZMlFGQVRDQjhqQXFCZ2dyQmdFRkJRY0NBUlllYUhSMGNITTZMeTkzZDNjdVlYQndiR1V1WTI5dEwyRndjR3hsWTJFdk1JSERCZ2dyQmdFRkJRY0NBakNCdGhxQnMxSmxiR2xoYm1ObElHOXVJSFJvYVhNZ1kyVnlkR2xtYVdOaGRHVWdZbmtnWVc1NUlIQmhjblI1SUdGemMzVnRaWE1nWVdOalpYQjBZVzVqWlNCdlppQjBhR1VnZEdobGJpQmhjSEJzYVdOaFlteGxJSE4wWVc1a1lYSmtJSFJsY20xeklHRnVaQ0JqYjI1a2FYUnBiMjV6SUc5bUlIVnpaU3dnWTJWeWRHbG1hV05oZEdVZ2NHOXNhV041SUdGdVpDQmpaWEowYVdacFkyRjBhVzl1SUhCeVlXTjBhV05sSUhOMFlYUmxiV1Z1ZEhNdU1BMEdDU3FHU0liM0RRRUJCUVVBQTRJQkFRQmNOcGxNTFhpMzdZeWIzUE4zbS9KMjBuY3dUOEVmaFlPRkc1azlSemZ5cVp0QWppelVzWkFTMkw3MGM1dnUwbVFQeTNsUE5OaWlQdmw0LzJ2SUIreDlPWU9MVXlEVE9NU3h2NXBQQ212L0sveFpwd1VKZkJkQVZoRWVkTk8zaXlNN1I2UFZieVRpNjlHM2NOOFBSZUVueXZGdGVPM250UmNYcU54K0lqWEtKZFhaRDlacjFLSWtJeEgzb2F5UGM0Rmd4aHRiQ1MrU3N2aEVTUEJnT0o0VjlUMG1aeUNLTTJyM0RZTFAzdXVqTC9sVGFsdGt3R016ZC9jNkJ5eFc2OW9QSVE3YXVuTVpUN1haTm4vQmgxWFpwNW01TWtMNzJOVnhubjZoVXJjYnZaTkNKQklxeHc4ZHRrMmNYbVBJUzRBWFVLcUsxZHJrL05BSkJ6ZXdkWFVoTVlJQ2hUQ0NBb0VDQVFFd2Z6QnpNUzB3S3dZRFZRUUREQ1JCY0hCc1pTQnBVR2h2Ym1VZ1EyVnlkR2xtYVdOaGRHbHZiaUJCZFhSb2IzSnBkSGt4SURBZUJnTlZCQXNNRjBObGNuUnBabWxqWVhScGIyNGdRWFYwYUc5eWFYUjVNUk13RVFZRFZRUUtEQXBCY0hCc1pTQkpibU11TVFzd0NRWURWUVFHRXdKVlV3SUlQVm40TityUjJKOHdDUVlGS3c0REFob0ZBS0NCM0RBWUJna3Foa2lHOXcwQkNRTXhDd1lKS29aSWh2Y05BUWNCTUJ3R0NTcUdTSWIzRFFFSkJURVBGdzB5TmpBeE1qUXdNRFExTVRSYU1DTUdDU3FHU0liM0RRRUpCREVXQkJRUjkwc0xPbnFpK3lpc1cybHhPUHRiRzFPNC9qQXBCZ2txaGtpRzl3MEJDVFF4SERBYU1Ba0dCU3NPQXdJYUJRQ2hEUVlKS29aSWh2Y05BUUVCQlFBd1VnWUpLb1pJaHZjTkFRa1BNVVV3UXpBS0JnZ3Foa2lHOXcwREJ6QU9CZ2dxaGtpRzl3MERBZ0lDQUlBd0RRWUlLb1pJaHZjTkF3SUNBVUF3QndZRkt3NERBZ2N3RFFZSUtvWklodmNOQXdJQ0FTZ3dEUVlKS29aSWh2Y05BUUVCQlFBRWdnRUFEbFVOSUg5R3Z2VXBxVE1lSlE5ekRuNEZRNnJWOEhxRFdpd0o5V3VNZ1dpdWhYWjJRazltSjAwL0ZXelNsQi9JdWU1Z0cxRHNHcXdoNDV5dTZna0ZXZVQwcVNLcUVnVXBjamxRcW1IR1FBTFcwMXlFZUtWSXR1UzJqRW5jTHpYYnJoNWwwbHhWTkdTUjFYQzlUMENpYmNiUDVtM2EyZlFQODZVczNrb1lSV1E0TzVRMUtpMDV2M1UxWU0rclhtNXJkNjVORlhVUWM5T3BxZ0lJeWxSU1RQcVBGdDBCMGNBUHZmNXA2dkJxaHNjRG0xeGZ5QUgwZHZzYmlwSW1KY1RXRmtEMDYrRjdocXlFWm1ldmdXVFZzODRxK0tyZXdjdndQMFlFMVFzbWllSDhFMkZxRjU5Z2xDMG5wSjFnWlpNL1cxdkY3SnNwOW92aE5SV1M2empCQmc9PSIsImRpc3RyaWJ1dGlvbkNlcnRpZmljYXRlIjp7ImRhdGFCYXNlNjQiOiJNSUlMN2dJQkF6Q0NDN1FHQ1NxR1NJYjNEUUVIQWFDQ0M2VUVnZ3VoTUlJTG5UQ0NCajBHQ1NxR1NJYjNEUUVIQWFDQ0JpNEVnZ1lxTUlJR0pqQ0NCaUlHQ3lxR1NJYjNEUUVNQ2dFRG9JSUYwekNDQmM4R0NpcUdTSWIzRFFFSkZnR2dnZ1cvQklJRnV6Q0NCYmN3Z2dTZm9BTUNBUUlDRUNYeXExRlk3SXRxWkdpTFNFKzBOSHd3RFFZSktvWklodmNOQVFFTEJRQXdkVEZFTUVJR0ExVUVBd3c3UVhCd2JHVWdWMjl5YkdSM2FXUmxJRVJsZG1Wc2IzQmxjaUJTWld4aGRHbHZibk1nUTJWeWRHbG1hV05oZEdsdmJpQkJkWFJvYjNKcGRIa3hDekFKQmdOVkJBc01Ba2N6TVJNd0VRWURWUVFLREFwQmNIQnNaU0JKYm1NdU1Rc3dDUVlEVlFRR0V3SlZVekFlRncweU5qQXhNakl3TVRBeU1UUmFGdzB5TnpBeE1qSXdNVEF5TVROYU1JR1NNUm93R0FZS0NaSW1pWlB5TEdRQkFRd0tOMWd5T1ROR1ZFdGFRVEU1TURjR0ExVUVBd3d3YVZCb2IyNWxJRVJwYzNSeWFXSjFkR2x2YmpvZ1NtRnlaV1FnVjJGc1pISnZabVlnS0RkWU1qa3pSbFJMV2tFcE1STXdFUVlEVlFRTERBbzNXREk1TTBaVVMxcEJNUmN3RlFZRFZRUUtEQTVLWVhKbFpDQlhZV3hrY205bVpqRUxNQWtHQTFVRUJoTUNWVk13Z2dFaU1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQkR3QXdnZ0VLQW9JQkFRREQvVHFrL0Q2OWRZNjlJM3hXZVlmajdpeG40TzZPc2JjemxncnhJbUxka2lqSzRTcnJLZUx2VWNZQXE1MHB4RGUzbHhjaGNVVHBKTmtyTkpmN2tjbnZUQWhUcEpSZXk1L296V2xNYVhRekgrQ3RFaGh6cVZGcE1rU29hOVYrcUtFdjhhdVVCR0YyMHp3NWVTUDBuT1V5ZWNnZ2ZjRXlKV3QrTWNYSElXUDlRSXZMelZJTmVSWmZ2Y2ZRaVZWTll2Qk44U1dpSndBZ1hiZHoyZFdqbEFQbldXM3RVWmx6MVgwQmJJOWljcEdOUnlwMXV1UnN2Sk9JMm9UbzZwZXNGVGtLdnBzTnUvNnRMWVRNdlVwMzNQVWxMSmU1YjNGNi9zTUdIWE81akovN1NidHRldDNFa29GOTFIRTNIYUtCWFdmR2pWYVNONUR1cEdNZytkYUhrbGdiQWdNQkFBR2pnZ0lqTUlJQ0h6QU1CZ05WSFJNQkFmOEVBakFBTUI4R0ExVWRJd1FZTUJhQUZBbit3QldRK2E5a0NwSVN1U1lvWXd5WDdLZXlNSEFHQ0NzR0FRVUZCd0VCQkdRd1lqQXRCZ2dyQmdFRkJRY3dBb1loYUhSMGNEb3ZMMk5sY25SekxtRndjR3hsTG1OdmJTOTNkMlJ5WnpNdVpHVnlNREVHQ0NzR0FRVUZCekFCaGlWb2RIUndPaTh2YjJOemNDNWhjSEJzWlM1amIyMHZiMk56Y0RBekxYZDNaSEpuTXpBeU1JSUJIZ1lEVlIwZ0JJSUJGVENDQVJFd2dnRU5CZ2txaGtpRzkyTmtCUUV3Z2Y4d2djTUdDQ3NHQVFVRkJ3SUNNSUcyRElHelVtVnNhV0Z1WTJVZ2IyNGdkR2hwY3lCalpYSjBhV1pwWTJGMFpTQmllU0JoYm5rZ2NHRnlkSGtnWVhOemRXMWxjeUJoWTJObGNIUmhibU5sSUc5bUlIUm9aU0IwYUdWdUlHRndjR3hwWTJGaWJHVWdjM1JoYm1SaGNtUWdkR1Z5YlhNZ1lXNWtJR052Ym1ScGRHbHZibk1nYjJZZ2RYTmxMQ0JqWlhKMGFXWnBZMkYwWlNCd2IyeHBZM2tnWVc1a0lHTmxjblJwWm1sallYUnBiMjRnY0hKaFkzUnBZMlVnYzNSaGRHVnRaVzUwY3k0d053WUlLd1lCQlFVSEFnRVdLMmgwZEhCek9pOHZkM2QzTG1Gd2NHeGxMbU52YlM5alpYSjBhV1pwWTJGMFpXRjFkR2h2Y21sMGVTOHdGZ1lEVlIwbEFRSC9CQXd3Q2dZSUt3WUJCUVVIQXdNd0hRWURWUjBPQkJZRUZBMG1qUG5KcFB5WmlVaCszQkpxVlBYQnBrcXFNQTRHQTFVZER3RUIvd1FFQXdJSGdEQVRCZ29xaGtpRzkyTmtCZ0VFQVFIL0JBSUZBREFOQmdrcWhraUc5dzBCQVFzRkFBT0NBUUVBZHZoZVBEZG1vN0Jsc1UybmVBMmw3Sng5NGVneXFaSFc1L1diaHA5QmVsRDR0d0RkdXJ3YkhnaG1SVjdNOGZ2dlp5ejB2eG5RZFZ3TmhuRDFXZHFUVTE5RVY2TmZLVnBEUVd3YWlDcFM3UEFaUGxWQS9LZnc0YmJ3MktpblR2Znl2bFFocVRxQ2cyOWxoWjNObG03MC9JVWp4QzJleWYxRVF6V2ZlMy9oZi9WaWw2VmRIZmJpZzl5TnRuTm1ZSFNvMm55K1B1L054blZaZnpFcnhSa20xYmNaVDJGOS9xM3ZwRUJ6ZjBEU3dURDZKektmSGhxb3UwZ0d4Q3c5eXVaUytaZ3ByYlg0Qjc4ZUgrYnVhb0FYSG15Tll6aHpKR0JUR2ZXMDVsWlpCYkxtLzJjUGRZT1l0emgrcmYwWlFCUFJTbWt5eGxKL2hkOFRqVEVtSm5IYTVURThNQ01HQ1NxR1NJYjNEUUVKRlRFV0JCUk9LYXhZNlRxMDF1UDViQityMnZKeFVQRGovekFWQmdrcWhraUc5dzBCQ1JReENCNEdBR3NBWlFCNU1JSUZXQVlKS29aSWh2Y05BUWNCb0lJRlNRU0NCVVV3Z2dWQk1JSUZQUVlMS29aSWh2Y05BUXdLQVFLZ2dnVHVNSUlFNmpBY0Jnb3Foa2lHOXcwQkRBRURNQTRFQ0pYcm5lWkR4bTFsQWdJSUFBU0NCTWpleGV5U2Q5UlNLcGhMNUVGQVB5eGVrdzd1cnFpQ0hnTHJ1cXRYdG1vQTdNNFhXU2ZWMVVqSXl2N1hJRW5YbWdVcUlXVHNSSWk0Z2RKckdMQlk2L0x5aXdTS25vcHdpYlRKaXFCT2RuZmV1RTJZWmNjY3laUy9hM2JsS0V0empjaWtRaEZjc0dPRjdYVk8xQlluQ3loNEFvOVBoc0hGS1dQdDgvekRYdGFjVFl0a3RUdTVicGx4NFRjWVFTWDBkMENhMXhMNHFVdHd3YUx1UnEzb2hDQXZhbU5qV1V2cDFDL3VzNkVMYjMzWFNUYTJKbDhzOS9DU24yd1RjOWVQMk95ZEtZUkpKQkFWUWtTTERMYVc3enlOcUZRZkNyVWU3MFFzdTdsc2U3eTd5TldRVCtGUFJyQ2I1VHRDSUEvanlud2VNaXNoM2h2TzZtdk5RRWgrZ0xxb2dRdWlkYWNMZE82LzhHcWc2ZWJDbVAxcXpzYk9uY2NnZEgrdWN2UENFa0NGMXNqb2tvK3l5eXNSYXlBNmxQcTJJdlpmazk0ZHlINEJISnF0VVAzMHhtTlBBM3NTcHNFaTBmOFVXMUMxaEdJaEUzOGh6c3dGbE9kcEtEWEhNVk1id0tJY3BraW1Ma0kxSUFGaFZGNnBzOW11ZEMyOXhnWlJYVEltcjFLZ1FKQm9YL005VFo1czNwSHArUElBaTZ1Y0xESi9vVytUM0JnSjhGY1RCb3BIVzVrVCtxQVZCUUlzZXhnZFVrUUVPYXlxbEwxODdIaUF4aFVzc05pcmtmQnJZUjBzcnVKY3RhbkR0eTJ6Um90YVowK1dxU1FyMU1KdkhSTUpBeVJyVGo5SGVyQTRKZUkrazVlQjNoVjJVRURXSXViZ3pESldWdEZZQUV2dHdsYTJJNE1UYlc3ampPcUkwSWJQUytiMTBoT3RaS01lUURuODlPQzR4OTBjekNtUEk4bFlnRDYwVUhmYnEvS1JkM01SZmtIdjNkL3dZUzJjbmpqdlNJcTZkeEZxaEZyekhWaHBLREpUa2ZLZlRrVTZJVTZHZzJrN3o4TFNaV1dVemZXY2NLb1QxVWphdjFMODFpazZCbFc4Rk1OTEk3Q3pXNVlkSCs3aW1RQjZBNlZaM0FOS21PM2VQVDlsTjlFQVYzMWJUQm5wTVd1dzRjNWtlMXFKeDcxRnFCaklHTjF5Z3FkRGVGREhyNG9GOWYrWE95VFAyTkRlNERpczRYeUxKMTNJbXJMSTcrS0sySE1hRU05S2dMZ09LeWI0TXIrNXBpeDdxeG1NZWNwYmJjdEhtVStpYmx4TGxUQ3RtbmVGbVg3cnVvKzU4TnZRWWpYZVFtYzNJVHUvMWpxRU9MdWcvL0k4R0xncWxENDhhK3lodDQ5eGwyTVpUSDMxSk51dm55OFAxQWk4a21qd3liL21JSHFVVmZycEVvTEV1M0Y3cVlqNi9wOGdxNDZ6UmJ6bmVtazd4WXFhSUlkL1plTUUxK2VYUU5rbkhnbWcxbXF1Snk3QWJuVFhiRzUyTE1rTXI3ZEdEY2FOZm1XbEFuYlVQWGpLTm1tMTJ3SjYwaENOZC83eGR4OVNLTE11YnpRWURHeDN4Vk1tTlFQR2sxNVVvdThQUDdyc2x0by9GaUoxNEdWSCtwWHV3a0xoSWF1M2dqa1Fja21vL09LdEJ4NjZRaDczZ2t2SGQvUldBZWVmUEplRkdYSlorTzAzR2M2d0h2SEVQZzMyak8rSkpUUGFpcVlxNlNqWG9tcU1QVUVxakxYaWdpcld2SUlka09icU5UejM5THJzUlQxcGxhL0orWnR2SjJGOFBTNWR3UDBlTzhEUmNweTRrWERlTk5zb0drZUNRZHAyZzBSSzd3NXJFc1U1SGxuODZubDcxamI5VHkvWjJtaVFOMEJYUTM1clVKdW9lYzN6N3BHUU5OVUkxUlZwWlZnRUU0bkFlRHRsdE5oNG1zZzhLdmNRQ1NxSnkxVVk4VWc1S25vM0ZKTTdBU3JVdy85emtxeXR4Y3UxQzhYOCsyb1hCd0NCdUhxUFZ2TEZYbzR0NWdscTNkUDBpS3JtUlk1bUZLNUxSNzNBQ2xpNGk3eW50dWNqd25BMjByc09CWHdVWUxmclNlUGMvczM2ZHNxYWxxRmV0SXNHWjZvekEraG0rbUl4UERBakJna3Foa2lHOXcwQkNSVXhGZ1FVVGltc1dPazZ0TmJqK1d3ZnE5cnljVkR3NC84d0ZRWUpLb1pJaHZjTkFRa1VNUWdlQmdCckFHVUFlVEF4TUNFd0NRWUZLdzREQWhvRkFBUVVhOG1CV1VHRlVKQWl2TGJ5SjdrMVJpWG9kbFFFQ09rQm96b21TMjNjQWdJSUFBPT0iLCJwYXNzd29yZCI6ImRpdklnMHlZZHpldERKNE5RMXowUHc9PSJ9fX19LCJ1cGRhdGVzIjp7fSwic2NoZW1lIjoiSFlCUklEIiwidXNlcm5hbWUiOiJqYXJlZHdhbGRyb2ZmIiwidmVyc2lvbiI6eyJidWlsZE51bWJlciI6IjIifSwiZXhwZXJpbWVudGFsIjp7fSwibW9kZSI6ImJ1aWxkIiwidHJpZ2dlcmVkQnkiOiJFQVNfQ0xJIiwiYXBwSWQiOiJhZTRlMzc4My1hNjQzLTRhN2UtOTVkNC1lYjMxMDhjMDE4NGEiLCJpbml0aWF0aW5nVXNlcklkIjoiMzU4YmIyNmItZjA5Yy00NWY0LWEzNmMtNDVmNmYzY2VlZWZlIn0sIm1ldGFkYXRhIjp7InRyYWNraW5nQ29udGV4dCI6eyJ0cmFja2luZ19pZCI6ImZiNDQ0NWFlLTVjMWQtNDQ5My1iOGZkLTFjNGJlMjM1NTljZCIsInBsYXRmb3JtIjoiaW9zIiwic2RrX3ZlcnNpb24iOiI1NC4wLjAiLCJhY2NvdW50X2lkIjoiODE5MjQ4MzQtNjQ5Yi00ZWIyLTg5ZmItYzIzMWUyYzQ3OWE0IiwicHJvamVjdF9pZCI6ImFlNGUzNzgzLWE2NDMtNGE3ZS05NWQ0LWViMzEwOGMwMTg0YSIsInByb2plY3RfdHlwZSI6ImdlbmVyaWMiLCJkZXZfY2xpZW50IjpmYWxzZSwibm9fd2FpdCI6ZmFsc2UsInJ1bl9mcm9tX2NpIjpmYWxzZSwibG9jYWwiOnRydWV9LCJhcHBCdWlsZFZlcnNpb24iOiIyIiwiYXBwVmVyc2lvbiI6IjEuMC4wIiwiY2xpVmVyc2lvbiI6IjE2LjI4LjAiLCJ3b3JrZmxvdyI6ImdlbmVyaWMiLCJjcmVkZW50aWFsc1NvdXJjZSI6InJlbW90ZSIsInNka1ZlcnNpb24iOiI1NC4wLjAiLCJyZWFjdE5hdGl2ZVZlcnNpb24iOiIwLjgxLjUiLCJkaXN0cmlidXRpb24iOiJzdG9yZSIsImFwcE5hbWUiOiJIWUJSSUQiLCJhcHBJZGVudGlmaWVyIjoiY29tLndhbHNhbnNvZnR3YXJlLmh5YnJpZCIsImJ1aWxkUHJvZmlsZSI6InByb2R1Y3Rpb24iLCJnaXRDb21taXRIYXNoIjoiODhmY2MzZGY1MGIzYjk4ZThlNWJmYzhmZWUzODUzMmM3YjBiODQ1NCIsImdpdENvbW1pdE1lc3NhZ2UiOiJQcmVwIGFwcCBmb3Igc3RvcmUgbGF1bmNoLCByZW1vdmUgdW53YW50ZWQgZmlsZXMsIG9yZ2FuaXplIGRvY3VtZW50YXRpb24gYW5kIHVwZGF0ZSBwb2xpY3kgZm9yIGFwcCBzdG9yZS4iLCJpc0dpdFdvcmtpbmdUcmVlRGlydHkiOnRydWUsInVzZXJuYW1lIjoiamFyZWR3YWxkcm9mZiIsInJ1bldpdGhOb1dhaXRGbGFnIjpmYWxzZSwicnVuRnJvbUNJIjpmYWxzZSwiZGV2ZWxvcG1lbnRDbGllbnQiOmZhbHNlLCJyZXF1aXJlZFBhY2thZ2VNYW5hZ2VyIjoibnBtIiwic2ltdWxhdG9yIjpmYWxzZX19 exited with non-zero code: 1
+    Error: build command failed.

@@ -7,6 +7,7 @@ export interface SquadMember {
     display_name: string;
     avatar_url: string;
     username: string;
+    badges?: string[]; // User's earned badges
     relationship_id: string; // ID of the squad_members row
     status: 'accepted' | 'pending';
     direction: 'incoming' | 'outgoing' | 'confirmed';
@@ -38,10 +39,10 @@ export function useSquad() {
                 if (row.receiver_id !== user.id) userIds.add(row.receiver_id);
             });
 
-            // 3. Fetch profiles
+            // 3. Fetch profiles (including badges)
             const { data: profiles, error: profileError } = await supabase
                 .from('athlete_profiles')
-                .select('user_id, display_name, avatar_url, username')
+                .select('user_id, display_name, avatar_url, username, badges')
                 .in('user_id', Array.from(userIds));
 
             if (profileError) throw profileError;
@@ -68,6 +69,7 @@ export function useSquad() {
                     display_name: profile.display_name,
                     avatar_url: profile.avatar_url,
                     username: profile.username,
+                    badges: profile.badges || [],
                     relationship_id: row.id,
                     status: row.status,
                     direction: 'confirmed'

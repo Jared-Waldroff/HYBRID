@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { DeviceEventEmitter } from 'react-native';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 
@@ -20,6 +21,7 @@ export interface FeedPost {
     user?: {
         display_name: string;
         avatar_url: string;
+        badges?: string[];
     };
     event?: {
         name: string;
@@ -62,6 +64,17 @@ export interface FeedPost {
         }>;
     };
     has_lfg?: boolean; // Whether current user has LFG'd this post
+    preview_comments?: Array<{
+        id: string;
+        user_id: string;
+        content: string;
+        created_at: string;
+        user?: {
+            display_name: string;
+            avatar_url: string;
+            badges?: string[];
+        };
+    }>;
 }
 
 export interface FeedComment {
@@ -86,10 +99,10 @@ export interface CreatePostInput {
 }
 
 // Cache for user profiles to avoid repeated queries
-const profileCache = new Map<string, { display_name: string; avatar_url: string; cachedAt: number }>();
+const profileCache = new Map<string, { display_name: string; avatar_url: string; badges?: string[]; cachedAt: number }>();
 const PROFILE_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-export function useActivityFeed() {
+export function useActivityFeed(eventId?: string) { // Accepts optional eventId for scoping
     const { user } = useAuth();
     const [feed, setFeed] = useState<FeedPost[]>([]);
     const [loading, setLoading] = useState(true);
@@ -101,13 +114,13 @@ export function useActivityFeed() {
     // Helper to get cached profiles or fetch missing ones
     const getProfiles = useCallback(async (userIds: string[]) => {
         const now = Date.now();
-        const cached: Map<string, { display_name: string; avatar_url: string }> = new Map();
+        const cached: Map<string, { display_name: string; avatar_url: string; badges?: string[] }> = new Map();
         const missing: string[] = [];
 
         for (const id of userIds) {
             const cachedProfile = profileCache.get(id);
             if (cachedProfile && (now - cachedProfile.cachedAt) < PROFILE_CACHE_TTL) {
-                cached.set(id, { display_name: cachedProfile.display_name, avatar_url: cachedProfile.avatar_url });
+                cached.set(id, { display_name: cachedProfile.display_name, avatar_url: cachedProfile.avatar_url, badges: cachedProfile.badges });
             } else {
                 missing.push(id);
             }
@@ -116,12 +129,12 @@ export function useActivityFeed() {
         if (missing.length > 0) {
             const { data: profiles } = await supabase
                 .from('athlete_profiles')
-                .select('user_id, display_name, avatar_url')
+                .select('user_id, display_name, avatar_url, badges')
                 .in('user_id', missing);
 
             for (const p of (profiles || [])) {
                 profileCache.set(p.user_id, { ...p, cachedAt: now });
-                cached.set(p.user_id, { display_name: p.display_name, avatar_url: p.avatar_url });
+                cached.set(p.user_id, { display_name: p.display_name, avatar_url: p.avatar_url, badges: p.badges });
             }
         }
 
@@ -181,7 +194,13 @@ export function useActivityFeed() {
                         id,
                         name,
                         color,
-                        is_completed
+                        is_completed,
+                        workout_exercises(
+                            id,
+                            order_index,
+                            exercise:exercises(name),
+                            sets(id, weight, reps, is_completed)
+                        )
                     )
                 `)
                 .order('created_at', { ascending: false })
@@ -213,11 +232,73 @@ export function useActivityFeed() {
             const userIds = [...new Set(data.map(p => p.user_id))];
             const profileMap = await getProfiles(userIds);
 
-            const postsWithData = data.map(post => ({
-                ...post,
-                user: profileMap.get(post.user_id),
-                has_lfg: lfgPostIds.has(post.id),
-            }));
+            const postsWithData = data.map((post: any) => {
+                // Normalize event (Supabase returns array for 1:1 join sometimes)
+                const event = Array.isArray(post.event) ? post.event[0] : post.event;
+
+                // Normalize workout and exercises
+                let workout = Array.isArray(post.workout) ? post.workout[0] : post.workout;
+                if (workout && workout.workout_exercises) {
+                    workout = {
+                        ...workout,
+                        workout_exercises: workout.workout_exercises.map((we: any) => ({
+                            ...we,
+                            exercise: Array.isArray(we.exercise) ? we.exercise[0] : we.exercise
+                        }))
+                    };
+                }
+
+                return {
+                    ...post,
+                    event,
+                    workout,
+                    user: profileMap.get(post.user_id),
+                    has_lfg: lfgPostIds.has(post.id),
+                    preview_comments: [] // Placeholder, populated below
+                };
+            });
+
+            // OPTIMIZATION 6: Fetch preview comments for visible posts
+            // We fetch latest 2 comments for the retrieved posts
+            const postIds = postsWithData.map(p => p.id);
+            if (postIds.length > 0) {
+                const { data: comments, error: commentsError } = await supabase
+                    .from('feed_comments')
+                    .select('id, post_id, user_id, content, created_at')
+                    .in('post_id', postIds)
+                    .order('created_at', { ascending: false });
+
+                if (!commentsError && comments) {
+                    // Group by post_id and take top 2
+                    const commentMap = new Map<string, any[]>();
+
+                    // Also need profiles for commenters
+                    const commenterIds = new Set(comments.map(c => c.user_id));
+                    const commenterProfileMap = await getProfiles([...commenterIds]);
+
+                    comments.forEach(c => {
+                        const existing = commentMap.get(c.post_id) || [];
+                        if (existing.length < 2) {
+                            existing.push({
+                                ...c,
+                                user: commenterProfileMap.get(c.user_id)
+                            });
+                            // Store in reverse chronological for processing, but display chronological
+                            commentMap.set(c.post_id, existing);
+                        }
+                    });
+
+                    // Assign to posts
+                    postsWithData.forEach(p => {
+                        if (commentMap.has(p.id)) {
+                            // Reverse to show oldest first (like conversation) or newest? Instagram usually shows newest or "View all". 
+                            // Actually inline comments usually show somewhat recent. 
+                            // Let's sort chronological for reading flow.
+                            p.preview_comments = commentMap.get(p.id)?.sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+                        }
+                    });
+                }
+            }
 
             setFeed(postsWithData);
         } catch (err: any) {
@@ -227,6 +308,14 @@ export function useActivityFeed() {
             setLoading(false);
         }
     }, [user, getProfiles]);
+
+    // Listen for comment updates
+    useEffect(() => {
+        const subscription = DeviceEventEmitter.addListener('commentAdded', () => {
+            loadFeed(eventId);
+        });
+        return () => subscription.remove();
+    }, [loadFeed, eventId]);
 
     // OPTIMIZATION 5: Lazy load workout details when needed
     const loadWorkoutDetails = useCallback(async (workoutId: string) => {

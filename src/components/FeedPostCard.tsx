@@ -16,6 +16,7 @@ import { FeedPost, formatRelativeTime, formatDuration } from '../hooks/useActivi
 
 import { FEELING_OPTIONS } from '../hooks/useEventWorkouts';
 import WorkoutCard from './WorkoutCard';
+import BadgeRow from './BadgeRow';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -23,7 +24,7 @@ interface FeedPostCardProps {
     post: FeedPost;
     onLfg: () => void;
     onComment: () => void;
-    onUserPress?: (userId: string) => void;
+    onUserPress?: (userId: string, user: any) => void;
     onEventPress?: (eventId: string) => void;
     isOwner?: boolean;
     onOptions?: () => void;
@@ -90,7 +91,7 @@ export default function FeedPostCard({
             <View style={styles.header}>
                 <Pressable
                     style={styles.userInfo}
-                    onPress={() => onUserPress?.(post.user_id)}
+                    onPress={() => onUserPress?.(post.user_id, post.user)}
                 >
                     {post.user?.avatar_url ? (
                         <Image
@@ -105,9 +106,14 @@ export default function FeedPostCard({
                         </View>
                     )}
                     <View style={styles.userDetails}>
-                        <Text style={[styles.userName, { color: themeColors.textPrimary }]}>
-                            {post.user?.display_name || 'Unknown'}
-                        </Text>
+                        <View style={styles.userNameRow}>
+                            <Text style={[styles.userName, { color: themeColors.textPrimary }]}>
+                                {post.user?.display_name || 'Unknown'}
+                            </Text>
+                            {post.user?.badges && post.user.badges.length > 0 && (
+                                <BadgeRow badges={post.user.badges} maxDisplay={3} size="small" userName={post.user.display_name} />
+                            )}
+                        </View>
                         <View style={styles.headerMeta}>
                             <Text style={[styles.timeAgo, { color: themeColors.textMuted }]}>
                                 {formatRelativeTime(post.created_at)}
@@ -328,11 +334,69 @@ export default function FeedPostCard({
                     <View style={styles.commentButton}>
                         <Feather name="message-circle" size={18} color={themeColors.textSecondary} />
                         <Text style={[styles.commentText, { color: themeColors.textSecondary }]}>
-                            {post.comment_count > 0 ? post.comment_count : 'Comment'}
+                            {post.comment_count > 0
+                                ? `${post.comment_count} ${post.comment_count === 1 ? 'Comment' : 'Comments'}`
+                                : 'Comment'}
                         </Text>
                     </View>
                 </Pressable>
             </View>
+
+            {/* Inline Comments Preview */}
+            {post.preview_comments && post.preview_comments.length > 0 && (
+                <View style={{ paddingHorizontal: spacing.md, paddingBottom: spacing.md }}>
+                    {post.preview_comments.map((comment) => (
+                        <View key={comment.id} style={{ flexDirection: 'row', marginTop: 8 }}>
+                            {/* Avatar */}
+                            <Pressable onPress={() => onUserPress?.(comment.user_id, comment.user)}>
+                                {comment.user?.avatar_url ? (
+                                    <Image
+                                        source={{ uri: comment.user.avatar_url }}
+                                        style={{ width: 24, height: 24, borderRadius: 12, marginRight: spacing.sm }}
+                                    />
+                                ) : (
+                                    <View style={{
+                                        width: 24, height: 24, borderRadius: 12, marginRight: spacing.sm,
+                                        backgroundColor: themeColors.bgTertiary, alignItems: 'center', justifyContent: 'center'
+                                    }}>
+                                        <Text style={{ fontSize: 10, fontWeight: 'bold', color: themeColors.textSecondary }}>
+                                            {comment.user?.display_name?.[0]?.toUpperCase() || '?'}
+                                        </Text>
+                                    </View>
+                                )}
+                            </Pressable>
+
+                            <View style={{ flex: 1 }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
+                                    <Pressable onPress={() => onUserPress?.(comment.user_id, comment.user)}>
+                                        <Text style={{ fontSize: typography.sizes.sm, fontWeight: 'bold', color: themeColors.textPrimary, marginRight: 4 }}>
+                                            {comment.user?.display_name || 'User'}
+                                        </Text>
+                                    </Pressable>
+                                    {/* Badges inline? BadgeRow is usually multiple. */}
+                                    {/* We can render BadgeRow with size small */}
+                                    <View style={{ transform: [{ scale: 0.8 }] }}>
+                                        {/* Assuming BadgeRow can take custom style or we wrap it. */}
+                                        {/* Since BadgeRow fetches badges if passed strings, we need to ensure useActivityFeed passes badges? */}
+                                        {/* useActivityFeed preview_comments query fetches user:athlete_profiles(badges). Yes. */}
+                                        {comment.user?.badges && <BadgeRow badges={comment.user.badges} maxDisplay={1} size="small" />}
+                                    </View>
+                                </View>
+                                <Text style={{ fontSize: typography.sizes.sm, color: themeColors.textSecondary }}>
+                                    {comment.content}
+                                </Text>
+                            </View>
+                        </View>
+                    ))}
+                    {post.comment_count > post.preview_comments.length && (
+                        <Pressable onPress={onComment} style={{ marginTop: 8, marginLeft: 32 }}>
+                            <Text style={{ fontSize: typography.sizes.sm, color: themeColors.textMuted }}>
+                                View all {post.comment_count} comments
+                            </Text>
+                        </Pressable>
+                    )}
+                </View>
+            )}
 
             {/* Image Modal */}
             <Modal
@@ -494,6 +558,11 @@ const styles = StyleSheet.create({
     userName: {
         fontSize: typography.sizes.base,
         fontWeight: typography.weights.semibold,
+    },
+    userNameRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.xs,
     },
     headerMeta: {
         flexDirection: 'row',
