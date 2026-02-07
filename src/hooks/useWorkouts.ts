@@ -451,6 +451,140 @@ export function useWorkouts() {
         return () => subscription?.remove();
     }, [user, fetchWorkouts]);
 
+    // Sync event workouts to home screen when joining an event
+    const syncEventWorkoutsToHome = useCallback(async (
+        eventId: string,
+        eventName: string,
+        eventDate: string,
+        trainingWorkouts: Array<{
+            id: string;
+            name: string;
+            description: string | null;
+            workout_type: string;
+            target_value: number | null;
+            target_unit: string | null;
+            target_zone: string | null;
+            target_notes: string | null;
+            days_before_event: number;
+            color: string;
+        }>
+    ): Promise<{ error: string | null }> => {
+        if (!user) return { error: 'Not authenticated' };
+
+        try {
+            const eventDateObj = new Date(eventDate);
+            const workoutsToInsert = trainingWorkouts.map(tw => {
+                const scheduledDate = new Date(eventDateObj);
+                scheduledDate.setDate(scheduledDate.getDate() - tw.days_before_event);
+
+                // Store event workout metadata in notes as JSON
+                const metadata = JSON.stringify({
+                    isEventWorkout: true,
+                    target_value: tw.target_value,
+                    target_unit: tw.target_unit,
+                    target_zone: tw.target_zone,
+                    target_notes: tw.target_notes,
+                    workout_type: tw.workout_type,
+                    description: tw.description,
+                });
+
+                return {
+                    user_id: user.id,
+                    name: tw.name,
+                    scheduled_date: scheduledDate.toISOString().split('T')[0],
+                    color: tw.color || '#6366f1',
+                    notes: metadata,
+                    source_training_workout_id: tw.id,
+                    source_event_id: eventId,
+                    source_event_name: eventName,
+                    is_completed: false,
+                };
+            });
+
+            const { error: insertError } = await supabase
+                .from('workouts')
+                .insert(workoutsToInsert);
+
+            if (insertError) throw insertError;
+
+            await fetchWorkouts();
+            return { error: null };
+        } catch (err: any) {
+            console.error('Error syncing event workouts:', err);
+            return { error: err.message };
+        }
+    }, [user, fetchWorkouts]);
+
+    // Remove all event-synced workouts when leaving an event
+    const removeEventWorkoutsFromHome = useCallback(async (
+        eventId: string
+    ): Promise<{ error: string | null }> => {
+        if (!user) return { error: 'Not authenticated' };
+
+        try {
+            const { error: deleteError } = await supabase
+                .from('workouts')
+                .delete()
+                .eq('user_id', user.id)
+                .eq('source_event_id', eventId);
+
+            if (deleteError) throw deleteError;
+
+            await fetchWorkouts();
+            return { error: null };
+        } catch (err: any) {
+            console.error('Error removing event workouts:', err);
+            return { error: err.message };
+        }
+    }, [user, fetchWorkouts]);
+
+    // Remove a single synced workout when training workout is deleted from event
+    const removeSyncedWorkout = useCallback(async (
+        trainingWorkoutId: string
+    ): Promise<{ error: string | null }> => {
+        if (!user) return { error: 'Not authenticated' };
+
+        try {
+            // Delete for ALL users (this is called by event creator)
+            const { error: deleteError } = await supabase
+                .from('workouts')
+                .delete()
+                .eq('source_training_workout_id', trainingWorkoutId);
+
+            if (deleteError) throw deleteError;
+
+            await fetchWorkouts();
+            return { error: null };
+        } catch (err: any) {
+            console.error('Error removing synced workout:', err);
+            return { error: err.message };
+        }
+    }, [user, fetchWorkouts]);
+
+    // Mark an event-synced workout as completed on home screen
+    const markEventWorkoutCompleted = useCallback(async (
+        trainingWorkoutId: string,
+        isCompleted: boolean
+    ): Promise<{ error: string | null }> => {
+        if (!user) return { error: 'Not authenticated' };
+
+        try {
+            const { error: updateError } = await supabase
+                .from('workouts')
+                .update({ is_completed: isCompleted })
+                .eq('user_id', user.id)
+                .eq('source_training_workout_id', trainingWorkoutId);
+
+            if (updateError) throw updateError;
+
+            await fetchWorkouts();
+            return { error: null };
+        } catch (err: any) {
+            console.error('Error marking workout completed:', err);
+            return { error: err.message };
+        }
+    }, [user, fetchWorkouts]);
+
     return {
         workouts,
         loading,
@@ -464,5 +598,10 @@ export function useWorkouts() {
         removeExerciseFromWorkout,
         getWorkoutsByDate,
         getRecentCompletedWorkouts,
+        // Event sync functions
+        syncEventWorkoutsToHome,
+        removeEventWorkoutsFromHome,
+        removeSyncedWorkout,
+        markEventWorkoutCompleted,
     };
 }

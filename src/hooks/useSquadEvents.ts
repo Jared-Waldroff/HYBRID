@@ -366,6 +366,55 @@ export function useSquadEvents() {
 
             if (joinError) throw joinError;
 
+            // Sync event workouts to home screen
+            // Get event details
+            const { data: eventData } = await supabase
+                .from('squad_events')
+                .select('name, event_date')
+                .eq('id', eventId)
+                .single();
+
+            if (eventData) {
+                // Get training workouts
+                const { data: trainingWorkouts } = await supabase
+                    .from('event_training_workouts')
+                    .select('*')
+                    .eq('event_id', eventId);
+
+                if (trainingWorkouts && trainingWorkouts.length > 0) {
+                    const eventDateObj = new Date(eventData.event_date);
+                    const workoutsToInsert = trainingWorkouts.map(tw => {
+                        const scheduledDate = new Date(eventDateObj);
+                        scheduledDate.setDate(scheduledDate.getDate() - tw.days_before_event);
+
+                        // Store event workout metadata in notes as JSON
+                        const metadata = JSON.stringify({
+                            isEventWorkout: true,
+                            target_value: tw.target_value,
+                            target_unit: tw.target_unit,
+                            target_zone: tw.target_zone,
+                            target_notes: tw.target_notes,
+                            workout_type: tw.workout_type,
+                            description: tw.description,
+                        });
+
+                        return {
+                            user_id: user.id,
+                            name: tw.name,
+                            scheduled_date: scheduledDate.toISOString().split('T')[0],
+                            color: tw.color || '#6366f1',
+                            notes: metadata,
+                            source_training_workout_id: tw.id,
+                            source_event_id: eventId,
+                            source_event_name: eventData.name,
+                            is_completed: false,
+                        };
+                    });
+
+                    await supabase.from('workouts').insert(workoutsToInsert);
+                }
+            }
+
             await loadEvents();
             return { error: null };
         } catch (err: any) {
@@ -386,6 +435,13 @@ export function useSquadEvents() {
                 .eq('user_id', user.id);
 
             if (leaveError) throw leaveError;
+
+            // Remove synced workouts from home screen
+            await supabase
+                .from('workouts')
+                .delete()
+                .eq('user_id', user.id)
+                .eq('source_event_id', eventId);
 
             await loadEvents();
             return { error: null };
@@ -563,6 +619,54 @@ export function useSquadEvents() {
                 .single();
 
             if (error) throw error;
+
+            // Sync new workout to all participants' home screens
+            if (data) {
+                // Get event details
+                const { data: eventData } = await supabase
+                    .from('squad_events')
+                    .select('name, event_date')
+                    .eq('id', eventId)
+                    .single();
+
+                // Get all participants
+                const { data: participants } = await supabase
+                    .from('event_participants')
+                    .select('user_id')
+                    .eq('event_id', eventId);
+
+                if (eventData && participants && participants.length > 0) {
+                    const eventDateObj = new Date(eventData.event_date);
+                    const scheduledDate = new Date(eventDateObj);
+                    scheduledDate.setDate(scheduledDate.getDate() - data.days_before_event);
+
+                    const metadata = JSON.stringify({
+                        isEventWorkout: true,
+                        target_value: data.target_value,
+                        target_unit: data.target_unit,
+                        target_zone: data.target_zone,
+                        target_notes: data.target_notes,
+                        workout_type: data.workout_type,
+                        description: data.description,
+                    });
+
+                    // Create synced workout for each participant
+                    const workoutsToInsert = participants.map(p => ({
+                        user_id: p.user_id,
+                        name: data.name,
+                        scheduled_date: scheduledDate.toISOString().split('T')[0],
+                        color: data.color || '#6366f1',
+                        notes: metadata,
+                        source_training_workout_id: data.id,
+                        source_event_id: eventId,
+                        source_event_name: eventData.name,
+                        is_completed: false,
+                    }));
+
+                    await supabase.from('workouts').insert(workoutsToInsert);
+                }
+            }
+
             return { data, error: null };
         } catch (err: any) {
             return { data: null, error: err.message };
@@ -573,6 +677,12 @@ export function useSquadEvents() {
         if (!user) return { error: 'Not authenticated' };
 
         try {
+            // Remove synced workouts from ALL participants' home screens
+            await supabase
+                .from('workouts')
+                .delete()
+                .eq('source_training_workout_id', workoutId);
+
             const { error } = await supabase
                 .from('event_training_workouts')
                 .delete()

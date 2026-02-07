@@ -66,6 +66,13 @@ export function useEventWorkouts() {
 
             if (insertError) throw insertError;
 
+            // Also mark the synced home workout as completed
+            await supabase
+                .from('workouts')
+                .update({ is_completed: true })
+                .eq('user_id', user.id)
+                .eq('source_training_workout_id', input.training_workout_id);
+
             return { completion: data, error: null };
         } catch (err: any) {
             console.error('Error completing workout:', err);
@@ -159,13 +166,21 @@ export function useEventWorkouts() {
         }
     }, []);
 
-    // Delete a completion
+    // Delete a completion (uncomplete a workout)
     const deleteCompletion = useCallback(async (
         completionId: string
     ): Promise<{ error: string | null }> => {
         if (!user) return { error: 'Not authenticated' };
 
         try {
+            // First get the training_workout_id to update home workout
+            const { data: completion } = await supabase
+                .from('event_workout_completions')
+                .select('training_workout_id')
+                .eq('id', completionId)
+                .eq('user_id', user.id)
+                .single();
+
             const { error: deleteError } = await supabase
                 .from('event_workout_completions')
                 .delete()
@@ -173,6 +188,16 @@ export function useEventWorkouts() {
                 .eq('user_id', user.id);
 
             if (deleteError) throw deleteError;
+
+            // Also mark synced home workout as not completed
+            if (completion?.training_workout_id) {
+                await supabase
+                    .from('workouts')
+                    .update({ is_completed: false })
+                    .eq('user_id', user.id)
+                    .eq('source_training_workout_id', completion.training_workout_id);
+            }
+
             return { error: null };
         } catch (err: any) {
             console.error('Error deleting completion:', err);

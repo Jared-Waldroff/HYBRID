@@ -17,7 +17,9 @@ interface WorkoutCardProps {
         name: string;
         color: string;
         is_completed?: boolean;
+        notes?: string | null;  // JSON metadata for event workouts
         source_event_name?: string | null;  // Event name if synced from event
+        source_training_workout_id?: string | null;  // Link to event training workout
         workout_exercises?: Array<{
             id: string;
             exercise?: {
@@ -36,6 +38,35 @@ function WorkoutCard({ workout, onDelete }: WorkoutCardProps) {
     const exerciseNames = workout.workout_exercises
         ?.map((we) => we.exercise?.name)
         .filter(Boolean) || [];
+
+    // Parse event workout metadata from notes
+    const eventMetadata = React.useMemo(() => {
+        if (!workout.source_training_workout_id || !workout.notes) return null;
+        try {
+            const parsed = JSON.parse(workout.notes);
+            if (parsed.isEventWorkout) return parsed;
+        } catch {
+            // Not JSON, regular notes
+        }
+        return null;
+    }, [workout.notes, workout.source_training_workout_id]);
+
+    // Format target display for event workouts
+    const targetDisplay = React.useMemo(() => {
+        if (!eventMetadata) return null;
+        const parts: string[] = [];
+        if (eventMetadata.target_value && eventMetadata.target_unit) {
+            parts.push(`${eventMetadata.target_value} ${eventMetadata.target_unit}`);
+        }
+        if (eventMetadata.target_zone) {
+            const zoneLabel = eventMetadata.target_zone.replace('zone', 'Zone ');
+            parts.push(zoneLabel);
+        }
+        if (eventMetadata.workout_type && parts.length === 0) {
+            parts.push(eventMetadata.workout_type);
+        }
+        return parts.length > 0 ? parts.join(' • ') : null;
+    }, [eventMetadata]);
 
     const handlePress = () => {
         if (showMenu) {
@@ -109,8 +140,25 @@ function WorkoutCard({ workout, onDelete }: WorkoutCardProps) {
                     </View>
                 )}
 
-                {/* Exercise list */}
-                {exerciseNames.length > 0 && (
+                {/* Exercise list OR Event workout target */}
+                {targetDisplay ? (
+                    <View style={styles.exercises}>
+                        <View style={styles.exerciseItem}>
+                            <View style={[styles.exerciseDot, { backgroundColor: workout.color }]} />
+                            <Text
+                                style={[styles.exerciseName, { color: themeColors.textSecondary }]}
+                                numberOfLines={1}
+                            >
+                                {targetDisplay}
+                            </Text>
+                        </View>
+                        {eventMetadata?.description && (
+                            <Text style={[styles.eventDescription, { color: themeColors.textMuted }]} numberOfLines={2}>
+                                {eventMetadata.description}
+                            </Text>
+                        )}
+                    </View>
+                ) : exerciseNames.length > 0 && (
                     <View style={styles.exercises}>
                         {exerciseNames.map((name, index) => (
                             <View key={index} style={styles.exerciseItem}>
@@ -284,6 +332,11 @@ const styles = StyleSheet.create({
         fontSize: typography.sizes.xs,
         fontWeight: typography.weights.medium,
         flexShrink: 1,
+    },
+    eventDescription: {
+        fontSize: typography.sizes.xs,
+        marginTop: spacing.xs,
+        lineHeight: 16,
     },
 });
 

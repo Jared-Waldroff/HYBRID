@@ -16,6 +16,7 @@ import { Feather } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTheme } from '../context/ThemeContext';
 import { useSquadEvents, TrainingWorkout, CreateTrainingWorkoutInput } from '../hooks/useSquadEvents';
+import { useExercises } from '../hooks/useExercises';
 import ScreenLayout from '../components/ScreenLayout';
 import { spacing, radii, typography } from '../theme';
 import { RootStackParamList } from '../navigation';
@@ -96,6 +97,7 @@ export default function ManageEventPlanScreen() {
     const { eventId, eventName, eventDate, eventType } = route.params;
     const { themeColors, colors: userColors } = useTheme();
     const { getTrainingPlan, addTrainingWorkout, deleteTrainingWorkout } = useSquadEvents();
+    const { exercises, createExercise, fetchExercises } = useExercises();
 
     const eventCategory = getEventCategory(eventType);
     const workoutOptions = WORKOUT_OPTIONS[eventCategory];
@@ -118,6 +120,64 @@ export default function ManageEventPlanScreen() {
     const [formReps, setFormReps] = useState('');
     const [formRPE, setFormRPE] = useState('');
     const [formZone, setFormZone] = useState('zone2');
+
+    // Exercise selection state
+    const [selectedExerciseIds, setSelectedExerciseIds] = useState<string[]>([]);
+    const [showExercisePicker, setShowExercisePicker] = useState(false);
+    const [exerciseSearch, setExerciseSearch] = useState('');
+    const [showCreateExercise, setShowCreateExercise] = useState(false);
+    const [newExerciseName, setNewExerciseName] = useState('');
+    const [newExerciseMuscle, setNewExerciseMuscle] = useState('');
+
+    // Filter exercises by search
+    const filteredExercises = React.useMemo(() => {
+        if (!exerciseSearch.trim()) return exercises || [];
+        const query = exerciseSearch.toLowerCase();
+        return (exercises || []).filter(ex =>
+            ex.name.toLowerCase().includes(query) ||
+            ex.muscle_group?.toLowerCase().includes(query)
+        );
+    }, [exercises, exerciseSearch]);
+
+    // Get selected exercise objects
+    const selectedExercises = (exercises || []).filter(ex => selectedExerciseIds.includes(ex.id));
+
+    const toggleExercise = (exerciseId: string) => {
+        setSelectedExerciseIds(prev =>
+            prev.includes(exerciseId)
+                ? prev.filter(id => id !== exerciseId)
+                : [...prev, exerciseId]
+        );
+    };
+
+    const handleCreateNewExercise = async () => {
+        if (!newExerciseName.trim() || !newExerciseMuscle.trim()) {
+            Alert.alert('Error', 'Please enter exercise name and muscle group');
+            return;
+        }
+
+        setSubmitting(true);
+        try {
+            const { data, error } = await createExercise({
+                name: newExerciseName.trim(),
+                muscle_group: newExerciseMuscle.trim(),
+            });
+
+            if (error) throw new Error(error);
+
+            if (data) {
+                setSelectedExerciseIds(prev => [...prev, data.id]);
+                await fetchExercises();
+                setNewExerciseName('');
+                setNewExerciseMuscle('');
+                setShowCreateExercise(false);
+            }
+        } catch (err) {
+            Alert.alert('Error', 'Failed to create exercise');
+        } finally {
+            setSubmitting(false);
+        }
+    };
 
     useEffect(() => {
         loadPlan();
@@ -214,6 +274,12 @@ export default function ManageEventPlanScreen() {
         setFormReps('');
         setFormRPE('');
         setFormZone('zone2');
+        // Reset exercise selection
+        setSelectedExerciseIds([]);
+        setExerciseSearch('');
+        setShowCreateExercise(false);
+        setNewExerciseName('');
+        setNewExerciseMuscle('');
     };
 
     const renderWorkoutCard = (workout: TrainingWorkout) => (
@@ -446,6 +512,38 @@ export default function ManageEventPlanScreen() {
                                 )}
                             </View>
 
+                            {/* Exercise Selector */}
+                            <View style={styles.inputGroup}>
+                                <Text style={[styles.label, { color: themeColors.textSecondary }]}>
+                                    Exercises (Optional)
+                                </Text>
+                                <Pressable
+                                    style={[styles.input, styles.exercisePickerBtn, { borderColor: themeColors.inputBorder || themeColors.divider }]}
+                                    onPress={() => setShowExercisePicker(true)}
+                                >
+                                    <Feather name="plus-circle" size={18} color={userColors.accent_color} />
+                                    <Text style={{ color: selectedExerciseIds.length > 0 ? themeColors.textPrimary : themeColors.textMuted }}>
+                                        {selectedExerciseIds.length > 0
+                                            ? `${selectedExerciseIds.length} exercise${selectedExerciseIds.length > 1 ? 's' : ''} selected`
+                                            : 'Add exercises from library'}
+                                    </Text>
+                                </Pressable>
+                                {selectedExercises.length > 0 && (
+                                    <View style={styles.selectedExercisesList}>
+                                        {selectedExercises.map((ex, index) => (
+                                            <View key={ex.id} style={[styles.selectedExerciseChip, { backgroundColor: userColors.accent_color + '20' }]}>
+                                                <Text style={[styles.selectedExerciseText, { color: themeColors.textPrimary }]} numberOfLines={1}>
+                                                    {ex.name}
+                                                </Text>
+                                                <Pressable onPress={() => toggleExercise(ex.id)} hitSlop={8}>
+                                                    <Feather name="x" size={14} color={themeColors.textSecondary} />
+                                                </Pressable>
+                                            </View>
+                                        ))}
+                                    </View>
+                                )}
+                            </View>
+
                             <View style={styles.inputGroup}>
                                 <Text style={[styles.label, { color: themeColors.textSecondary }]}>Description (Optional)</Text>
                                 <TextInput
@@ -466,6 +564,116 @@ export default function ManageEventPlanScreen() {
                                 <Text style={styles.submitBtnText}>{submitting ? 'Adding...' : 'Add Workout'}</Text>
                             </Pressable>
                         </ScrollView>
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Exercise Picker Modal */}
+            <Modal visible={showExercisePicker} animationType="slide" transparent>
+                <View style={styles.modalOverlay}>
+                    <View style={[styles.exercisePickerModal, { backgroundColor: themeColors.bgSecondary }]}>
+                        <View style={styles.exercisePickerHeader}>
+                            <Text style={[styles.exercisePickerTitle, { color: themeColors.textPrimary }]}>Select Exercises</Text>
+                            <Pressable onPress={() => setShowExercisePicker(false)}>
+                                <Feather name="x" size={24} color={themeColors.textSecondary} />
+                            </Pressable>
+                        </View>
+
+                        <View style={[styles.exerciseSearchBox, { backgroundColor: themeColors.inputBg, borderColor: themeColors.inputBorder || themeColors.divider }]}>
+                            <Feather name="search" size={18} color={themeColors.textSecondary} />
+                            <TextInput
+                                style={[styles.exerciseSearchInput, { color: themeColors.textPrimary }]}
+                                placeholder="Search exercises..."
+                                placeholderTextColor={themeColors.textMuted}
+                                value={exerciseSearch}
+                                onChangeText={setExerciseSearch}
+                                autoCapitalize="none"
+                            />
+                        </View>
+
+                        <ScrollView style={styles.exerciseList}>
+                            {/* Create New Exercise */}
+                            {showCreateExercise ? (
+                                <View style={[styles.createExerciseForm, { backgroundColor: themeColors.inputBg, borderColor: themeColors.divider }]}>
+                                    <TextInput
+                                        style={[styles.createExerciseInput, { backgroundColor: themeColors.bgPrimary, borderColor: themeColors.divider, color: themeColors.textPrimary }]}
+                                        placeholder="Exercise name"
+                                        placeholderTextColor={themeColors.textMuted}
+                                        value={newExerciseName}
+                                        onChangeText={setNewExerciseName}
+                                        autoCapitalize="words"
+                                    />
+                                    <TextInput
+                                        style={[styles.createExerciseInput, { backgroundColor: themeColors.bgPrimary, borderColor: themeColors.divider, color: themeColors.textPrimary }]}
+                                        placeholder="Muscle group (e.g., Chest, Back, Legs)"
+                                        placeholderTextColor={themeColors.textMuted}
+                                        value={newExerciseMuscle}
+                                        onChangeText={setNewExerciseMuscle}
+                                        autoCapitalize="words"
+                                    />
+                                    <View style={styles.createExerciseButtons}>
+                                        <Pressable
+                                            style={[styles.createExerciseCancelBtn, { borderColor: themeColors.divider }]}
+                                            onPress={() => { setShowCreateExercise(false); setNewExerciseName(''); setNewExerciseMuscle(''); }}
+                                        >
+                                            <Text style={{ color: themeColors.textSecondary }}>Cancel</Text>
+                                        </Pressable>
+                                        <Pressable
+                                            style={styles.createExerciseSaveBtn}
+                                            onPress={handleCreateNewExercise}
+                                            disabled={submitting}
+                                        >
+                                            <Feather name="plus" size={16} color="#fff" />
+                                            <Text style={{ color: '#fff', fontWeight: '600' }}>{submitting ? 'Creating...' : 'Create'}</Text>
+                                        </Pressable>
+                                    </View>
+                                </View>
+                            ) : (
+                                <Pressable
+                                    style={[styles.createExerciseBtn, { borderColor: themeColors.divider }]}
+                                    onPress={() => { setShowCreateExercise(true); setNewExerciseName(exerciseSearch); }}
+                                >
+                                    <Feather name="plus-circle" size={20} color={userColors.accent_color} />
+                                    <Text style={{ color: userColors.accent_color }}>
+                                        {exerciseSearch.trim() ? `Create "${exerciseSearch}"` : 'Create New Exercise'}
+                                    </Text>
+                                </Pressable>
+                            )}
+
+                            {/* Exercise List */}
+                            {filteredExercises.map(ex => (
+                                <Pressable
+                                    key={ex.id}
+                                    style={[
+                                        styles.exerciseRow,
+                                        { borderBottomColor: themeColors.divider },
+                                        selectedExerciseIds.includes(ex.id) && { backgroundColor: userColors.accent_color + '10' },
+                                    ]}
+                                    onPress={() => toggleExercise(ex.id)}
+                                >
+                                    <View>
+                                        <Text style={[styles.exerciseRowName, { color: themeColors.textPrimary }]}>{ex.name}</Text>
+                                        <Text style={[styles.exerciseRowMuscle, { color: themeColors.textSecondary }]}>{ex.muscle_group}</Text>
+                                    </View>
+                                    <View style={[
+                                        styles.exerciseCheckbox,
+                                        { borderColor: themeColors.textMuted },
+                                        selectedExerciseIds.includes(ex.id) && { backgroundColor: userColors.accent_color, borderColor: userColors.accent_color },
+                                    ]}>
+                                        {selectedExerciseIds.includes(ex.id) && (
+                                            <Feather name="check" size={14} color="#fff" />
+                                        )}
+                                    </View>
+                                </Pressable>
+                            ))}
+                        </ScrollView>
+
+                        <Pressable
+                            style={[styles.exerciseDoneBtn, { backgroundColor: userColors.accent_color }]}
+                            onPress={() => setShowExercisePicker(false)}
+                        >
+                            <Text style={{ color: '#fff', fontWeight: '600' }}>Done ({selectedExerciseIds.length} selected)</Text>
+                        </Pressable>
                     </View>
                 </View>
             </Modal>
@@ -640,5 +848,139 @@ const styles = StyleSheet.create({
         fontSize: typography.sizes.xs,
         fontWeight: typography.weights.medium,
         flexShrink: 1,
+    },
+    // Exercise picker styles
+    exercisePickerBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.sm,
+    },
+    selectedExercisesList: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: spacing.xs,
+        marginTop: spacing.sm,
+    },
+    selectedExerciseChip: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.xs,
+        paddingVertical: spacing.xs,
+        paddingHorizontal: spacing.sm,
+        borderRadius: radii.full,
+    },
+    selectedExerciseText: {
+        fontSize: typography.sizes.sm,
+        maxWidth: 120,
+    },
+    // Exercise picker modal styles
+    exercisePickerModal: {
+        borderTopLeftRadius: radii.xl,
+        borderTopRightRadius: radii.xl,
+        padding: spacing.lg,
+        paddingBottom: spacing.xl * 2,
+        maxHeight: '85%',
+    },
+    exercisePickerHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: spacing.md,
+    },
+    exercisePickerTitle: {
+        fontSize: typography.sizes.lg,
+        fontWeight: typography.weights.bold,
+    },
+    exerciseSearchBox: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: spacing.md,
+        height: 44,
+        borderRadius: radii.md,
+        borderWidth: 1,
+        gap: spacing.sm,
+        marginBottom: spacing.md,
+    },
+    exerciseSearchInput: {
+        flex: 1,
+        fontSize: typography.sizes.base,
+    },
+    exerciseList: {
+        maxHeight: 350,
+    },
+    exerciseRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingVertical: spacing.md,
+        borderBottomWidth: 1,
+    },
+    exerciseRowName: {
+        fontSize: typography.sizes.base,
+        fontWeight: typography.weights.medium,
+    },
+    exerciseRowMuscle: {
+        fontSize: typography.sizes.sm,
+        marginTop: 2,
+    },
+    exerciseCheckbox: {
+        width: 24,
+        height: 24,
+        borderRadius: 4,
+        borderWidth: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    createExerciseBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.sm,
+        padding: spacing.md,
+        borderRadius: radii.md,
+        borderWidth: 1,
+        borderStyle: 'dashed',
+        marginBottom: spacing.md,
+    },
+    createExerciseForm: {
+        padding: spacing.md,
+        borderRadius: radii.md,
+        borderWidth: 1,
+        marginBottom: spacing.md,
+    },
+    createExerciseInput: {
+        height: 44,
+        borderRadius: radii.md,
+        borderWidth: 1,
+        paddingHorizontal: spacing.md,
+        fontSize: typography.sizes.base,
+        marginBottom: spacing.sm,
+    },
+    createExerciseButtons: {
+        flexDirection: 'row',
+        gap: spacing.sm,
+        marginTop: spacing.sm,
+    },
+    createExerciseCancelBtn: {
+        flex: 1,
+        padding: spacing.sm,
+        borderRadius: radii.md,
+        borderWidth: 1,
+        alignItems: 'center',
+    },
+    createExerciseSaveBtn: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: spacing.xs,
+        padding: spacing.sm,
+        borderRadius: radii.md,
+        backgroundColor: '#c9a227',
+    },
+    exerciseDoneBtn: {
+        marginTop: spacing.md,
+        padding: spacing.md,
+        borderRadius: radii.md,
+        alignItems: 'center',
     },
 });
