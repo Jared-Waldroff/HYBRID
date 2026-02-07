@@ -131,9 +131,8 @@ export default function EventDetailScreen() {
     // Reload data when screen comes into focus (e.g., after editing training plan)
     useFocusEffect(
         useCallback(() => {
-            if (!loading) {
-                loadEventData();
-            }
+            // Always refresh when screen comes into focus
+            loadEventData();
         }, [loadEventData])
     );
 
@@ -476,6 +475,21 @@ export default function EventDetailScreen() {
                                     {isPast && !workout.is_completed && (
                                         <Text style={{ color: '#ef4444' }}> (Overdue)</Text>
                                     )}
+                                    {/* Schedule mismatch indicator */}
+                                    {workout.is_completed && workout.completed_at && workout.scheduled_date && (() => {
+                                        const scheduledDate = new Date(workout.scheduled_date);
+                                        const completedDate = new Date(workout.completed_at);
+                                        scheduledDate.setHours(0, 0, 0, 0);
+                                        completedDate.setHours(0, 0, 0, 0);
+                                        const diffTime = completedDate.getTime() - scheduledDate.getTime();
+                                        const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+                                        if (diffDays === 0) return null;
+                                        const color = diffDays < 0 ? '#10b981' : '#f97316';
+                                        const label = diffDays < 0
+                                            ? ` (${Math.abs(diffDays)} day${Math.abs(diffDays) !== 1 ? 's' : ''} early)`
+                                            : ` (${diffDays} day${diffDays !== 1 ? 's' : ''} late)`;
+                                        return <Text style={{ color }}>{label}</Text>;
+                                    })()}
                                 </Text>
 
                                 {(workout.target_value || workout.target_notes) && (

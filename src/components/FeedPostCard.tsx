@@ -46,6 +46,7 @@ function FeedPostCard({
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [showImageModal, setShowImageModal] = useState(false);
     const [showWorkoutDetails, setShowWorkoutDetails] = useState(false);
+    const [showTrainingWorkoutDetails, setShowTrainingWorkoutDetails] = useState(false);
     const [imageAspectRatio, setImageAspectRatio] = useState(1.33); // Default 4:3, updates on load
 
     // Get feeling emoji
@@ -73,7 +74,39 @@ function FeedPostCard({
         return parts.length > 0 ? parts.join(' • ') : null;
     };
 
+    // Calculate schedule mismatch for event workouts
+    const getScheduleMismatch = () => {
+        if (!post.completion?.completed_at || !post.completion?.training_workout?.days_before_event || !post.event?.event_date) {
+            return null;
+        }
+
+        // Calculate scheduled date from event date minus days_before_event
+        const eventDate = new Date(post.event.event_date);
+        const scheduledDate = new Date(eventDate);
+        scheduledDate.setDate(scheduledDate.getDate() - post.completion.training_workout.days_before_event);
+
+        // Get completion date (just the date part)
+        const completedDate = new Date(post.completion.completed_at);
+
+        // Reset times to compare just dates
+        scheduledDate.setHours(0, 0, 0, 0);
+        completedDate.setHours(0, 0, 0, 0);
+
+        // Calculate difference in days
+        const diffTime = completedDate.getTime() - scheduledDate.getTime();
+        const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 0) return null; // On time
+
+        if (diffDays < 0) {
+            return { type: 'early', days: Math.abs(diffDays), color: '#10b981' }; // Green - completed early
+        } else {
+            return { type: 'late', days: diffDays, color: '#f97316' }; // Orange - completed late
+        }
+    };
+
     const result = formatResult();
+    const scheduleMismatch = getScheduleMismatch();
     const hasPhotos = post.photo_urls && post.photo_urls.length > 0;
 
     return (
@@ -199,55 +232,75 @@ function FeedPostCard({
                 </Text>
             )}
 
-            {/* Workout Info (Bottom) */}
+            {/* Event Training Workout Info (Bottom) - Now Clickable */}
             {post.completion?.training_workout && (
-                <View style={[
-                    styles.workoutCard,
-                    {
-                        backgroundColor: themeColors.glassBg,
-                        borderColor: themeColors.glassBorder,
-                        borderWidth: 1,
-                        padding: 0,
-                        overflow: 'hidden'
-                    }
-                ]}>
-                    {/* Color Bar */}
-                    <View style={[
-                        styles.colorBar,
-                        { backgroundColor: post.completion.training_workout.color || userColors.accent_color }
-                    ]} />
+                <View style={{ paddingHorizontal: spacing.md, marginBottom: spacing.md }}>
+                    <Pressable
+                        style={[
+                            styles.workoutCard,
+                            {
+                                backgroundColor: themeColors.glassBg,
+                                borderColor: themeColors.glassBorder,
+                                borderWidth: 1,
+                                padding: 0,
+                                overflow: 'hidden'
+                            }
+                        ]}
+                        onPress={() => setShowTrainingWorkoutDetails(true)}
+                    >
+                        {/* Color Bar */}
+                        <View style={[
+                            styles.colorBar,
+                            { backgroundColor: post.completion.training_workout.color || userColors.accent_color }
+                        ]} />
 
-                    <View style={styles.workoutContent}>
-                        <View style={styles.workoutHeader}>
-                            <Text style={[styles.workoutName, { color: themeColors.textPrimary }]}>
-                                {post.completion.training_workout.name}
-                            </Text>
-                            {post.completion.training_workout.target_zone && (
-                                <View style={[styles.zoneBadge, { backgroundColor: '#ef4444' + '20' }]}>
-                                    <Text style={[styles.zoneText, { color: '#ef4444' }]}>
-                                        {post.completion.training_workout.target_zone.replace('zone', 'Zone ')}
-                                    </Text>
+                        <View style={styles.workoutContent}>
+                            <View style={styles.workoutHeader}>
+                                <Text style={[styles.workoutName, { color: themeColors.textPrimary }]}>
+                                    {post.completion.training_workout.name}
+                                </Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                    {post.completion.training_workout.target_zone && (
+                                        <View style={[styles.zoneBadge, { backgroundColor: '#ef4444' + '20' }]}>
+                                            <Text style={[styles.zoneText, { color: '#ef4444' }]}>
+                                                {post.completion.training_workout.target_zone.replace('zone', 'Zone ')}
+                                            </Text>
+                                        </View>
+                                    )}
+                                    <Feather name="chevron-right" size={20} color={themeColors.textSecondary} />
                                 </View>
-                            )}
-                        </View>
+                            </View>
 
-                        {post.completion.training_workout.description && (
-                            <Text style={[styles.description, { color: themeColors.textSecondary }]} numberOfLines={2}>
-                                {post.completion.training_workout.description}
-                            </Text>
-                        )}
-
-                        <View style={styles.statsRow}>
-                            {result && (
-                                <View style={styles.statItem}>
-                                    <Feather name="check-circle" size={14} color={userColors.accent_color} />
-                                    <Text style={[styles.statValue, { color: userColors.accent_color }]}>
-                                        {result}
-                                    </Text>
-                                </View>
+                            {post.completion.training_workout.description && (
+                                <Text style={[styles.description, { color: themeColors.textSecondary }]} numberOfLines={2}>
+                                    {post.completion.training_workout.description}
+                                </Text>
                             )}
+
+                            <View style={styles.statsRow}>
+                                {result && (
+                                    <View style={styles.statItem}>
+                                        <Feather name="check-circle" size={14} color={userColors.accent_color} />
+                                        <Text style={[styles.statValue, { color: userColors.accent_color }]}>
+                                            {result}
+                                        </Text>
+                                    </View>
+                                )}
+                                {scheduleMismatch && (
+                                    <View style={[styles.statItem, { marginLeft: result ? spacing.sm : 0 }]}>
+                                        <Feather
+                                            name={scheduleMismatch.type === 'early' ? 'clock' : 'alert-circle'}
+                                            size={12}
+                                            color={scheduleMismatch.color}
+                                        />
+                                        <Text style={[styles.statValue, { color: scheduleMismatch.color, fontSize: typography.sizes.xs }]}>
+                                            {scheduleMismatch.days} day{scheduleMismatch.days !== 1 ? 's' : ''} {scheduleMismatch.type}
+                                        </Text>
+                                    </View>
+                                )}
+                            </View>
                         </View>
-                    </View>
+                    </Pressable>
                 </View>
             )}
 
@@ -513,6 +566,116 @@ function FeedPostCard({
                     </Pressable>
                 </Pressable>
             </Modal >
+
+            {/* Training Workout Details Modal (for Event Workouts) */}
+            <Modal
+                visible={showTrainingWorkoutDetails}
+                animationType="fade"
+                transparent
+                onRequestClose={() => setShowTrainingWorkoutDetails(false)}
+            >
+                <Pressable
+                    style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center' }]}
+                    onPress={() => setShowTrainingWorkoutDetails(false)}
+                >
+                    <Pressable
+                        style={[
+                            styles.detailsModalContent,
+                            {
+                                backgroundColor: themeColors.bgSecondary,
+                                margin: spacing.lg,
+                                borderRadius: radii.xl,
+                                maxHeight: '80%',
+                            }
+                        ]}
+                        onPress={(e) => e.stopPropagation()}
+                    >
+                        <View style={styles.detailsModalHeader}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                                <View style={[styles.detailsColorDot, { backgroundColor: post.completion?.training_workout?.color || userColors.accent_color }]} />
+                                <Text style={[styles.detailsModalTitle, { color: themeColors.textPrimary }]}>
+                                    {post.completion?.training_workout?.name}
+                                </Text>
+                            </View>
+                            <Pressable onPress={() => setShowTrainingWorkoutDetails(false)}>
+                                <Feather name="x" size={24} color={themeColors.textSecondary} />
+                            </Pressable>
+                        </View>
+
+                        <ScrollView style={styles.detailsScrollView} showsVerticalScrollIndicator={false}>
+                            {/* Description */}
+                            {post.completion?.training_workout?.description && (
+                                <View style={{ marginBottom: spacing.md }}>
+                                    <Text style={{ color: themeColors.textMuted, fontSize: typography.sizes.xs, marginBottom: 4 }}>
+                                        Description
+                                    </Text>
+                                    <Text style={{ color: themeColors.textPrimary, fontSize: typography.sizes.base }}>
+                                        {post.completion.training_workout.description}
+                                    </Text>
+                                </View>
+                            )}
+
+                            {/* Target */}
+                            {post.completion?.training_workout?.target_value && (
+                                <View style={{ marginBottom: spacing.md }}>
+                                    <Text style={{ color: themeColors.textMuted, fontSize: typography.sizes.xs, marginBottom: 4 }}>
+                                        Target
+                                    </Text>
+                                    <Text style={{ color: themeColors.textPrimary, fontSize: typography.sizes.base }}>
+                                        {post.completion.training_workout.target_value} {post.completion.training_workout.target_unit || ''}
+                                    </Text>
+                                </View>
+                            )}
+
+                            {/* Zone */}
+                            {post.completion?.training_workout?.target_zone && (
+                                <View style={{ marginBottom: spacing.md }}>
+                                    <Text style={{ color: themeColors.textMuted, fontSize: typography.sizes.xs, marginBottom: 4 }}>
+                                        Target Zone
+                                    </Text>
+                                    <View style={[styles.zoneBadge, { backgroundColor: '#ef4444' + '20', alignSelf: 'flex-start' }]}>
+                                        <Text style={[styles.zoneText, { color: '#ef4444' }]}>
+                                            {post.completion.training_workout.target_zone.replace('zone', 'Zone ')}
+                                        </Text>
+                                    </View>
+                                </View>
+                            )}
+
+                            {/* Result */}
+                            {result && (
+                                <View style={{ marginBottom: spacing.md }}>
+                                    <Text style={{ color: themeColors.textMuted, fontSize: typography.sizes.xs, marginBottom: 4 }}>
+                                        Completed Result
+                                    </Text>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                        <Feather name="check-circle" size={18} color={userColors.accent_color} />
+                                        <Text style={{ color: userColors.accent_color, fontSize: typography.sizes.lg, fontWeight: '600' }}>
+                                            {result}
+                                        </Text>
+                                    </View>
+                                </View>
+                            )}
+
+
+
+                            {/* Feeling */}
+                            {feeling && (
+                                <View style={{ marginBottom: spacing.md }}>
+                                    <Text style={{ color: themeColors.textMuted, fontSize: typography.sizes.xs, marginBottom: 4 }}>
+                                        How it felt
+                                    </Text>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                        <Text style={{ fontSize: 24 }}>{feeling.emoji}</Text>
+                                        <Text style={{ color: themeColors.textPrimary, fontSize: typography.sizes.base }}>
+                                            {feeling.label}
+                                        </Text>
+                                    </View>
+                                </View>
+                            )}
+                        </ScrollView>
+                    </Pressable>
+                </Pressable>
+            </Modal>
         </View >
     );
 }

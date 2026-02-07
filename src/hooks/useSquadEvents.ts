@@ -60,6 +60,7 @@ export interface TrainingWorkout {
     // Computed
     scheduled_date?: string;
     is_completed?: boolean;
+    completed_at?: string;
 }
 
 export interface EventTemplate {
@@ -501,10 +502,13 @@ export function useSquadEvents() {
             // Get user's completions
             const { data: completions } = await supabase
                 .from('event_workout_completions')
-                .select('training_workout_id')
+                .select('training_workout_id, completed_at')
                 .eq('user_id', user?.id);
 
-            const completedIds = new Set(completions?.map(c => c.training_workout_id) || []);
+            const completionMap = new Map<string, string>();
+            completions?.forEach(c => {
+                completionMap.set(c.training_workout_id, c.completed_at);
+            });
 
             // Calculate scheduled date for each workout
             return (data || []).map(workout => {
@@ -514,7 +518,8 @@ export function useSquadEvents() {
                 return {
                     ...workout,
                     scheduled_date: scheduledDate.toISOString().split('T')[0],
-                    is_completed: completedIds.has(workout.id),
+                    is_completed: completionMap.has(workout.id),
+                    completed_at: completionMap.get(workout.id),
                 };
             });
         } catch (err: any) {

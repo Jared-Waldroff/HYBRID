@@ -27,6 +27,7 @@ export interface FeedPost {
     event?: {
         name: string;
         event_type: string;
+        event_date?: string;
     };
     completion?: {
         actual_value: number | null;
@@ -34,6 +35,7 @@ export interface FeedPost {
         actual_zone: string | null;
         duration_seconds: number | null;
         feeling: string | null;
+        completed_at?: string;
         training_workout?: {
             name: string;
             workout_type: string;
@@ -42,6 +44,7 @@ export interface FeedPost {
             description: string | null;
             color: string | null;
             target_zone: string | null;
+            days_before_event?: number;
         };
     };
     // Linked Workout (Regular)
@@ -191,13 +194,14 @@ export function useActivityFeed(eventId?: string) { // Accepts optional eventId 
                     comment_count,
                     created_at,
                     updated_at,
-                    event:squad_events(name, event_type),
+                    event:squad_events(name, event_type, event_date),
                     completion:event_workout_completions(
                         actual_value,
                         actual_unit,
                         actual_zone,
                         duration_seconds,
                         feeling,
+                        completed_at,
                         training_workout:event_training_workouts(
                             name,
                             workout_type,
@@ -205,7 +209,8 @@ export function useActivityFeed(eventId?: string) { // Accepts optional eventId 
                             target_unit,
                             description,
                             color,
-                            target_zone
+                            target_zone,
+                            days_before_event
                         )
                     ),
                     workout:workouts(
