@@ -17,7 +17,7 @@ import { useAuth } from '../context/AuthContext';
 import GradientBackground from '../components/GradientBackground';
 
 export default function LoginScreen() {
-    const { signIn, signUp, resetPassword } = useAuth();
+    const { signIn, signUp, signInWithGoogle, resetPassword } = useAuth();
 
     const [isSignUp, setIsSignUp] = useState(false);
     const [email, setEmail] = useState('');
@@ -118,6 +118,28 @@ export default function LoginScreen() {
         }
     };
 
+    const handleGoogleSignIn = async () => {
+        setLoading(true);
+        setError('');
+
+        try {
+            await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            const { error: googleError } = await signInWithGoogle();
+
+            if (googleError) {
+                setError(googleError.message || 'Google sign-in failed');
+                await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+            } else {
+                await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            }
+        } catch (err: any) {
+            setError(err.message || 'An error occurred');
+            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <SafeAreaView style={styles.container}>
             <GradientBackground />
@@ -209,7 +231,26 @@ export default function LoginScreen() {
                         )}
                     </Pressable>
 
+                    {/* Divider */}
+                    {!isSignUp && (
+                        <View style={styles.dividerContainer}>
+                            <View style={styles.divider} />
+                            <Text style={styles.dividerText}>or</Text>
+                            <View style={styles.divider} />
+                        </View>
+                    )}
 
+                    {/* Google Sign In */}
+                    {!isSignUp && (
+                        <Pressable
+                            style={styles.googleButton}
+                            onPress={handleGoogleSignIn}
+                            disabled={loading}
+                        >
+                            <Ionicons name="logo-google" size={20} color="#fff" />
+                            <Text style={styles.googleButtonText}>Continue with Google</Text>
+                        </Pressable>
+                    )}
 
                     {/* Forgot Password */}
                     {!isSignUp && (
@@ -368,5 +409,38 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontFamily: 'Inter_400Regular',
         color: 'rgba(255,255,255,0.75)',
+    },
+    dividerContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginVertical: 8,
+    },
+    divider: {
+        flex: 1,
+        height: 1,
+        backgroundColor: 'rgba(255,255,255,0.2)',
+    },
+    dividerText: {
+        marginHorizontal: 12,
+        fontSize: 14,
+        fontFamily: 'Inter_400Regular',
+        color: 'rgba(255,255,255,0.5)',
+    },
+    googleButton: {
+        minHeight: 48,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.2)',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 12,
+    },
+    googleButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '500',
+        fontFamily: 'Inter_500Medium',
     },
 });

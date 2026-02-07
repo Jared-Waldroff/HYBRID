@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import {
     View,
     Text,
     Pressable,
     StyleSheet,
-    Image,
     Dimensions,
     Modal,
     ScrollView,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { Feather } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { spacing, radii, typography } from '../theme';
@@ -16,6 +16,10 @@ import { FeedPost, formatRelativeTime, formatDuration } from '../hooks/useActivi
 
 import { FEELING_OPTIONS } from '../hooks/useEventWorkouts';
 import WorkoutCard from './WorkoutCard';
+import BadgeRow from './BadgeRow';
+
+// expo-image provides built-in disk/memory caching
+const blurhash = 'L6PZfSi_.AyE_3t7t7R**0o#DgR4';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -23,13 +27,13 @@ interface FeedPostCardProps {
     post: FeedPost;
     onLfg: () => void;
     onComment: () => void;
-    onUserPress?: (userId: string) => void;
+    onUserPress?: (userId: string, user: any) => void;
     onEventPress?: (eventId: string) => void;
     isOwner?: boolean;
     onOptions?: () => void;
 }
 
-export default function FeedPostCard({
+function FeedPostCard({
     post,
     onLfg,
     onComment,
@@ -40,21 +44,10 @@ export default function FeedPostCard({
 }: FeedPostCardProps) {
     const { themeColors, colors: userColors } = useTheme();
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
-    const [imageAspectRatio, setImageAspectRatio] = useState(1);
     const [showImageModal, setShowImageModal] = useState(false);
     const [showWorkoutDetails, setShowWorkoutDetails] = useState(false);
-
-    // Calculate aspect ratio for current image
-    useEffect(() => {
-        if (post.photo_urls && post.photo_urls.length > 0) {
-            const currentUrl = post.photo_urls[currentImageIndex];
-            Image.getSize(currentUrl, (width, height) => {
-                setImageAspectRatio(width / height);
-            }, (error) => {
-                console.error('Failed to get image size:', error);
-            });
-        }
-    }, [post.photo_urls, currentImageIndex]);
+    const [showTrainingWorkoutDetails, setShowTrainingWorkoutDetails] = useState(false);
+    const [imageAspectRatio, setImageAspectRatio] = useState(1.33); // Default 4:3, updates on load
 
     // Get feeling emoji
     const feeling = FEELING_OPTIONS.find(f => f.id === post.completion?.feeling);
@@ -81,7 +74,39 @@ export default function FeedPostCard({
         return parts.length > 0 ? parts.join(' • ') : null;
     };
 
+    // Calculate schedule mismatch for event workouts
+    const getScheduleMismatch = () => {
+        if (!post.completion?.completed_at || !post.completion?.training_workout?.days_before_event || !post.event?.event_date) {
+            return null;
+        }
+
+        // Calculate scheduled date from event date minus days_before_event
+        const eventDate = new Date(post.event.event_date);
+        const scheduledDate = new Date(eventDate);
+        scheduledDate.setDate(scheduledDate.getDate() - post.completion.training_workout.days_before_event);
+
+        // Get completion date (just the date part)
+        const completedDate = new Date(post.completion.completed_at);
+
+        // Reset times to compare just dates
+        scheduledDate.setHours(0, 0, 0, 0);
+        completedDate.setHours(0, 0, 0, 0);
+
+        // Calculate difference in days
+        const diffTime = completedDate.getTime() - scheduledDate.getTime();
+        const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 0) return null; // On time
+
+        if (diffDays < 0) {
+            return { type: 'early', days: Math.abs(diffDays), color: '#10b981' }; // Green - completed early
+        } else {
+            return { type: 'late', days: diffDays, color: '#f97316' }; // Orange - completed late
+        }
+    };
+
     const result = formatResult();
+    const scheduleMismatch = getScheduleMismatch();
     const hasPhotos = post.photo_urls && post.photo_urls.length > 0;
 
     return (
@@ -90,7 +115,7 @@ export default function FeedPostCard({
             <View style={styles.header}>
                 <Pressable
                     style={styles.userInfo}
-                    onPress={() => onUserPress?.(post.user_id)}
+                    onPress={() => onUserPress?.(post.user_id, post.user)}
                 >
                     {post.user?.avatar_url ? (
                         <Image
@@ -105,9 +130,14 @@ export default function FeedPostCard({
                         </View>
                     )}
                     <View style={styles.userDetails}>
-                        <Text style={[styles.userName, { color: themeColors.textPrimary }]}>
-                            {post.user?.display_name || 'Unknown'}
-                        </Text>
+                        <View style={styles.userNameRow}>
+                            <Text style={[styles.userName, { color: themeColors.textPrimary }]}>
+                                {post.user?.display_name || 'Unknown'}
+                            </Text>
+                            {post.user?.badges && post.user.badges.length > 0 && (
+                                <BadgeRow badges={post.user.badges} maxDisplay={3} size="small" userName={post.user.display_name} />
+                            )}
+                        </View>
                         <View style={styles.headerMeta}>
                             <Text style={[styles.timeAgo, { color: themeColors.textMuted }]}>
                                 {formatRelativeTime(post.created_at)}
@@ -152,8 +182,16 @@ export default function FeedPostCard({
                     <Image
                         source={{ uri: post.photo_urls[currentImageIndex] }}
                         style={styles.photo}
-                        resizeMode="cover"
-                        onError={(e) => console.log('Image Load Error:', e.nativeEvent.error)}
+                        contentFit="cover"
+                        cachePolicy="memory-disk"
+                        placeholder={blurhash}
+                        transition={200}
+                        onLoad={(e) => {
+                            const { width, height } = e.source;
+                            if (width && height) {
+                                setImageAspectRatio(width / height);
+                            }
+                        }}
                     />
 
                     {/* Photo counter */}
@@ -194,55 +232,75 @@ export default function FeedPostCard({
                 </Text>
             )}
 
-            {/* Workout Info (Bottom) */}
+            {/* Event Training Workout Info (Bottom) - Now Clickable */}
             {post.completion?.training_workout && (
-                <View style={[
-                    styles.workoutCard,
-                    {
-                        backgroundColor: themeColors.glassBg,
-                        borderColor: themeColors.glassBorder,
-                        borderWidth: 1,
-                        padding: 0,
-                        overflow: 'hidden'
-                    }
-                ]}>
-                    {/* Color Bar */}
-                    <View style={[
-                        styles.colorBar,
-                        { backgroundColor: post.completion.training_workout.color || userColors.accent_color }
-                    ]} />
+                <View style={{ paddingHorizontal: spacing.md, marginBottom: spacing.md }}>
+                    <Pressable
+                        style={[
+                            styles.workoutCard,
+                            {
+                                backgroundColor: themeColors.glassBg,
+                                borderColor: themeColors.glassBorder,
+                                borderWidth: 1,
+                                padding: 0,
+                                overflow: 'hidden'
+                            }
+                        ]}
+                        onPress={() => setShowTrainingWorkoutDetails(true)}
+                    >
+                        {/* Color Bar */}
+                        <View style={[
+                            styles.colorBar,
+                            { backgroundColor: post.completion.training_workout.color || userColors.accent_color }
+                        ]} />
 
-                    <View style={styles.workoutContent}>
-                        <View style={styles.workoutHeader}>
-                            <Text style={[styles.workoutName, { color: themeColors.textPrimary }]}>
-                                {post.completion.training_workout.name}
-                            </Text>
-                            {post.completion.training_workout.target_zone && (
-                                <View style={[styles.zoneBadge, { backgroundColor: '#ef4444' + '20' }]}>
-                                    <Text style={[styles.zoneText, { color: '#ef4444' }]}>
-                                        {post.completion.training_workout.target_zone.replace('zone', 'Zone ')}
-                                    </Text>
+                        <View style={styles.workoutContent}>
+                            <View style={styles.workoutHeader}>
+                                <Text style={[styles.workoutName, { color: themeColors.textPrimary }]}>
+                                    {post.completion.training_workout.name}
+                                </Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                    {post.completion.training_workout.target_zone && (
+                                        <View style={[styles.zoneBadge, { backgroundColor: '#ef4444' + '20' }]}>
+                                            <Text style={[styles.zoneText, { color: '#ef4444' }]}>
+                                                {post.completion.training_workout.target_zone.replace('zone', 'Zone ')}
+                                            </Text>
+                                        </View>
+                                    )}
+                                    <Feather name="chevron-right" size={20} color={themeColors.textSecondary} />
                                 </View>
-                            )}
-                        </View>
+                            </View>
 
-                        {post.completion.training_workout.description && (
-                            <Text style={[styles.description, { color: themeColors.textSecondary }]} numberOfLines={2}>
-                                {post.completion.training_workout.description}
-                            </Text>
-                        )}
-
-                        <View style={styles.statsRow}>
-                            {result && (
-                                <View style={styles.statItem}>
-                                    <Feather name="check-circle" size={14} color={userColors.accent_color} />
-                                    <Text style={[styles.statValue, { color: userColors.accent_color }]}>
-                                        {result}
-                                    </Text>
-                                </View>
+                            {post.completion.training_workout.description && (
+                                <Text style={[styles.description, { color: themeColors.textSecondary }]} numberOfLines={2}>
+                                    {post.completion.training_workout.description}
+                                </Text>
                             )}
+
+                            <View style={styles.statsRow}>
+                                {result && (
+                                    <View style={styles.statItem}>
+                                        <Feather name="check-circle" size={14} color={userColors.accent_color} />
+                                        <Text style={[styles.statValue, { color: userColors.accent_color }]}>
+                                            {result}
+                                        </Text>
+                                    </View>
+                                )}
+                                {scheduleMismatch && (
+                                    <View style={[styles.statItem, { marginLeft: result ? spacing.sm : 0 }]}>
+                                        <Feather
+                                            name={scheduleMismatch.type === 'early' ? 'clock' : 'alert-circle'}
+                                            size={12}
+                                            color={scheduleMismatch.color}
+                                        />
+                                        <Text style={[styles.statValue, { color: scheduleMismatch.color, fontSize: typography.sizes.xs }]}>
+                                            {scheduleMismatch.days} day{scheduleMismatch.days !== 1 ? 's' : ''} {scheduleMismatch.type}
+                                        </Text>
+                                    </View>
+                                )}
+                            </View>
                         </View>
-                    </View>
+                    </Pressable>
                 </View>
             )}
 
@@ -328,11 +386,69 @@ export default function FeedPostCard({
                     <View style={styles.commentButton}>
                         <Feather name="message-circle" size={18} color={themeColors.textSecondary} />
                         <Text style={[styles.commentText, { color: themeColors.textSecondary }]}>
-                            {post.comment_count > 0 ? post.comment_count : 'Comment'}
+                            {post.comment_count > 0
+                                ? `${post.comment_count} ${post.comment_count === 1 ? 'Comment' : 'Comments'}`
+                                : 'Comment'}
                         </Text>
                     </View>
                 </Pressable>
             </View>
+
+            {/* Inline Comments Preview */}
+            {post.preview_comments && post.preview_comments.length > 0 && (
+                <View style={{ paddingHorizontal: spacing.md, paddingBottom: spacing.md }}>
+                    {post.preview_comments.map((comment) => (
+                        <View key={comment.id} style={{ flexDirection: 'row', marginTop: 8 }}>
+                            {/* Avatar */}
+                            <Pressable onPress={() => onUserPress?.(comment.user_id, comment.user)}>
+                                {comment.user?.avatar_url ? (
+                                    <Image
+                                        source={{ uri: comment.user.avatar_url }}
+                                        style={{ width: 24, height: 24, borderRadius: 12, marginRight: spacing.sm }}
+                                    />
+                                ) : (
+                                    <View style={{
+                                        width: 24, height: 24, borderRadius: 12, marginRight: spacing.sm,
+                                        backgroundColor: themeColors.bgTertiary, alignItems: 'center', justifyContent: 'center'
+                                    }}>
+                                        <Text style={{ fontSize: 10, fontWeight: 'bold', color: themeColors.textSecondary }}>
+                                            {comment.user?.display_name?.[0]?.toUpperCase() || '?'}
+                                        </Text>
+                                    </View>
+                                )}
+                            </Pressable>
+
+                            <View style={{ flex: 1 }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
+                                    <Pressable onPress={() => onUserPress?.(comment.user_id, comment.user)}>
+                                        <Text style={{ fontSize: typography.sizes.sm, fontWeight: 'bold', color: themeColors.textPrimary, marginRight: 4 }}>
+                                            {comment.user?.display_name || 'User'}
+                                        </Text>
+                                    </Pressable>
+                                    {/* Badges inline? BadgeRow is usually multiple. */}
+                                    {/* We can render BadgeRow with size small */}
+                                    <View style={{ transform: [{ scale: 0.8 }] }}>
+                                        {/* Assuming BadgeRow can take custom style or we wrap it. */}
+                                        {/* Since BadgeRow fetches badges if passed strings, we need to ensure useActivityFeed passes badges? */}
+                                        {/* useActivityFeed preview_comments query fetches user:athlete_profiles(badges). Yes. */}
+                                        {comment.user?.badges && <BadgeRow badges={comment.user.badges} maxDisplay={1} size="small" />}
+                                    </View>
+                                </View>
+                                <Text style={{ fontSize: typography.sizes.sm, color: themeColors.textSecondary }}>
+                                    {comment.content}
+                                </Text>
+                            </View>
+                        </View>
+                    ))}
+                    {post.comment_count > post.preview_comments.length && (
+                        <Pressable onPress={onComment} style={{ marginTop: 8, marginLeft: 32 }}>
+                            <Text style={{ fontSize: typography.sizes.sm, color: themeColors.textMuted }}>
+                                View all {post.comment_count} comments
+                            </Text>
+                        </Pressable>
+                    )}
+                </View>
+            )}
 
             {/* Image Modal */}
             <Modal
@@ -450,6 +566,116 @@ export default function FeedPostCard({
                     </Pressable>
                 </Pressable>
             </Modal >
+
+            {/* Training Workout Details Modal (for Event Workouts) */}
+            <Modal
+                visible={showTrainingWorkoutDetails}
+                animationType="fade"
+                transparent
+                onRequestClose={() => setShowTrainingWorkoutDetails(false)}
+            >
+                <Pressable
+                    style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center' }]}
+                    onPress={() => setShowTrainingWorkoutDetails(false)}
+                >
+                    <Pressable
+                        style={[
+                            styles.detailsModalContent,
+                            {
+                                backgroundColor: themeColors.bgSecondary,
+                                margin: spacing.lg,
+                                borderRadius: radii.xl,
+                                maxHeight: '80%',
+                            }
+                        ]}
+                        onPress={(e) => e.stopPropagation()}
+                    >
+                        <View style={styles.detailsModalHeader}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                                <View style={[styles.detailsColorDot, { backgroundColor: post.completion?.training_workout?.color || userColors.accent_color }]} />
+                                <Text style={[styles.detailsModalTitle, { color: themeColors.textPrimary }]}>
+                                    {post.completion?.training_workout?.name}
+                                </Text>
+                            </View>
+                            <Pressable onPress={() => setShowTrainingWorkoutDetails(false)}>
+                                <Feather name="x" size={24} color={themeColors.textSecondary} />
+                            </Pressable>
+                        </View>
+
+                        <ScrollView style={styles.detailsScrollView} showsVerticalScrollIndicator={false}>
+                            {/* Description */}
+                            {post.completion?.training_workout?.description && (
+                                <View style={{ marginBottom: spacing.md }}>
+                                    <Text style={{ color: themeColors.textMuted, fontSize: typography.sizes.xs, marginBottom: 4 }}>
+                                        Description
+                                    </Text>
+                                    <Text style={{ color: themeColors.textPrimary, fontSize: typography.sizes.base }}>
+                                        {post.completion.training_workout.description}
+                                    </Text>
+                                </View>
+                            )}
+
+                            {/* Target */}
+                            {post.completion?.training_workout?.target_value && (
+                                <View style={{ marginBottom: spacing.md }}>
+                                    <Text style={{ color: themeColors.textMuted, fontSize: typography.sizes.xs, marginBottom: 4 }}>
+                                        Target
+                                    </Text>
+                                    <Text style={{ color: themeColors.textPrimary, fontSize: typography.sizes.base }}>
+                                        {post.completion.training_workout.target_value} {post.completion.training_workout.target_unit || ''}
+                                    </Text>
+                                </View>
+                            )}
+
+                            {/* Zone */}
+                            {post.completion?.training_workout?.target_zone && (
+                                <View style={{ marginBottom: spacing.md }}>
+                                    <Text style={{ color: themeColors.textMuted, fontSize: typography.sizes.xs, marginBottom: 4 }}>
+                                        Target Zone
+                                    </Text>
+                                    <View style={[styles.zoneBadge, { backgroundColor: '#ef4444' + '20', alignSelf: 'flex-start' }]}>
+                                        <Text style={[styles.zoneText, { color: '#ef4444' }]}>
+                                            {post.completion.training_workout.target_zone.replace('zone', 'Zone ')}
+                                        </Text>
+                                    </View>
+                                </View>
+                            )}
+
+                            {/* Result */}
+                            {result && (
+                                <View style={{ marginBottom: spacing.md }}>
+                                    <Text style={{ color: themeColors.textMuted, fontSize: typography.sizes.xs, marginBottom: 4 }}>
+                                        Completed Result
+                                    </Text>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                        <Feather name="check-circle" size={18} color={userColors.accent_color} />
+                                        <Text style={{ color: userColors.accent_color, fontSize: typography.sizes.lg, fontWeight: '600' }}>
+                                            {result}
+                                        </Text>
+                                    </View>
+                                </View>
+                            )}
+
+
+
+                            {/* Feeling */}
+                            {feeling && (
+                                <View style={{ marginBottom: spacing.md }}>
+                                    <Text style={{ color: themeColors.textMuted, fontSize: typography.sizes.xs, marginBottom: 4 }}>
+                                        How it felt
+                                    </Text>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                        <Text style={{ fontSize: 24 }}>{feeling.emoji}</Text>
+                                        <Text style={{ color: themeColors.textPrimary, fontSize: typography.sizes.base }}>
+                                            {feeling.label}
+                                        </Text>
+                                    </View>
+                                </View>
+                            )}
+                        </ScrollView>
+                    </Pressable>
+                </Pressable>
+            </Modal>
         </View >
     );
 }
@@ -494,6 +720,11 @@ const styles = StyleSheet.create({
     userName: {
         fontSize: typography.sizes.base,
         fontWeight: typography.weights.semibold,
+    },
+    userNameRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.xs,
     },
     headerMeta: {
         flexDirection: 'row',
@@ -752,3 +983,5 @@ const styles = StyleSheet.create({
         fontSize: typography.sizes.sm,
     },
 });
+
+export default memo(FeedPostCard);

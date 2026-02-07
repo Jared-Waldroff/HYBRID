@@ -16,16 +16,20 @@ export default function PaywallScreen() {
     const accentColor = userColors.accent_color;
 
     const handlePurchase = async () => {
+        console.log('Subscribe Now pressed');
         setIsPurchasing(true);
         try {
             const success = await purchasePro();
+            console.log('Purchase result:', success);
             if (success) {
                 await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                 Alert.alert('Success', 'Welcome to HYBRID Pro!');
                 navigation.goBack();
             }
-        } catch (error) {
-            Alert.alert('Error', 'Purchase failed. Please try again.');
+            // If success is false, user cancelled - no alert needed
+        } catch (error: any) {
+            console.log('Purchase error in PaywallScreen:', error);
+            Alert.alert('Error', error.message || 'Purchase failed. Please try again.');
         } finally {
             setIsPurchasing(false);
         }
@@ -73,13 +77,6 @@ export default function PaywallScreen() {
                         colors={themeColors}
                         accentColor={accentColor}
                     />
-                    <FeatureItem
-                        icon="zap"
-                        title="Support Development"
-                        desc="Help us keep building new features!"
-                        colors={themeColors}
-                        accentColor={accentColor}
-                    />
                 </View>
 
                 <View style={styles.pricingContainer}>
@@ -124,7 +121,7 @@ export default function PaywallScreen() {
                     <Text style={{ color: themeColors.textMuted }}>Maybe Later</Text>
                 </Pressable>
             </ScrollView>
-        </ScreenLayout>
+        </ScreenLayout >
     );
 }
 

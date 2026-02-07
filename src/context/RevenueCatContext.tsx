@@ -4,8 +4,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Purchases, { CustomerInfo, PurchasesPackage, LOG_LEVEL } from 'react-native-purchases';
 
 const API_KEYS = {
-    apple: 'test_EWFKbyVLspUDscBZXpvsdfRwXnu',
-    google: 'test_EWFKbyVLspUDscBZXpvsdfRwXnu',
+    apple: 'appl_COXzmLccBZyUzYjdsKeRjcrzwOc',
+    google: '',
 };
 
 // Valid promo codes that grant Pro access
@@ -90,31 +90,59 @@ export function RevenueCatProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         const init = async () => {
             try {
+                console.log('RevenueCat: Starting initialization...');
+
                 // Check for promo code first
                 const promoCode = await AsyncStorage.getItem(PROMO_STORAGE_KEY);
+                console.log('RevenueCat: Promo code check:', promoCode ? 'found' : 'none');
                 if (promoCode && VALID_PROMO_CODES.includes(promoCode.toUpperCase())) {
                     setHasPromoAccess(true);
                     setIsPro(true);
                 }
 
                 // Ensure RevenueCat is configured (only happens once globally)
+                console.log('RevenueCat: Configuring...');
                 await configureRevenueCat();
+                console.log('RevenueCat: Configuration complete, isConfigured:', isRevenueCatConfigured);
 
+                console.log('RevenueCat: Fetching customer info...');
                 const info = await Purchases.getCustomerInfo();
+                console.log('RevenueCat: Customer info received, entitlements:', Object.keys(info.entitlements.active));
                 setCustomerInfo(info);
                 checkProStatus(info, promoCode);
 
                 try {
+                    console.log('RevenueCat: Fetching offerings...');
                     const offerings = await Purchases.getOfferings();
-                    if (offerings.current !== null && offerings.current.availablePackages.length !== 0) {
-                        setCurrentOffering(offerings.current.availablePackages[0]);
+
+                    if (!offerings) {
+                        console.error('RevenueCat: Offerings object is null or undefined');
+                    } else {
+                        console.log('RevenueCat: Offerings received:', {
+                            current: offerings.current?.identifier,
+                            packagesCount: offerings.current?.availablePackages?.length || 0,
+                            all: Object.keys(offerings.all)
+                        });
+                    }
+
+                    if (offerings?.current !== null && offerings?.current?.availablePackages?.length !== 0) {
+                        const pkg = offerings.current.availablePackages[0];
+                        console.log('RevenueCat: Setting current offering:', pkg.identifier, pkg.product.identifier);
+                        setCurrentOffering(pkg);
+                    } else {
+                        console.warn('RevenueCat: No offerings available. This could be a configuration error in RevenueCat dashboard.');
+                        // Log available offerings to help debug
+                        if (offerings?.all) {
+                            console.log('RevenueCat: All available offerings:', JSON.stringify(offerings.all, null, 2));
+                        }
                     }
                 } catch (e) {
-                    console.log('Error fetching offerings:', e);
+                    console.error('RevenueCat: Error fetching offerings:', e);
                 }
             } catch (e) {
-                console.log('Error initializing RevenueCat:', e);
+                console.log('RevenueCat: Error initializing:', e);
             } finally {
+                console.log('RevenueCat: Initialization complete');
                 setIsLoading(false);
             }
         };
@@ -166,17 +194,26 @@ export function RevenueCatProvider({ children }: { children: ReactNode }) {
     };
 
     const purchasePro = async () => {
-        if (!currentOffering) return;
+        console.log('purchasePro called, currentOffering:', currentOffering);
+
+        if (!currentOffering) {
+            console.log('No offering available - cannot purchase');
+            throw new Error('No subscription offering available. Please try again later.');
+        }
+
         try {
+            console.log('Attempting to purchase package:', currentOffering.identifier);
             const { customerInfo } = await Purchases.purchasePackage(currentOffering);
+            console.log('Purchase successful, checking pro status');
             checkProStatus(customerInfo);
             return true;
         } catch (e: any) {
-            if (!e.userCancelled) {
-                console.log('Purchase error:', e);
-                throw e;
+            if (e.userCancelled) {
+                console.log('User cancelled purchase');
+                return false;
             }
-            return false;
+            console.log('Purchase error:', e);
+            throw e;
         }
     };
 

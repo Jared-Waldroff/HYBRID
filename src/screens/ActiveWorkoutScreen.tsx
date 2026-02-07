@@ -318,16 +318,20 @@ export default function ActiveWorkoutScreen() {
         // Check for race badges if completing workout
         if (newStatus) {
             const earnedBadges = checkWorkoutForBadges({ ...workout, is_completed: true });
+            let badgeToShow = null;
             for (const badgeId of earnedBadges) {
                 if (!hasBadge(badgeId)) {
                     await addBadge(badgeId);
-                    setNewBadge((BADGE_DEFINITIONS as any)[badgeId]);
+                    badgeToShow = (BADGE_DEFINITIONS as any)[badgeId];
                     break; // Show one badge at a time
                 }
             }
 
-            // Navigate to Home after completing workout (if no badge shown)
-            if (earnedBadges.length === 0 || earnedBadges.every((b: any) => hasBadge(b))) {
+            // If badge earned, show it first (navigation happens on badge dismiss)
+            // Otherwise navigate to Home immediately
+            if (badgeToShow) {
+                setNewBadge(badgeToShow);
+            } else {
                 navigation.navigate('Main' as any, { screen: 'Home' });
             }
         }

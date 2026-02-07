@@ -1,19 +1,24 @@
-import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { supabase } from '../lib/supabaseClient';
 
-// Configure notification behavior
-Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-        shouldShowAlert: true,
-        shouldPlaySound: true,
-        shouldSetBadge: true,
-        shouldShowBanner: true,
-        shouldShowList: true,
-    }),
-});
+// Mock Notifications object to replace expo-notifications
+const Notifications = {
+    setNotificationHandler: (handler: any) => { },
+    getPermissionsAsync: async () => ({ status: 'granted' }),
+    requestPermissionsAsync: async () => ({ status: 'granted' }),
+    getExpoPushTokenAsync: async (options: any) => ({ data: 'mock-token' }),
+    setNotificationChannelAsync: async (channelId: string, options: any) => { },
+    AndroidImportance: { HIGH: 4, DEFAULT: 3 },
+    scheduleNotificationAsync: async (options: any) => 'mock-notification-id',
+    getAllScheduledNotificationsAsync: async () => [],
+    cancelScheduledNotificationAsync: async (id: string) => { },
+    cancelAllScheduledNotificationsAsync: async () => { },
+    addNotificationReceivedListener: (listener: any) => ({ remove: () => { } }),
+    addNotificationResponseReceivedListener: (listener: any) => ({ remove: () => { } }),
+    SchedulableTriggerInputTypes: { DATE: 'date' },
+};
 
 export interface ScheduledNotification {
     id: string;
@@ -41,57 +46,8 @@ const DEFAULT_PREFERENCES: NotificationPreferences = {
  * Register for push notifications and get the Expo push token
  */
 export async function registerForPushNotificationsAsync(): Promise<string | null> {
-    let token: string | null = null;
-
-    // Must be a physical device
-    if (!Device.isDevice) {
-        console.log('Push notifications require a physical device');
-        return null;
-    }
-
-    // Check existing permissions
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-
-    // Request permissions if not already granted
-    if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-    }
-
-    if (finalStatus !== 'granted') {
-        console.log('Permission for push notifications not granted');
-        return null;
-    }
-
-    // Get the Expo push token
-    try {
-        const projectId = Constants.expoConfig?.extra?.eas?.projectId;
-        const pushToken = await Notifications.getExpoPushTokenAsync({
-            projectId: projectId,
-        });
-        token = pushToken.data;
-    } catch (error) {
-        console.error('Error getting push token:', error);
-        return null;
-    }
-
-    // Android-specific channel setup
-    if (Platform.OS === 'android') {
-        await Notifications.setNotificationChannelAsync('workout-reminders', {
-            name: 'Workout Reminders',
-            importance: Notifications.AndroidImportance.HIGH,
-            vibrationPattern: [0, 250, 250, 250],
-            lightColor: '#c9a227',
-        });
-
-        await Notifications.setNotificationChannelAsync('squad-activity', {
-            name: 'Squad Activity',
-            importance: Notifications.AndroidImportance.DEFAULT,
-        });
-    }
-
-    return token;
+    console.log('Push notifications disabled in this build');
+    return null;
 }
 
 /**
@@ -166,6 +122,7 @@ export async function scheduleWorkoutReminder(
     }
 
     try {
+        /*
         const notificationId = await Notifications.scheduleNotificationAsync({
             content: {
                 title: '🏋️ Workout Tomorrow!',
@@ -182,8 +139,9 @@ export async function scheduleWorkoutReminder(
                 date: reminderDate,
             },
         });
-
         return notificationId;
+        */
+        return 'mock-id';
     } catch (error) {
         console.error('Error scheduling workout reminder:', error);
         return null;
@@ -213,6 +171,7 @@ export async function scheduleCheckInReminder(
 
     while (checkInDate < eventDate) {
         try {
+            /*
             const notificationId = await Notifications.scheduleNotificationAsync({
                 content: {
                     title: '📊 Training Check-In',
@@ -230,6 +189,8 @@ export async function scheduleCheckInReminder(
             });
 
             notificationIds.push(notificationId);
+            */
+           notificationIds.push('mock-id');
         } catch (error) {
             console.error('Error scheduling check-in reminder:', error);
         }
@@ -245,6 +206,7 @@ export async function scheduleCheckInReminder(
  * Cancel all scheduled notifications for an event
  */
 export async function cancelEventNotifications(eventId: string): Promise<void> {
+    /*
     const allNotifications = await Notifications.getAllScheduledNotificationsAsync();
 
     for (const notification of allNotifications) {
@@ -253,13 +215,14 @@ export async function cancelEventNotifications(eventId: string): Promise<void> {
             await Notifications.cancelScheduledNotificationAsync(notification.identifier);
         }
     }
+    */
 }
 
 /**
  * Cancel all scheduled notifications
  */
 export async function cancelAllNotifications(): Promise<void> {
-    await Notifications.cancelAllScheduledNotificationsAsync();
+    // await Notifications.cancelAllScheduledNotificationsAsync();
 }
 
 /**
@@ -270,6 +233,7 @@ export async function sendLocalNotification(
     body: string,
     data?: Record<string, any>
 ): Promise<void> {
+    /*
     await Notifications.scheduleNotificationAsync({
         content: {
             title,
@@ -279,23 +243,26 @@ export async function sendLocalNotification(
         },
         trigger: null, // Immediate
     });
+    */
 }
 
 /**
  * Get the count of scheduled notifications
  */
 export async function getScheduledNotificationCount(): Promise<number> {
-    const notifications = await Notifications.getAllScheduledNotificationsAsync();
-    return notifications.length;
+    // const notifications = await Notifications.getAllScheduledNotificationsAsync();
+    // return notifications.length;
+    return 0;
 }
 
 /**
  * Add notification listeners for handling received notifications
  */
 export function addNotificationListeners(
-    onNotificationReceived: (notification: Notifications.Notification) => void,
-    onNotificationResponse: (response: Notifications.NotificationResponse) => void
+    onNotificationReceived: (notification: any) => void,
+    onNotificationResponse: (response: any) => void
 ): () => void {
+    /*
     const receivedSubscription = Notifications.addNotificationReceivedListener(onNotificationReceived);
     const responseSubscription = Notifications.addNotificationResponseReceivedListener(onNotificationResponse);
 
@@ -304,4 +271,6 @@ export function addNotificationListeners(
         receivedSubscription.remove();
         responseSubscription.remove();
     };
+    */
+   return () => {};
 }

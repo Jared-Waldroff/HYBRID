@@ -32,12 +32,14 @@ export default function CompleteEventWorkoutScreen() {
     const { user } = useAuth();
     const { themeColors, colors: userColors } = useTheme();
     const { getTrainingPlan } = useSquadEvents();
-    const { completeWorkout, getWorkoutCompletion } = useEventWorkouts();
+    const { completeWorkout, getWorkoutCompletion, deleteCompletion } = useEventWorkouts();
     const { createPost } = useActivityFeed();
 
     const [workout, setWorkout] = useState<TrainingWorkout | null>(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [isCompleted, setIsCompleted] = useState(false);
+    const [completionId, setCompletionId] = useState<string | null>(null);
 
     // Form state
     const [actualValue, setActualValue] = useState('');
@@ -62,6 +64,8 @@ export default function CompleteEventWorkoutScreen() {
                 // Check if already completed
                 const existing = await getWorkoutCompletion(found.id);
                 if (existing) {
+                    setIsCompleted(true);
+                    setCompletionId(existing.id);
                     setActualValue(existing.actual_value?.toString() || '');
                     setSelectedZone(existing.actual_zone || null);
                     setNotes(existing.notes || '');
@@ -165,6 +169,40 @@ export default function CompleteEventWorkoutScreen() {
         } finally {
             setSaving(false);
         }
+    };
+
+    // Uncomplete (undo) a workout
+    const handleUncomplete = async () => {
+        if (!completionId) return;
+
+        Alert.alert(
+            'Undo Completion',
+            'Are you sure you want to undo this workout completion? The feed post will remain.',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Undo',
+                    style: 'destructive',
+                    onPress: async () => {
+                        setSaving(true);
+                        const result = await deleteCompletion(completionId);
+                        if (result.error) {
+                            Alert.alert('Error', result.error);
+                        } else {
+                            setIsCompleted(false);
+                            setCompletionId(null);
+                            // Reset form
+                            setActualValue('');
+                            setSelectedZone(null);
+                            setDurationMinutes('');
+                            setNotes('');
+                            setFeeling(null);
+                        }
+                        setSaving(false);
+                    }
+                }
+            ]
+        );
     };
 
     if (loading) {
@@ -465,27 +503,66 @@ export default function CompleteEventWorkoutScreen() {
                     )}
                 </View>
 
-                {/* Complete Button */}
-                <Pressable
-                    style={[
-                        styles.completeButton,
-                        { backgroundColor: userColors.accent_color },
-                        saving && { opacity: 0.7 }
-                    ]}
-                    onPress={handleComplete}
-                    disabled={saving}
-                >
-                    {saving ? (
-                        <ActivityIndicator color={themeColors.accentText} />
-                    ) : (
-                        <>
-                            <Feather name="check" size={20} color={themeColors.accentText} />
-                            <Text style={[styles.completeButtonText, { color: themeColors.accentText }]}>
-                                Complete Workout
-                            </Text>
-                        </>
-                    )}
-                </Pressable>
+                {/* Completed Status / Complete Button */}
+                {isCompleted ? (
+                    <View style={{ gap: spacing.md }}>
+                        {/* Completed Status */}
+                        <View style={[styles.completedBanner, { backgroundColor: '#10b98120' }]}>
+                            <Feather name="check-circle" size={24} color="#10b981" />
+                            <View style={{ flex: 1 }}>
+                                <Text style={[styles.completedTitle, { color: '#10b981' }]}>
+                                    Workout Completed!
+                                </Text>
+                                <Text style={[styles.completedSubtitle, { color: themeColors.textSecondary }]}>
+                                    You've already logged this workout
+                                </Text>
+                            </View>
+                        </View>
+
+                        {/* Undo Button */}
+                        <Pressable
+                            style={[
+                                styles.undoButton,
+                                { backgroundColor: themeColors.bgTertiary },
+                                saving && { opacity: 0.7 }
+                            ]}
+                            onPress={handleUncomplete}
+                            disabled={saving}
+                        >
+                            {saving ? (
+                                <ActivityIndicator color={themeColors.textSecondary} />
+                            ) : (
+                                <>
+                                    <Feather name="rotate-ccw" size={18} color={themeColors.textSecondary} />
+                                    <Text style={[styles.undoButtonText, { color: themeColors.textSecondary }]}>
+                                        Undo Completion
+                                    </Text>
+                                </>
+                            )}
+                        </Pressable>
+                    </View>
+                ) : (
+                    <Pressable
+                        style={[
+                            styles.completeButton,
+                            { backgroundColor: userColors.accent_color },
+                            saving && { opacity: 0.7 }
+                        ]}
+                        onPress={handleComplete}
+                        disabled={saving}
+                    >
+                        {saving ? (
+                            <ActivityIndicator color={themeColors.accentText} />
+                        ) : (
+                            <>
+                                <Feather name="check" size={20} color={themeColors.accentText} />
+                                <Text style={[styles.completeButtonText, { color: themeColors.accentText }]}>
+                                    Complete Workout
+                                </Text>
+                            </>
+                        )}
+                    </Pressable>
+                )}
             </ScrollView>
         </ScreenLayout>
     );
@@ -689,5 +766,32 @@ const styles = StyleSheet.create({
     completeButtonText: {
         fontSize: typography.sizes.base,
         fontWeight: typography.weights.semibold,
+    },
+    completedBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: spacing.md,
+        borderRadius: radii.md,
+        gap: spacing.md,
+    },
+    completedTitle: {
+        fontSize: typography.sizes.base,
+        fontWeight: typography.weights.semibold,
+    },
+    completedSubtitle: {
+        fontSize: typography.sizes.sm,
+        marginTop: 2,
+    },
+    undoButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: spacing.md,
+        borderRadius: radii.md,
+        gap: spacing.xs,
+    },
+    undoButtonText: {
+        fontSize: typography.sizes.sm,
+        fontWeight: typography.weights.medium,
     },
 });

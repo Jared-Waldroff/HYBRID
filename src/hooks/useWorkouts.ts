@@ -1,13 +1,28 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
+import { getCached, setCache, isCacheExpired, CacheKeys, CacheTTL } from '../lib/cacheManager';
 
 export function useWorkouts() {
     const { user } = useAuth();
     const [workouts, setWorkouts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const hasFetchedRef = useRef(false);
+
+    // Load from cache on mount (instant display)
+    useEffect(() => {
+        const loadCached = async () => {
+            if (!user) return;
+            const cached = await getCached<any[]>(CacheKeys.workouts(user.id), CacheTTL.workouts);
+            if (cached && cached.length > 0) {
+                setWorkouts(cached);
+                setLoading(false);
+            }
+        };
+        loadCached();
+    }, [user]);
 
     const fetchWorkouts = useCallback(async (startDate?: string, endDate?: string) => {
         if (!user) {
@@ -15,9 +30,12 @@ export function useWorkouts() {
             return;
         }
 
-        try {
+        // Only show loading if we have no cached data
+        if (workouts.length === 0) {
             setLoading(true);
+        }
 
+        try {
             let query = supabase
                 .from('workouts')
                 .select(`
@@ -56,14 +74,19 @@ export function useWorkouts() {
 
             setWorkouts(sortedData || []);
             setError(null);
+
+            // Cache the results (only cache full fetches without date filters)
+            if (!startDate && !endDate && sortedData) {
+                await setCache(CacheKeys.workouts(user.id), sortedData);
+            }
         } catch (err: any) {
             console.error('Error fetching workouts:', err);
             setError(err.message);
-            setWorkouts([]);
+            // Don't clear workouts on error - keep showing cached data
         } finally {
             setLoading(false);
         }
-    }, [user]);
+    }, [user, workouts.length]);
 
     const getWorkoutById = async (id: string) => {
         try {
@@ -188,7 +211,7 @@ export function useWorkouts() {
                                     workout_exercise_id: weData.id,
                                     weight: set.weight,
                                     reps: set.reps,
-                                    is_completed: set.is_completed || false,
+                                    is_completed: false, // Always start uncompleted when copying
                                 });
                             });
                         } else {
@@ -286,7 +309,7 @@ export function useWorkouts() {
                                 workout_exercise_id: we.id,
                                 weight: set.weight || 0,
                                 reps: set.reps || 0,
-                                is_completed: set.is_completed || false
+                                is_completed: false // Always start uncompleted
                             });
                         });
                     } else {

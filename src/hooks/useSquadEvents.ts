@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { Image } from 'expo-image';
+import { getCached, setCache, CacheKeys, CacheTTL } from '../lib/cacheManager';
 
 // Types
 export interface SquadEvent {
@@ -59,6 +60,7 @@ export interface TrainingWorkout {
     // Computed
     scheduled_date?: string;
     is_completed?: boolean;
+    completed_at?: string;
 }
 
 export interface EventTemplate {
@@ -98,6 +100,11 @@ export interface CreateTrainingWorkoutInput {
     color?: string;
 }
 
+interface CachedEventsData {
+    events: SquadEvent[];
+    myEvents: SquadEvent[];
+}
+
 export function useSquadEvents() {
     const { user } = useAuth();
     const [events, setEvents] = useState<SquadEvent[]>([]);
@@ -106,14 +113,31 @@ export function useSquadEvents() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    // Load from cache on mount (instant display)
+    useEffect(() => {
+        const loadCached = async () => {
+            if (!user) return;
+            const cached = await getCached<CachedEventsData>(CacheKeys.events(user.id), CacheTTL.events);
+            if (cached) {
+                setEvents(cached.events || []);
+                setMyEvents(cached.myEvents || []);
+                setLoading(false);
+            }
+        };
+        loadCached();
+    }, [user]);
+
     // Load all accessible events
     const loadEvents = useCallback(async () => {
         if (!user) return;
 
-        try {
+        // Only show loading if we have no cached data
+        if (events.length === 0) {
             setLoading(true);
-            setError(null);
+        }
+        setError(null);
 
+        try {
             // Get all public events + private events user is participating in
             const { data, error: fetchError } = await supabase
                 .from('squad_events')
@@ -151,7 +175,14 @@ export function useSquadEvents() {
             }));
 
             setEvents(eventsWithMeta);
-            setMyEvents(eventsWithMeta.filter(e => e.is_participating || e.creator_id === user.id));
+            const myEventsFiltered = eventsWithMeta.filter(e => e.is_participating || e.creator_id === user.id);
+            setMyEvents(myEventsFiltered);
+
+            // Cache the results
+            await setCache(CacheKeys.events(user.id), {
+                events: eventsWithMeta,
+                myEvents: myEventsFiltered,
+            });
 
             // Prefetch cover images to improved perceived performance
             const imagesToPrefetch = eventsWithMeta
@@ -165,10 +196,11 @@ export function useSquadEvents() {
         } catch (err: any) {
             console.error('Error loading events:', err);
             setError(err.message);
+            // Don't clear data on error - keep showing cached data
         } finally {
             setLoading(false);
         }
-    }, [user]);
+    }, [user, events.length]);
 
     // Load event templates
     const loadTemplates = useCallback(async () => {
@@ -470,10 +502,13 @@ export function useSquadEvents() {
             // Get user's completions
             const { data: completions } = await supabase
                 .from('event_workout_completions')
-                .select('training_workout_id')
+                .select('training_workout_id, completed_at')
                 .eq('user_id', user?.id);
 
-            const completedIds = new Set(completions?.map(c => c.training_workout_id) || []);
+            const completionMap = new Map<string, string>();
+            completions?.forEach(c => {
+                completionMap.set(c.training_workout_id, c.completed_at);
+            });
 
             // Calculate scheduled date for each workout
             return (data || []).map(workout => {
@@ -483,7 +518,8 @@ export function useSquadEvents() {
                 return {
                     ...workout,
                     scheduled_date: scheduledDate.toISOString().split('T')[0],
-                    is_completed: completedIds.has(workout.id),
+                    is_completed: completionMap.has(workout.id),
+                    completed_at: completionMap.get(workout.id),
                 };
             });
         } catch (err: any) {

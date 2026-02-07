@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import * as Notifications from 'expo-notifications';
+// import * as Notifications from 'expo-notifications';
 import { useAuth } from './AuthContext';
 import {
     registerForPushNotificationsAsync,
@@ -10,6 +10,10 @@ import {
     addNotificationListeners,
     NotificationPreferences,
 } from '../services/notificationService';
+
+// Mock types
+type Notification = any;
+type NotificationResponse = any;
 
 interface NotificationContextType {
     pushToken: string | null;
@@ -64,11 +68,11 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
 
     // Set up notification listeners
     useEffect(() => {
-        const handleNotificationReceived = (notification: Notifications.Notification) => {
+        const handleNotificationReceived = (notification: Notification) => {
             console.log('Notification received:', notification);
         };
 
-        const handleNotificationResponse = (response: Notifications.NotificationResponse) => {
+        const handleNotificationResponse = (response: NotificationResponse) => {
             const data = response.notification.request.content.data;
             console.log('Notification tapped:', data);
 
@@ -128,8 +132,9 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     }, [user?.id, preferences]);
 
     const refreshScheduledCount = useCallback(async () => {
-        const notifications = await Notifications.getAllScheduledNotificationsAsync();
-        setScheduledCount(notifications.length);
+        // const notifications = await Notifications.getAllScheduledNotificationsAsync();
+        // setScheduledCount(notifications.length);
+        setScheduledCount(0);
     }, []);
 
     // Refresh count periodically

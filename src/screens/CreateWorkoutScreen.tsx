@@ -179,12 +179,17 @@ export default function CreateWorkoutScreen() {
                         .filter(Boolean);
                     setSelectedExerciseIds(exerciseIds);
 
-                    // Store sets for copying
+                    // Store sets for copying - strip completion status so new workout starts fresh
                     const setsMap: any = {};
                     data.workout_exercises.forEach((we: any) => {
                         const exerciseId = we.exercise?.id;
                         if (exerciseId && we.sets && we.sets.length > 0) {
-                            setsMap[exerciseId] = we.sets;
+                            // Only copy weight and reps, NOT completion status
+                            setsMap[exerciseId] = we.sets.map((set: any) => ({
+                                weight: set.weight || 0,
+                                reps: set.reps || 0,
+                                // Explicitly do NOT include is_completed or completed_at
+                            }));
                         }
                     });
                     setCopiedSets(setsMap);
