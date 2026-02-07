@@ -16,7 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.walsansoftware.hybrid",
-      "buildNumber": "10",
+      "buildNumber": "11",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "HYBRID needs access to your photo library to upload photos to your posts and profile.",
         "NSCameraUsageDescription": "HYBRID needs access to your camera to take photos for your posts.",
@@ -28,8 +28,8 @@
       }
     },
     "android": {
-      "package": "com.jaredwaldroff.hybrid",
-      "versionCode": 10,
+      "package": "com.walsansoftware.hybrid",
+      "versionCode": 11,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0a141f"
