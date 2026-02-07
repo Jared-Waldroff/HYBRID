@@ -30,8 +30,12 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
+# Environment files (NEVER commit these!)
+.env
 .env*.local
+.env.local
+.env.development
+.env.production
 
 # typescript
 *.tsbuildinfo
@@ -39,4 +43,22 @@ yarn-error.*
 # generated native folders
 /ios
 /android
-.env
+
+# Test coverage (generated)
+coverage/
+
+# Build artifacts
+build.log
+*.ipa
+*.apk
+*.aab
+
+# Credentials (NEVER commit!)
+credentials.json
+credentials/
+
+# Supabase local cache
+supabase/.temp/
+
+# SQL docs (database schema - keep local only)
+docs/sql/
