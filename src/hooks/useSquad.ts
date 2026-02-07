@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
+import { getCached, setCache, CacheKeys, CacheTTL } from '../lib/cacheManager';
 
 export interface SquadMember {
     user_id: string; // The OTHER person's ID (profile owner)
@@ -13,6 +14,12 @@ export interface SquadMember {
     direction: 'incoming' | 'outgoing' | 'confirmed';
 }
 
+interface CachedSquadData {
+    squad: SquadMember[];
+    requests: SquadMember[];
+    sentRequests: SquadMember[];
+}
+
 export function useSquad() {
     const { user } = useAuth();
     const [squad, setSquad] = useState<SquadMember[]>([]);
@@ -20,9 +27,29 @@ export function useSquad() {
     const [sentRequests, setSentRequests] = useState<SquadMember[]>([]); // Outgoing requests
     const [loading, setLoading] = useState(true);
 
+    // Load from cache on mount (instant display)
+    useEffect(() => {
+        const loadCached = async () => {
+            if (!user) return;
+            const cached = await getCached<CachedSquadData>(CacheKeys.squad(user.id), CacheTTL.squad);
+            if (cached) {
+                setSquad(cached.squad || []);
+                setRequests(cached.requests || []);
+                setSentRequests(cached.sentRequests || []);
+                setLoading(false);
+            }
+        };
+        loadCached();
+    }, [user]);
+
     const loadSquad = useCallback(async () => {
         if (!user) return;
-        setLoading(true);
+
+        // Only show loading if we have no cached data
+        if (squad.length === 0 && requests.length === 0 && sentRequests.length === 0) {
+            setLoading(true);
+        }
+
         try {
             // 1. Fetch relationships (raw IDs)
             const { data: relationships, error: relError } = await supabase
@@ -92,12 +119,20 @@ export function useSquad() {
             setSquad(confirmed);
             setRequests(incoming);
             setSentRequests(outgoing);
+
+            // Cache the results
+            await setCache(CacheKeys.squad(user.id), {
+                squad: confirmed,
+                requests: incoming,
+                sentRequests: outgoing,
+            });
         } catch (err) {
             console.error('Error loading squad:', err);
+            // Don't clear data on error - keep showing cached data
         } finally {
             setLoading(false);
         }
-    }, [user]);
+    }, [user, squad.length, requests.length, sentRequests.length]);
 
     // Add (Send Request)
     const addSquadMember = async (targetUserId: string) => {

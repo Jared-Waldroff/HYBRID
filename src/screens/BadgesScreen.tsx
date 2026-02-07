@@ -7,22 +7,26 @@ import { spacing, typography } from '../theme';
 import ScreenLayout from '../components/ScreenLayout';
 import BadgeGrid from '../components/BadgeGrid';
 import { useAuth } from '../context/AuthContext';
+import { useAthleteProfile } from '../hooks/useAthleteProfile';
 
 export default function BadgesScreen() {
     const route = useRoute<any>();
     const navigation = useNavigation();
     const { themeColors, colors: userColors } = useTheme();
     const { user: currentUser } = useAuth();
+    const { profile: myProfile } = useAthleteProfile();
 
-    // Get user from params
-    const { user } = route.params || {};
+    // Get user from params, or fallback to current user's profile (for tab navigation)
+    const { user: passedUser } = route.params || {};
+    const user = passedUser || myProfile;
+    const isFromTab = !passedUser; // No back button when accessed via tab swipe
 
-    // If no user passed, maybe show error or fallback (shouldn't happen with correct nav)
+    // If no user and no profile yet, show loading or empty state
     if (!user) {
         return (
             <ScreenLayout>
                 <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-                    <Text style={{ color: themeColors.textPrimary }}>User not found</Text>
+                    <Text style={{ color: themeColors.textPrimary }}>Loading achievements...</Text>
                 </View>
             </ScreenLayout>
         );
@@ -33,9 +37,13 @@ export default function BadgesScreen() {
     return (
         <ScreenLayout>
             <View style={styles.header}>
-                <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <Feather name="arrow-left" size={24} color={themeColors.textPrimary} />
-                </Pressable>
+                {isFromTab ? (
+                    <View style={{ width: 24 }} />
+                ) : (
+                    <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+                        <Feather name="arrow-left" size={24} color={themeColors.textPrimary} />
+                    </Pressable>
+                )}
                 <Text style={[styles.headerTitle, { color: themeColors.textPrimary }]}>
                     {isOwnProfile ? 'My Achievements' : `${user.display_name}'s Achievements`}
                 </Text>

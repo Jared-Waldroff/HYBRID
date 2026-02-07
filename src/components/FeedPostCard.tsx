@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import {
     View,
     Text,
     Pressable,
     StyleSheet,
-    Image,
     Dimensions,
     Modal,
     ScrollView,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { Feather } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { spacing, radii, typography } from '../theme';
@@ -17,6 +17,9 @@ import { FeedPost, formatRelativeTime, formatDuration } from '../hooks/useActivi
 import { FEELING_OPTIONS } from '../hooks/useEventWorkouts';
 import WorkoutCard from './WorkoutCard';
 import BadgeRow from './BadgeRow';
+
+// expo-image provides built-in disk/memory caching
+const blurhash = 'L6PZfSi_.AyE_3t7t7R**0o#DgR4';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -30,7 +33,7 @@ interface FeedPostCardProps {
     onOptions?: () => void;
 }
 
-export default function FeedPostCard({
+function FeedPostCard({
     post,
     onLfg,
     onComment,
@@ -41,21 +44,9 @@ export default function FeedPostCard({
 }: FeedPostCardProps) {
     const { themeColors, colors: userColors } = useTheme();
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
-    const [imageAspectRatio, setImageAspectRatio] = useState(1);
     const [showImageModal, setShowImageModal] = useState(false);
     const [showWorkoutDetails, setShowWorkoutDetails] = useState(false);
-
-    // Calculate aspect ratio for current image
-    useEffect(() => {
-        if (post.photo_urls && post.photo_urls.length > 0) {
-            const currentUrl = post.photo_urls[currentImageIndex];
-            Image.getSize(currentUrl, (width, height) => {
-                setImageAspectRatio(width / height);
-            }, (error) => {
-                console.error('Failed to get image size:', error);
-            });
-        }
-    }, [post.photo_urls, currentImageIndex]);
+    const [imageAspectRatio, setImageAspectRatio] = useState(1.33); // Default 4:3, updates on load
 
     // Get feeling emoji
     const feeling = FEELING_OPTIONS.find(f => f.id === post.completion?.feeling);
@@ -158,8 +149,16 @@ export default function FeedPostCard({
                     <Image
                         source={{ uri: post.photo_urls[currentImageIndex] }}
                         style={styles.photo}
-                        resizeMode="cover"
-                        onError={(e) => console.log('Image Load Error:', e.nativeEvent.error)}
+                        contentFit="cover"
+                        cachePolicy="memory-disk"
+                        placeholder={blurhash}
+                        transition={200}
+                        onLoad={(e) => {
+                            const { width, height } = e.source;
+                            if (width && height) {
+                                setImageAspectRatio(width / height);
+                            }
+                        }}
                     />
 
                     {/* Photo counter */}
@@ -821,3 +820,5 @@ const styles = StyleSheet.create({
         fontSize: typography.sizes.sm,
     },
 });
+
+export default memo(FeedPostCard);

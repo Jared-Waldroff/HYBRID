@@ -1,9 +1,12 @@
-import React from 'react';
-import { View, Text, Pressable, StyleSheet, Image } from 'react-native';
+import React, { memo } from 'react';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { Image } from 'expo-image';
 import { Feather } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { spacing, radii, typography } from '../theme';
 import { EVENT_TYPES } from '../hooks/useSquadEvents';
+
+const blurhash = 'L6PZfSi_.AyE_3t7t7R**0o#DgR4';
 
 interface EventCardProps {
     event: {
@@ -29,7 +32,7 @@ interface EventCardProps {
     compact?: boolean;
 }
 
-export default function EventCard({
+function EventCard({
     event,
     progress,
     onPress,
@@ -118,7 +121,10 @@ export default function EventCard({
                     <Image
                         source={{ uri: event.cover_image_url }}
                         style={styles.coverImage}
-                        resizeMode="cover"
+                        contentFit="cover"
+                        cachePolicy="memory-disk"
+                        placeholder={blurhash}
+                        transition={200}
                     />
                 ) : (
                     <View style={[styles.coverGradient, { backgroundColor: `${userColors.accent_color}30` }]}>
@@ -167,6 +173,7 @@ export default function EventCard({
                                 <Image
                                     source={{ uri: event.creator.avatar_url }}
                                     style={styles.creatorAvatar}
+                                    cachePolicy="memory-disk"
                                 />
                             ) : (
                                 <View style={[styles.creatorAvatarPlaceholder, { backgroundColor: themeColors.bgTertiary }]}>
@@ -409,3 +416,5 @@ const styles = StyleSheet.create({
         fontWeight: typography.weights.semibold,
     },
 });
+
+export default memo(EventCard);

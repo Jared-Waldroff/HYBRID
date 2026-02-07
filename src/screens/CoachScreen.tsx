@@ -31,11 +31,10 @@ import { useRevenueCat } from '../context/RevenueCatContext';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation';
-
-const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
+import { supabase } from '../lib/supabaseClient';
 
 // Feature flag: Set to false when ready to launch AI Coach
-const COACH_COMING_SOON = true;
+const COACH_COMING_SOON = false;
 
 interface Message {
     id: string;
@@ -66,6 +65,7 @@ interface WorkoutPlan {
     workouts: {
         name: string;
         day_of_week: string;
+        week_number?: number;  // 1-based week number within the plan
         color: string;
         estimated_duration_minutes?: number;
         exercises: WorkoutExercise[];
@@ -125,8 +125,12 @@ const TypingIndicator = () => {
 export default function CoachScreen() {
     const { themeColors, colors: userColors } = useTheme();
 
-    // Show Coming Soon screen if feature is disabled
-    if (COACH_COMING_SOON) {
+    // RevenueCat Integration - must be called before Coming Soon check
+    const { isPro, isLoading: isPurchasesLoading, hasPromoAccess } = useRevenueCat();
+    const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+    // Show Coming Soon screen if feature is disabled - BUT allow promo users through
+    if (COACH_COMING_SOON && !hasPromoAccess) {
         return (
             <ScreenLayout hideHeader>
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 }}>
@@ -197,16 +201,12 @@ export default function CoachScreen() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [loadingStatus, setLoadingStatus] = useState('');
     const [keyboardHeight, setKeyboardHeight] = useState(0);
     const [processingActionId, setProcessingActionId] = useState<string | null>(null);
 
     // Helper to generate IDs
     const genId = () => Date.now().toString() + Math.random().toString(36).substr(2, 9);
-
-    // RevenueCat Integration
-    const { isPro, isLoading: isPurchasesLoading } = useRevenueCat();
-    const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-
 
 
     const getInitialGreeting = async () => {
@@ -421,6 +421,7 @@ export default function CoachScreen() {
         setMessages(prev => [...prev, userMessage]);
         setInputValue('');
         setIsLoading(true);
+        setLoadingStatus('Analyzing your request...');
 
         try {
             console.log('--- Sending User Message ---', userMessage.content);
@@ -486,6 +487,7 @@ export default function CoachScreen() {
                         } else if (data.action === 'remove_exercise') {
                             detectedAction = { type: 'remove_exercise', data: data };
                         } else if (data.action === 'create_exercise' && data.exercises) {
+                            setLoadingStatus('Adding new exercises to library...');
                             for (const exercise of data.exercises) {
                                 await createExercise({
                                     name: exercise.name,
@@ -534,14 +536,49 @@ export default function CoachScreen() {
     };
 
     const callGeminiAPI = async (conversationMessages: Message[]): Promise<string> => {
-        if (!GEMINI_API_KEY) {
-            throw new Error('Gemini API key not configured');
-        }
 
         // Build user context to append to main system prompt
         // Separate personal workouts from event-synced workouts
         const personalWorkouts = workouts.filter(w => !w.source_event_name);
         const eventSyncedWorkouts = workouts.filter(w => w.source_event_name);
+
+        // Get upcoming workouts for next 4 weeks grouped by day
+        const today = new Date();
+        const fourWeeksFromNow = new Date(today);
+        fourWeeksFromNow.setDate(today.getDate() + 28);
+
+        const upcomingWorkouts = workouts.filter(w => {
+            const workoutDate = new Date(w.scheduled_date);
+            return workoutDate >= today && workoutDate <= fourWeeksFromNow;
+        });
+
+        // Group by day of week to show busy days
+        const daySchedule: Record<string, string[]> = {
+            'Sunday': [], 'Monday': [], 'Tuesday': [], 'Wednesday': [],
+            'Thursday': [], 'Friday': [], 'Saturday': []
+        };
+        upcomingWorkouts.forEach(w => {
+            const date = new Date(w.scheduled_date);
+            const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+            if (daySchedule[dayName]) {
+                daySchedule[dayName].push(`${w.name} (${w.scheduled_date})`);
+            }
+        });
+
+        // Get recently completed workouts for context
+        const completedWorkouts = workouts
+            .filter(w => w.is_completed)
+            .sort((a, b) => new Date(b.scheduled_date).getTime() - new Date(a.scheduled_date).getTime())
+            .slice(0, 10);
+
+        // Format complete exercise history from stats
+        const exerciseHistory = stats?.history ?
+            Object.entries(stats.history)
+                .sort((a, b) => b[1] - a[1]) // Sort by max weight
+                .slice(0, 30) // Limit to top 30 exercises
+                .map(([name, max]) => `- ${name}: ${max} lbs (E1RM)`)
+                .join('\n')
+            : 'No exercise history yet.';
 
         const userContext = `
 
@@ -554,14 +591,34 @@ export default function CoachScreen() {
 **User's Long-Term Memory (Preferences & Facts):**
 ${profile?.ai_preferences || "No specific preferences learned yet."}
 
-**User's Strength Profile (Estimated 1RM):**
+**User's Strength Profile (Big 4 Lifts - Estimated 1RM):**
 ${stats ? `
-- Bench Press: ${stats.bench_press} lbs
-- Squat: ${stats.squat} lbs
-- Deadlift: ${stats.deadlift} lbs
-- Overhead Press: ${stats.overhead_press} lbs
-- Total Workouts Logged: ${stats.total_workouts}
+- Bench Press: ${stats.bench_press || 'No data'} lbs
+- Squat: ${stats.squat || 'No data'} lbs
+- Deadlift: ${stats.deadlift || 'No data'} lbs
+- Overhead Press: ${stats.overhead_press || 'No data'} lbs
+- Total Workouts Completed: ${stats.total_workouts}
 ` : 'Stats not yet calculated.'}
+
+**User's Complete Exercise History (All Logged Maxes):**
+${exerciseHistory}
+
+**User's Current Schedule (Next 4 Weeks):**
+${Object.entries(daySchedule).map(([day, workouts]) =>
+            workouts.length > 0
+                ? `- ${day}: BUSY - ${workouts.length} workout(s) scheduled`
+                : `- ${day}: Available`
+        ).join('\n')}
+
+**Upcoming Scheduled Workouts:**
+${upcomingWorkouts.length > 0 ? upcomingWorkouts.slice(0, 15).map(w =>
+            `- "${w.name}" on ${w.scheduled_date}${w.is_completed ? ' ✓' : ''}`
+        ).join('\n') : 'No upcoming workouts scheduled.'}
+
+**Recently Completed Workouts (Last 10):**
+${completedWorkouts.length > 0 ? completedWorkouts.map(w =>
+            `- "${w.name}" on ${w.scheduled_date}`
+        ).join('\n') : 'No completed workouts yet.'}
 
 **Instructions for Weight Recommendations:**
 1. **CHECK HISTORY FIRST:** Look for the "User's Strength Profile" above. If a relevant max exists, use it to calculate working weights (e.g. 70-80% of 1RM for hypertrophy).
@@ -637,50 +694,54 @@ IMPORTANT: When generating custom Workout Plans (PROPOSE_PLAN):
 `;
 
         // Build conversation text for intent detection
+        setLoadingStatus('Consulting knowledge base...');
         const conversationText = conversationMessages.map(m => m.content).join(' ');
 
-        // Get dynamic prompt based on conversation intent (with LLM fallback)
-        const { prompt: dynamicBasePrompt, detectedIntents, usedLLM } = await buildDynamicPromptAsync(
+        // Get dynamic prompt based on conversation intent (keyword detection only - no LLM fallback needed)
+        const { prompt: dynamicBasePrompt, detectedIntents } = await buildDynamicPromptAsync(
             conversationText,
-            GEMINI_API_KEY || ''
+            '' // No API key needed for keyword detection
         );
 
-        if (usedLLM) {
-            console.log('Used LLM for intent detection, found:', detectedIntents);
+        console.log('Keyword detection found:', detectedIntents);
+
+        // Update status based on input keywords (heuristics) since intent only gives domain
+        const lowerInput = conversationMessages[conversationMessages.length - 1]?.content.toLowerCase() || '';
+        if (lowerInput.includes('plan') || lowerInput.includes('program') || lowerInput.includes('build') || lowerInput.includes('schedule')) {
+            setLoadingStatus('Designing your training program...');
+        } else if (lowerInput.includes('log') || lowerInput.includes('track') || lowerInput.includes('did')) {
+            setLoadingStatus('Logging your session...');
         } else {
-            console.log('Keyword detection found:', detectedIntents);
+            setLoadingStatus('Formulating response...');
         }
 
         const systemPrompt = dynamicBasePrompt + '\n\n---\n\n' + userContext;
 
-        const contents = conversationMessages.map(msg => ({
-            role: msg.role === 'assistant' ? 'model' : 'user',
-            parts: [{ text: msg.content }]
+        // Format messages for the Edge Function
+        const messages = conversationMessages.map(msg => ({
+            role: msg.role,
+            content: msg.content
         }));
 
-        const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    system_instruction: { parts: [{ text: systemPrompt }] },
-                    contents,
-                    generationConfig: {
-                        temperature: 0.7,
-                        maxOutputTokens: 8192,
-                    }
-                })
-            }
-        );
+        // Call secure Edge Function instead of direct Gemini API
+        const { data, error } = await supabase.functions.invoke('coach-message', {
+            body: {
+                messages,
+                systemPrompt,
+                temperature: 0.7,
+                maxTokens: 8192,
+            },
+        });
 
-        const data = await response.json();
-
-        if (data.error) {
-            throw new Error(data.error.message || 'API error');
+        if (error) {
+            throw new Error(error.message || 'Edge function error');
         }
 
-        return data.candidates?.[0]?.content?.parts?.[0]?.text || 'I apologize, I could not generate a response.';
+        if (data?.error) {
+            throw new Error(data.error);
+        }
+
+        return data?.response || 'I apologize, I could not generate a response.';
     };
 
     const findExerciseId = (exerciseName: string): string | null => {
@@ -728,19 +789,26 @@ IMPORTANT: When generating custom Workout Plans (PROPOSE_PLAN):
         try {
             const today = new Date();
             const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-            const weeksToSchedule = plan.weeks || 4;
 
-            for (let week = 0; week < weeksToSchedule; week++) {
+            // Check if workouts have week_number (new format) or not (old format)
+            const hasWeekNumbers = plan.workouts.some(w => w.week_number !== undefined);
+
+            if (hasWeekNumbers) {
+                // NEW FORMAT: Each workout specifies which week it belongs to
+                // Each workout gets scheduled ONCE to its specific week
                 for (const workout of plan.workouts) {
                     const targetDayIndex = daysOfWeek.indexOf(workout.day_of_week);
                     if (targetDayIndex === -1) continue;
+
+                    // week_number is 1-based, convert to 0-based for calculation
+                    const weekOffset = ((workout.week_number || 1) - 1);
 
                     const workoutDate = new Date(today);
                     const currentDayIndex = workoutDate.getDay();
                     let daysUntilTarget = targetDayIndex - currentDayIndex;
                     if (daysUntilTarget < 0) daysUntilTarget += 7;
 
-                    workoutDate.setDate(workoutDate.getDate() + daysUntilTarget + (week * 7));
+                    workoutDate.setDate(workoutDate.getDate() + daysUntilTarget + (weekOffset * 7));
 
                     const year = workoutDate.getFullYear();
                     const month = String(workoutDate.getMonth() + 1).padStart(2, '0');
@@ -768,6 +836,51 @@ IMPORTANT: When generating custom Workout Plans (PROPOSE_PLAN):
                         scheduled_date: scheduledDate,
                         color: workout.color || '#1e3a5f'
                     }, exerciseIds, customSets);
+                }
+            } else {
+                // OLD FORMAT: No week_number, repeat each workout template across all weeks
+                // This is for simple programs like "do this workout every Monday for 4 weeks"
+                const weeksToSchedule = plan.weeks || 4;
+
+                for (let week = 0; week < weeksToSchedule; week++) {
+                    for (const workout of plan.workouts) {
+                        const targetDayIndex = daysOfWeek.indexOf(workout.day_of_week);
+                        if (targetDayIndex === -1) continue;
+
+                        const workoutDate = new Date(today);
+                        const currentDayIndex = workoutDate.getDay();
+                        let daysUntilTarget = targetDayIndex - currentDayIndex;
+                        if (daysUntilTarget < 0) daysUntilTarget += 7;
+
+                        workoutDate.setDate(workoutDate.getDate() + daysUntilTarget + (week * 7));
+
+                        const year = workoutDate.getFullYear();
+                        const month = String(workoutDate.getMonth() + 1).padStart(2, '0');
+                        const day = String(workoutDate.getDate()).padStart(2, '0');
+                        const scheduledDate = `${year}-${month}-${day}`;
+
+                        const exerciseIds = workout.exercises
+                            .map(ex => findExerciseId(ex.name))
+                            .filter((id): id is string => id !== null);
+
+                        const customSets: { [key: string]: { weight: number; reps: number }[] } = {};
+                        workout.exercises.forEach(ex => {
+                            const exerciseId = findExerciseId(ex.name);
+                            if (exerciseId) {
+                                const numSets = (ex as any).sets || 3;
+                                customSets[exerciseId] = Array(numSets).fill({
+                                    weight: 0,
+                                    reps: parseInt((ex as any).reps) || 10
+                                });
+                            }
+                        });
+
+                        await createWorkout({
+                            name: workout.name,
+                            scheduled_date: scheduledDate,
+                            color: workout.color || '#1e3a5f'
+                        }, exerciseIds, customSets);
+                    }
                 }
             }
 
@@ -905,15 +1018,15 @@ IMPORTANT: When generating custom Workout Plans (PROPOSE_PLAN):
                                         ) : message.actionSuccess ? (
                                             <>
                                                 <Feather name="check" size={18} color="#fff" />
-                                                <Text style={styles.addBtnText}>Added to Calendar</Text>
+                                                <Text style={styles.addBtnText}>Added to Plan</Text>
                                             </>
                                         ) : (
                                             <>
                                                 <Feather name="calendar" size={18} color="#fff" />
                                                 <Text style={styles.addBtnText}>
                                                     {message.workoutPlan.weeks === 1 && message.workoutPlan.workouts.length === 1
-                                                        ? `Add ${message.workoutPlan.workouts[0].name} to Calendar`
-                                                        : `Add ${message.workoutPlan.weeks || 4} Week${(message.workoutPlan.weeks || 4) > 1 ? 's' : ''} to Calendar`}
+                                                        ? `Add ${message.workoutPlan.workouts[0].name} to Plan`
+                                                        : `Add ${message.workoutPlan.weeks || 4} Week${(message.workoutPlan.weeks || 4) > 1 ? 's' : ''} to Plan`}
                                                 </Text>
                                             </>
                                         )}
@@ -982,8 +1095,13 @@ IMPORTANT: When generating custom Workout Plans (PROPOSE_PLAN):
                             <View style={[styles.avatar, { backgroundColor: themeColors.glassBg }]}>
                                 <Feather name="cpu" size={16} color="#c9a227" />
                             </View>
-                            <View style={[styles.messageBubble, styles.assistantBubble, { backgroundColor: themeColors.glassBg }]}>
+                            <View style={[styles.messageBubble, styles.assistantBubble, { backgroundColor: themeColors.glassBg, flexDirection: 'row', alignItems: 'center', gap: 10 }]}>
                                 <TypingIndicator />
+                                {loadingStatus ? (
+                                    <Text style={{ color: themeColors.textSecondary, fontSize: 13, fontStyle: 'italic' }}>
+                                        {loadingStatus}
+                                    </Text>
+                                ) : null}
                             </View>
                         </View>
                     )}

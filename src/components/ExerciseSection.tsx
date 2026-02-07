@@ -10,7 +10,7 @@ import { useExercises } from '../hooks/useExercises';
 import { useTheme } from '../context/ThemeContext';
 import { RootStackParamList } from '../navigation';
 import { spacing, radii, typography, MIN_TOUCH_TARGET, colors } from '../theme';
-import NumberWheelPicker from './NumberWheelPicker';
+import InlineDragPicker from './InlineDragPicker';
 import { isCardioExercise } from '../lib/constants';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -45,12 +45,6 @@ export default function ExerciseSection({ workoutExercise, onSetToggle, onSetAdd
 
     const [sets, setSets] = useState(workoutExercise.sets || []);
     const [isExpanded, setIsExpanded] = useState(true);
-    const [pickerConfig, setPickerConfig] = useState<{
-        visible: boolean;
-        setId: string;
-        field: 'weight' | 'reps';
-        value: number;
-    }>({ visible: false, setId: '', field: 'weight', value: 0 });
     const debounceTimers = useRef<Record<string, NodeJS.Timeout>>({});
 
     const exercise = workoutExercise.exercise;
@@ -144,32 +138,15 @@ export default function ExerciseSection({ workoutExercise, onSetToggle, onSetAdd
         }
     };
 
-    // Open wheel picker for weight or reps
-    const openPicker = (setId: string, field: 'weight' | 'reps', currentValue: number) => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        setPickerConfig({
-            visible: true,
-            setId,
-            field,
-            value: currentValue || 0,
-        });
-    };
-
-    // Handle value change from wheel picker
-    const handlePickerChange = (newValue: number) => {
-        const { setId, field } = pickerConfig;
+    // Handle inline value change for weight/reps
+    const handleInlineValueChange = useCallback((setId: string, field: 'weight' | 'reps', newValue: number) => {
         // Update local state immediately
         setSets((prev) =>
             prev.map((s) => (s.id === setId ? { ...s, [field]: newValue } : s))
         );
         // Update in database
         updateSet(setId, { [field]: newValue });
-        setPickerConfig(prev => ({ ...prev, value: newValue }));
-    };
-
-    const closePicker = () => {
-        setPickerConfig(prev => ({ ...prev, visible: false }));
-    };
+    }, [updateSet]);
 
     // Cleanup timers on unmount
     useEffect(() => {
@@ -244,38 +221,26 @@ export default function ExerciseSection({ workoutExercise, onSetToggle, onSetAdd
                             <Text style={[styles.setNum, { color: themeColors.textSecondary }]}>
                                 {index + 1}
                             </Text>
-                            {/* Weight/Time - Pressable for wheel picker */}
-                            <Pressable
-                                style={[
-                                    styles.input,
-                                    styles.weightCell,
-                                    {
-                                        backgroundColor: themeColors.inputBg,
-                                        borderColor: themeColors.inputBorder,
-                                    },
-                                ]}
-                                onPress={() => openPicker(set.id, 'weight', Number(set.weight) || 0)}
-                            >
-                                <Text style={[styles.inputText, { color: set.weight ? themeColors.textPrimary : themeColors.textMuted }]}>
-                                    {set.weight || '0'}
-                                </Text>
-                            </Pressable>
-                            {/* Reps/Calories - Pressable for wheel picker */}
-                            <Pressable
-                                style={[
-                                    styles.input,
-                                    styles.repsCell,
-                                    {
-                                        backgroundColor: themeColors.inputBg,
-                                        borderColor: themeColors.inputBorder,
-                                    },
-                                ]}
-                                onPress={() => openPicker(set.id, 'reps', Number(set.reps) || 0)}
-                            >
-                                <Text style={[styles.inputText, { color: set.reps ? themeColors.textPrimary : themeColors.textMuted }]}>
-                                    {set.reps || '0'}
-                                </Text>
-                            </Pressable>
+                            {/* Weight/Time - Inline Drag Picker */}
+                            <View style={styles.weightCell}>
+                                <InlineDragPicker
+                                    value={Number(set.weight) || 0}
+                                    onChange={(val) => handleInlineValueChange(set.id, 'weight', val)}
+                                    min={0}
+                                    max={isCardio ? 180 : 500}
+                                    step={isCardio ? 1 : 5}
+                                />
+                            </View>
+                            {/* Reps/Calories - Inline Drag Picker */}
+                            <View style={styles.repsCell}>
+                                <InlineDragPicker
+                                    value={Number(set.reps) || 0}
+                                    onChange={(val) => handleInlineValueChange(set.id, 'reps', val)}
+                                    min={0}
+                                    max={isCardio ? 2000 : 100}
+                                    step={isCardio ? 10 : 1}
+                                />
+                            </View>
                             <Pressable
                                 style={[
                                     styles.checkButton,
@@ -309,19 +274,6 @@ export default function ExerciseSection({ workoutExercise, onSetToggle, onSetAdd
                     </Pressable>
                 </>
             )}
-
-            {/* Wheel Picker Modal */}
-            <NumberWheelPicker
-                visible={pickerConfig.visible}
-                value={pickerConfig.value}
-                onChange={handlePickerChange}
-                onClose={closePicker}
-                min={pickerConfig.field === 'weight' ? 0 : 1}
-                max={pickerConfig.field === 'weight' ? 500 : 100}
-                step={pickerConfig.field === 'weight' ? 5 : 1}
-                unit={isCardio ? (pickerConfig.field === 'weight' ? 'min' : 'cal') : (pickerConfig.field === 'weight' ? 'lbs' : 'reps')}
-                title={isCardio ? (pickerConfig.field === 'weight' ? 'Duration' : 'Calories') : (pickerConfig.field === 'weight' ? 'Weight' : 'Reps')}
-            />
         </View>
     );
 }

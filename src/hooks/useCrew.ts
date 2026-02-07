@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
+import { getCached, setCache, CacheKeys, CacheTTL } from '../lib/cacheManager';
 
 export interface CrewMember {
     user_id: string; // The OTHER person's ID (profile owner) - also acts as unique key
@@ -12,6 +13,12 @@ export interface CrewMember {
     direction: 'incoming' | 'outgoing' | 'confirmed';
 }
 
+interface CachedCrewData {
+    crew: CrewMember[];
+    requests: CrewMember[];
+    sentRequests: CrewMember[];
+}
+
 export function useCrew() {
     const { user } = useAuth();
     const [crew, setCrew] = useState<CrewMember[]>([]);
@@ -19,9 +26,29 @@ export function useCrew() {
     const [sentRequests, setSentRequests] = useState<CrewMember[]>([]); // Outgoing requests
     const [loading, setLoading] = useState(true);
 
+    // Load from cache on mount (instant display)
+    useEffect(() => {
+        const loadCached = async () => {
+            if (!user) return;
+            const cached = await getCached<CachedCrewData>(CacheKeys.crew(user.id), CacheTTL.crew);
+            if (cached) {
+                setCrew(cached.crew || []);
+                setRequests(cached.requests || []);
+                setSentRequests(cached.sentRequests || []);
+                setLoading(false);
+            }
+        };
+        loadCached();
+    }, [user]);
+
     const loadCrew = useCallback(async () => {
         if (!user) return;
-        setLoading(true);
+
+        // Only show loading if we have no cached data
+        if (crew.length === 0 && requests.length === 0) {
+            setLoading(true);
+        }
+
         try {
             // 1. Fetch relationships (raw IDs)
             const { data: relationships, error: relError } = await supabase
@@ -90,12 +117,20 @@ export function useCrew() {
             setCrew(confirmed);
             setRequests(incoming);
             setSentRequests(outgoing);
+
+            // Cache the results
+            await setCache(CacheKeys.crew(user.id), {
+                crew: confirmed,
+                requests: incoming,
+                sentRequests: outgoing,
+            });
         } catch (err) {
             console.error('Error loading crew:', err);
+            // Don't clear data on error - keep showing cached data
         } finally {
             setLoading(false);
         }
-    }, [user]);
+    }, [user, crew.length, requests.length]);
 
     // Add (Send Request)
     const addCrewMember = async (targetUserId: string) => {

@@ -9,14 +9,14 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/splash-icon-hd.png",
       "resizeMode": "contain",
       "backgroundColor": "#0a141f"
     },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.walsansoftware.hybrid",
-      "buildNumber": "1",
+      "buildNumber": "10",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "HYBRID needs access to your photo library to upload photos to your posts and profile.",
         "NSCameraUsageDescription": "HYBRID needs access to your camera to take photos for your posts.",
@@ -29,7 +29,7 @@
     },
     "android": {
       "package": "com.jaredwaldroff.hybrid",
-      "versionCode": 1,
+      "versionCode": 10,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0a141f"

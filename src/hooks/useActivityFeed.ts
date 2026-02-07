@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { DeviceEventEmitter } from 'react-native';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
+import { getCached, setCache, CacheKeys, CacheTTL } from '../lib/cacheManager';
 
 // Types
 export interface FeedPost {
@@ -111,6 +112,19 @@ export function useActivityFeed(eventId?: string) { // Accepts optional eventId 
     // Store allowed IDs for realtime filtering
     const allowedIdsRef = useRef<string[]>([]);
 
+    // Load from cache on mount (instant display) - only for global feed, not event-specific
+    useEffect(() => {
+        const loadCached = async () => {
+            if (!user || eventId) return; // Don't cache event-specific feeds
+            const cached = await getCached<FeedPost[]>(CacheKeys.feed(user.id), CacheTTL.feed);
+            if (cached && cached.length > 0) {
+                setFeed(cached);
+                setLoading(false);
+            }
+        };
+        loadCached();
+    }, [user, eventId]);
+
     // Helper to get cached profiles or fetch missing ones
     const getProfiles = useCallback(async (userIds: string[]) => {
         const now = Date.now();
@@ -145,9 +159,13 @@ export function useActivityFeed(eventId?: string) { // Accepts optional eventId 
     const loadFeed = useCallback(async (eventId?: string, limit: number = 50) => {
         if (!user) return;
 
-        try {
+        // Only show loading if we have no cached data
+        if (feed.length === 0) {
             setLoading(true);
-            setError(null);
+        }
+        setError(null);
+
+        try {
 
             // OPTIMIZATION 1: Fetch squad IDs first (needed for filtering)
             let allowedIds: string[] = [user.id];
@@ -301,13 +319,19 @@ export function useActivityFeed(eventId?: string) { // Accepts optional eventId 
             }
 
             setFeed(postsWithData);
+
+            // Cache the results (only cache global feed, not event-specific)
+            if (!eventId && postsWithData.length > 0) {
+                await setCache(CacheKeys.feed(user.id), postsWithData);
+            }
         } catch (err: any) {
             console.error('Error loading feed:', err);
             setError(err.message);
+            // Don't clear feed on error - keep showing cached data
         } finally {
             setLoading(false);
         }
-    }, [user, getProfiles]);
+    }, [user, getProfiles, feed.length]);
 
     // Listen for comment updates
     useEffect(() => {

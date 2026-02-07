@@ -311,15 +311,15 @@ function MainTabs() {
                     const isMainScreen = !routeName || routeName === 'SettingsMain';
                     return {
                         tabBarLabel: 'Settings',
-                        swipeEnabled: isMainScreen,
+                        swipeEnabled: isMainScreen, // Allow swipe left to Squad from main Settings screen
                     };
                 }}
             />
-            {/* Hidden Badges tab - accessible by swiping right from Settings */}
+            {/* Hidden Badges/Achievements tab - accessible by swiping right from Settings */}
             <Tab.Screen
                 name="BadgesTab"
-                component={AthleteProfileScreen}
-                options={{ tabBarLabel: 'Badges' }}
+                component={BadgesScreen}
+                options={{ tabBarLabel: 'Achievements', swipeEnabled: true }}
             />
         </Tab.Navigator>
     );

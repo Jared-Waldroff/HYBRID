@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -28,7 +28,7 @@ interface WorkoutCardProps {
     onDelete?: () => void;
 }
 
-export default function WorkoutCard({ workout, onDelete }: WorkoutCardProps) {
+function WorkoutCard({ workout, onDelete }: WorkoutCardProps) {
     const navigation = useNavigation<NavigationProp>();
     const { themeColors } = useTheme();
     const [showMenu, setShowMenu] = useState(false);
@@ -286,3 +286,5 @@ const styles = StyleSheet.create({
         flexShrink: 1,
     },
 });
+
+export default memo(WorkoutCard);

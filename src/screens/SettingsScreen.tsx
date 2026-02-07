@@ -266,14 +266,24 @@ export default function SettingsScreen() {
     );
 
     const presetThemeArray = Object.values(presetThemes);
-    const COLOR_PALETTE = ['#1e3a5f', '#0f766e', '#166534', '#3b82f6', '#6366f1', '#7c3aed', '#ec4899', '#ef4444', '#f59e0b', '#000000', '#ffffff'];
+    // Curated color palette - 20 colors in a 5x4 grid
+    const COLOR_PALETTE = [
+        // Row 1: Blues & Teals
+        '#0ea5e9', '#3b82f6', '#6366f1', '#1e3a5f', '#0f766e',
+        // Row 2: Greens & Yellows  
+        '#22c55e', '#84cc16', '#eab308', '#f59e0b', '#c9a227',
+        // Row 3: Oranges & Reds
+        '#f97316', '#ef4444', '#dc2626', '#b91c1c', '#ec4899',
+        // Row 4: Purples & Neutrals
+        '#a855f7', '#8b5cf6', '#7c3aed', '#64748b', '#1f2937',
+    ];
 
     return (
         <ScreenLayout>
             <ScrollView
                 ref={scrollViewRef}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 100 }}
+                contentContainerStyle={{ paddingBottom: 50 }}
             >
                 {/* Profile Layout with REAL stats */}
                 <ProfileLayout
@@ -316,37 +326,53 @@ export default function SettingsScreen() {
                         </View>
 
                         {/* App Colors */}
-                        <View style={[styles.section, styles.colorSection, { backgroundColor: themeColors.glassBg, borderColor: themeColors.glassBorder }]}>
-                            <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>APP COLORS</Text>
-                            <Text style={[styles.subsectionTitle, { color: themeColors.textPrimary }]}>Preset Themes</Text>
-                            <View style={styles.presetGrid}>
-                                {presetThemeArray.map((preset: any) => (
-                                    <Pressable
-                                        key={preset.id}
-                                        style={[styles.presetItem, presetThemeId === preset.id && styles.presetItemSelected]}
-                                        onPress={() => handlePresetSelect(preset.id)}
-                                    >
-                                        <LinearGradient
-                                            colors={[preset.primary, preset.secondary]}
-                                            start={{ x: 0, y: 0 }}
-                                            end={{ x: 1, y: 1 }}
-                                            style={[styles.presetGradient, presetThemeId === preset.id && styles.presetGradientSelected]}
-                                        />
-                                        <Text style={[styles.presetLabel, { color: themeColors.textSecondary }]}>{preset.name.toUpperCase()}</Text>
-                                    </Pressable>
-                                ))}
-                            </View>
+                        <View style={styles.section}>
+                            <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>App Colors</Text>
+                            <View style={[styles.colorSection, { backgroundColor: themeColors.glassBg, borderColor: themeColors.glassBorder }]}>
+                                <Text style={[styles.subsectionTitle, { color: themeColors.textPrimary }]}>Preset Themes</Text>
+                                <View style={styles.presetGrid}>
+                                    {presetThemeArray.map((preset: any) => (
+                                        <Pressable
+                                            key={preset.id}
+                                            style={[styles.presetItem, presetThemeId === preset.id && styles.presetItemSelected]}
+                                            onPress={() => handlePresetSelect(preset.id)}
+                                        >
+                                            <LinearGradient
+                                                colors={[preset.primary, preset.secondary]}
+                                                start={{ x: 0, y: 0 }}
+                                                end={{ x: 1, y: 1 }}
+                                                style={[
+                                                    styles.presetCircle,
+                                                    presetThemeId === preset.id && styles.presetCircleSelected
+                                                ]}
+                                            />
+                                            <Text style={[styles.presetLabel, { color: themeColors.textSecondary }]}>{preset.name.toUpperCase()}</Text>
+                                        </Pressable>
+                                    ))}
+                                </View>
 
-                            <Text style={[styles.subsectionTitle, { color: themeColors.textPrimary, marginTop: spacing.lg }]}>Customize Colors</Text>
-                            <View style={styles.customColorsRow}>
-                                <Pressable style={styles.customColorItem} onPress={() => openColorPicker('primary')}>
-                                    <Text style={[styles.customColorLabel, { color: themeColors.textSecondary }]}>Primary</Text>
-                                    <View style={[styles.customColorSwatch, { backgroundColor: userColors.accent_color }]} />
-                                </Pressable>
-                                <Pressable style={styles.customColorItem} onPress={() => openColorPicker('secondary')}>
-                                    <Text style={[styles.customColorLabel, { color: themeColors.textSecondary }]}>Secondary</Text>
-                                    <View style={[styles.customColorSwatch, { backgroundColor: userColors.secondary_color }]} />
-                                </Pressable>
+                                <Text style={[styles.customizeTitle, { color: themeColors.textPrimary }]}>Customize Colors</Text>
+                                <Text style={[styles.customizeSubtitle, { color: themeColors.textMuted }]}>Tap a color to customize it</Text>
+                                <View style={styles.customColorsRow}>
+                                    <Pressable style={styles.customColorItem} onPress={() => openColorPicker('primary')}>
+                                        <Text style={[styles.customColorLabel, { color: themeColors.textSecondary }]}>Primary</Text>
+                                        <View style={[styles.customColorSwatch, { backgroundColor: userColors.accent_color }]} />
+                                    </Pressable>
+                                    <Pressable style={styles.customColorItem} onPress={() => openColorPicker('secondary')}>
+                                        <Text style={[styles.customColorLabel, { color: themeColors.textSecondary }]}>Secondary</Text>
+                                        <View style={[styles.customColorSwatch, { backgroundColor: userColors.secondary_color }]} />
+                                    </Pressable>
+                                </View>
+
+                                <Text style={[styles.previewTitle, { color: themeColors.textPrimary }]}>Preview</Text>
+                                <LinearGradient
+                                    colors={[userColors.accent_color, userColors.secondary_color]}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 0 }}
+                                    style={styles.previewButton}
+                                >
+                                    <Text style={styles.previewButtonText}>Your Theme</Text>
+                                </LinearGradient>
                             </View>
                         </View>
 
@@ -502,25 +528,50 @@ export default function SettingsScreen() {
                 </View>
             </Modal>
 
-            {/* Color Picker Modal */}
-            <Modal visible={showCustomPicker} transparent animationType="fade" onRequestClose={() => setShowCustomPicker(false)}>
-                <View style={styles.modalOverlay}>
-                    <View style={[styles.modalContent, { backgroundColor: themeColors.bgSecondary }]}>
-                        <Text style={[styles.modalTitle, { color: themeColors.textPrimary, marginBottom: spacing.md }]}>Enter Hex Color</Text>
-                        <TextInput
-                            style={[styles.colorInput, { color: themeColors.textPrimary, borderColor: themeColors.inputBorder }]}
-                            value={customColor}
-                            onChangeText={setCustomColor}
-                            placeholder="#RRGGBB"
-                            placeholderTextColor={themeColors.textMuted}
-                            autoCapitalize="none"
-                        />
-                        <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 20 }}>
-                            <Pressable onPress={() => setShowCustomPicker(false)}><Text style={{ color: themeColors.textSecondary }}>Cancel</Text></Pressable>
-                            <Pressable onPress={handleColorSave}><Text style={{ color: userColors.accent_color, fontWeight: 'bold' }}>Save</Text></Pressable>
+            {/* Color Picker Modal - Visual Palette */}
+            <Modal visible={showCustomPicker} transparent animationType="slide" onRequestClose={() => setShowCustomPicker(false)}>
+                <Pressable style={styles.modalOverlay} onPress={() => setShowCustomPicker(false)}>
+                    <Pressable style={[styles.colorPickerModal, { backgroundColor: themeColors.bgSecondary }]} onPress={(e) => e.stopPropagation()}>
+                        <View style={styles.modalHeader}>
+                            <Text style={[styles.modalTitle, { color: themeColors.textPrimary }]}>
+                                Choose {editingColor === 'primary' ? 'Primary' : 'Secondary'} Color
+                            </Text>
+                            <Pressable onPress={() => setShowCustomPicker(false)}>
+                                <Feather name="x" size={24} color={themeColors.textSecondary} />
+                            </Pressable>
                         </View>
-                    </View>
-                </View>
+
+                        <View style={styles.colorPaletteGrid}>
+                            {COLOR_PALETTE.map((color) => (
+                                <Pressable
+                                    key={color}
+                                    style={[
+                                        styles.colorPaletteItem,
+                                        { backgroundColor: color },
+                                        customColor === color && styles.colorPaletteItemSelected
+                                    ]}
+                                    onPress={() => {
+                                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                        setCustomColor(color);
+                                    }}
+                                />
+                            ))}
+                        </View>
+
+                        {/* Preview of selected color */}
+                        <View style={styles.colorPreviewRow}>
+                            <Text style={[styles.colorPreviewLabel, { color: themeColors.textSecondary }]}>Selected:</Text>
+                            <View style={[styles.colorPreviewSwatch, { backgroundColor: customColor }]} />
+                        </View>
+
+                        <Pressable
+                            style={[styles.saveButton, { backgroundColor: userColors.accent_color }]}
+                            onPress={handleColorSave}
+                        >
+                            <Text style={styles.saveButtonText}>Apply Color</Text>
+                        </Pressable>
+                    </Pressable>
+                </Pressable>
             </Modal>
 
             {/* Feedback Modal */}
@@ -637,23 +688,84 @@ const styles = StyleSheet.create({
     uploadingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: 50, justifyContent: 'center', alignItems: 'center' },
 
     // Feature/Color Specific
-    colorSection: { padding: spacing.md, borderRadius: radii.lg, borderWidth: 1 },
-    subsectionTitle: { fontSize: 14, fontWeight: '600', marginBottom: 8 },
-    presetGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-    presetItem: { width: 68, alignItems: 'center' },
+    colorSection: { padding: spacing.lg, borderRadius: radii.lg, borderWidth: 1 },
+    colorSectionTitle: {
+        fontSize: typography.sizes.sm,
+        fontWeight: typography.weights.medium,
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+        textAlign: 'center',
+        marginBottom: spacing.lg,
+    },
+    subsectionTitle: { fontSize: 14, fontWeight: '600', marginBottom: spacing.md, textAlign: 'center' },
+    presetGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 12, marginBottom: spacing.lg, paddingHorizontal: 4 },
+    presetItem: { width: '22%', alignItems: 'center', opacity: 0.7 },
     presetItemSelected: { opacity: 1 },
-    presetGradient: { width: 48, height: 48, borderRadius: 24, marginBottom: 4, justifyContent: 'center', alignItems: 'center' },
+    presetCircle: { width: 48, height: 48, borderRadius: 24, marginBottom: 6 },
+    presetCircleSelected: { borderWidth: 3, borderColor: '#fff' },
+    presetGradient: { width: 48, height: 48, borderRadius: 24, marginBottom: 6 },
     presetGradientSelected: { borderWidth: 3, borderColor: '#fff' },
-    presetLabel: { fontSize: 10, fontWeight: 'medium', textAlign: 'center' },
-
-    customColorsRow: { flexDirection: 'row', gap: 16, marginTop: 8 },
-    customColorItem: { flex: 1, alignItems: 'center' },
-    customColorLabel: { fontSize: 12, marginBottom: 4 },
-    customColorSwatch: { width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: 'rgba(0,0,0,0.1)' },
+    presetLabel: { fontSize: 9, fontWeight: '500', textAlign: 'center', textTransform: 'uppercase', letterSpacing: 0.5 },
+    divider: { height: 1, backgroundColor: 'rgba(255,255,255,0.1)', marginVertical: spacing.lg },
+    customizeTitle: { fontSize: 14, fontWeight: '600', marginBottom: spacing.xs, textAlign: 'center' },
+    customizeSubtitle: { fontSize: 12, marginBottom: spacing.md, textAlign: 'center' },
+    customColorsRow: { flexDirection: 'row', justifyContent: 'center', gap: 24, marginBottom: spacing.lg },
+    customColorItem: { alignItems: 'center', flex: 1 },
+    customColorLabel: { fontSize: 12, fontWeight: '500', marginBottom: 8, textAlign: 'center' },
+    customColorSwatch: { width: '100%', height: 44, borderRadius: radii.lg, borderWidth: 2, borderColor: 'rgba(255,255,255,0.2)' },
+    previewTitle: { fontSize: 14, fontWeight: '600', marginBottom: spacing.sm, textAlign: 'left' },
+    previewButton: { borderRadius: radii.lg, padding: 14, alignItems: 'center', borderWidth: 2, borderColor: 'rgba(255,255,255,0.2)' },
+    previewButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
     colorInput: { borderWidth: 1, borderRadius: 8, padding: 12, marginBottom: 20, fontSize: 16 },
 
+    // Color Picker Modal
+    colorPickerModal: {
+        padding: spacing.lg,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        paddingBottom: 40,
+    },
+    colorPaletteGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        gap: 12,
+        marginBottom: spacing.lg,
+        paddingHorizontal: spacing.sm,
+    },
+    colorPaletteItem: {
+        width: 52,
+        height: 52,
+        borderRadius: 26,
+        borderWidth: 2,
+        borderColor: 'transparent',
+    },
+    colorPaletteItemSelected: {
+        borderColor: '#fff',
+        borderWidth: 3,
+        transform: [{ scale: 1.1 }],
+    },
+    colorPreviewRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 12,
+        marginBottom: spacing.lg,
+    },
+    colorPreviewLabel: {
+        fontSize: 14,
+        fontWeight: '500',
+    },
+    colorPreviewSwatch: {
+        width: 80,
+        height: 36,
+        borderRadius: radii.sm,
+        borderWidth: 2,
+        borderColor: 'rgba(255,255,255,0.3)',
+    },
+
     // App Info
-    appInfo: { alignItems: 'center', paddingVertical: spacing.md },
+    appInfo: { alignItems: 'center', paddingTop: spacing.md },
     appName: { fontSize: typography.sizes.sm, fontWeight: typography.weights.medium },
     appVersion: { fontSize: typography.sizes.xs, marginTop: 4 },
 });
