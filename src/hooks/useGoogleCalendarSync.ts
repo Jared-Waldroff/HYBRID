@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import * as Calendar from 'expo-calendar';
-import { Platform, Alert } from 'react-native';
+import { Platform } from 'react-native';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 
@@ -15,6 +15,7 @@ export interface SyncResult {
     synced: number;
     skipped: number;
     errors: number;
+    errorMessage?: string;
 }
 
 interface CalendarSyncPreferences {
@@ -35,11 +36,7 @@ export function useGoogleCalendarSync() {
         try {
             const { status } = await Calendar.requestCalendarPermissionsAsync();
             if (status !== 'granted') {
-                Alert.alert(
-                    'Calendar Permission Required',
-                    'Please grant calendar access to sync your workouts.',
-                    [{ text: 'OK' }]
-                );
+                // Caller should handle this with their preferred UI
                 return false;
             }
             return true;
@@ -289,9 +286,8 @@ export function useGoogleCalendarSync() {
             // Get or create calendar
             const calendarId = await getOrCreateCalendar();
             if (!calendarId) {
-                Alert.alert('Error', 'Could not access or create calendar.');
                 setSyncing(false);
-                return result;
+                return { ...result, errorMessage: 'Could not access or create calendar.' };
             }
 
             // Load current synced IDs
@@ -305,9 +301,8 @@ export function useGoogleCalendarSync() {
             });
 
             if (workoutsToSync.length === 0) {
-                Alert.alert('No Workouts', 'No workouts found in the selected date range.');
                 setSyncing(false);
-                return result;
+                return { ...result, errorMessage: 'No workouts found in the selected date range.' };
             }
 
             // Group workouts by date for proper time offset

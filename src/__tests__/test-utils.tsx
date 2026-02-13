@@ -28,7 +28,9 @@ export const MockAuthProvider = ({ children, user = mockUser }: { children: Reac
                 signUp: jest.fn(),
                 signOut: jest.fn(),
                 signInWithGoogle: jest.fn(),
+                signInWithApple: jest.fn(),
                 resetPassword: jest.fn(),
+                updatePassword: jest.fn(),
             }}
         >
             {children}
@@ -42,7 +44,14 @@ export const MockThemeProvider = ({ children }: { children: React.ReactNode }) =
         <ThemeContext.Provider
             value={{
                 theme: 'dark',
+                presetThemeId: 'midnight',
+                presetTheme: { id: 'midnight', name: 'Midnight', primary: '#c9a227', secondary: '#1e3a5f' },
+                loading: false,
+                styles: {} as any,
                 toggleTheme: jest.fn(),
+                updateTheme: jest.fn(),
+                updatePresetTheme: jest.fn(),
+                updateColors: jest.fn(),
                 colors: colors.dark,
                 themeColors: {
                     bgPrimary: '#0a141f',
@@ -59,12 +68,12 @@ export const MockThemeProvider = ({ children }: { children: React.ReactNode }) =
                     inputBg: '#1a202c',
                     inputBorder: '#2d3748',
                     divider: '#2d3748',
+                    accent: '#c9a227',
+                    accentSecondary: '#112240',
                     accentText: '#c9a227',
-                    accent_color: '#c9a227',
-                    secondary_color: '#112240',
                 },
                 showCF: true,
-                toggleCF: jest.fn(),
+                updateShowCF: jest.fn(),
             }}
         >
             {children}

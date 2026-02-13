@@ -62,3 +62,6 @@ supabase/.temp/
 
 # SQL docs (database schema - keep local only)
 docs/sql/
+
+# Supabase (Exclude all backend files)
+supabase/

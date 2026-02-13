@@ -8,8 +8,8 @@ import {
     ScrollView,
     ActivityIndicator,
     Modal,
-    Alert,
     Platform,
+    Dimensions,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
@@ -18,6 +18,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useWorkouts } from '../hooks/useWorkouts';
 import { useExercises } from '../hooks/useExercises';
 import ScreenLayout from '../components/ScreenLayout';
+import { useAlert } from '../components/CustomAlert';
 
 const WORKOUT_COLORS = [
     { name: 'Navy', value: '#1e3a5f' },
@@ -39,9 +40,10 @@ const WORKOUT_COLORS = [
 export default function CreateWorkoutScreen() {
     const navigation = useNavigation();
     const route = useRoute();
-    const { themeColors } = useTheme();
+    const { themeColors, colors: userColors } = useTheme();
     const { createWorkout, workouts, getWorkoutById } = useWorkouts();
     const { exercises, createExercise, fetchExercises } = useExercises();
+    const { showAlert } = useAlert();
 
     const initialDate = (route.params as any)?.date || new Date().toISOString().split('T')[0];
 
@@ -120,11 +122,11 @@ export default function CreateWorkoutScreen() {
 
     const handleCreateNewExercise = async () => {
         if (!newExerciseName.trim()) {
-            Alert.alert('Error', 'Please enter an exercise name');
+            showAlert({ title: 'Error', message: 'Please enter an exercise name' });
             return;
         }
         if (!newExerciseMuscle.trim()) {
-            Alert.alert('Error', 'Please enter a muscle group');
+            showAlert({ title: 'Error', message: 'Please enter a muscle group' });
             return;
         }
 
@@ -156,7 +158,7 @@ export default function CreateWorkoutScreen() {
             }
         } catch (err) {
             console.error('Error creating exercise:', err);
-            Alert.alert('Error', 'Failed to create exercise');
+            showAlert({ title: 'Error', message: 'Failed to create exercise' });
         } finally {
             setLoading(false);
         }
@@ -204,7 +206,7 @@ export default function CreateWorkoutScreen() {
             }
         } catch (err) {
             console.error('Error copying workout:', err);
-            Alert.alert('Error', 'Failed to copy workout');
+            showAlert({ title: 'Error', message: 'Failed to copy workout' });
         } finally {
             setLoading(false);
         }
@@ -212,12 +214,12 @@ export default function CreateWorkoutScreen() {
 
     const handleSubmit = async () => {
         if (!name.trim()) {
-            Alert.alert('Error', 'Please enter a workout name');
+            showAlert({ title: 'Error', message: 'Please enter a workout name' });
             return;
         }
 
         if (selectedExerciseIds.length === 0) {
-            Alert.alert('Error', 'Please select at least one exercise');
+            showAlert({ title: 'Error', message: 'Please select at least one exercise' });
             return;
         }
 
@@ -238,7 +240,7 @@ export default function CreateWorkoutScreen() {
             await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             navigation.goBack();
         } catch (err: any) {
-            Alert.alert('Error', err.message || 'Failed to create workout');
+            showAlert({ title: 'Error', message: err.message || 'Failed to create workout' });
         } finally {
             setLoading(false);
         }
@@ -332,7 +334,7 @@ export default function CreateWorkoutScreen() {
                             Exercises ({selectedExerciseIds.length})
                         </Text>
                         <Pressable
-                            style={[styles.addExerciseBtn]}
+                            style={[styles.addExerciseBtn, { backgroundColor: userColors.accent_color }]}
                             onPress={() => { setShowExercisePicker(true); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
                         >
                             <Feather name="plus" size={18} color="#fff" />
@@ -403,7 +405,7 @@ export default function CreateWorkoutScreen() {
                                         style={[
                                             styles.dateRow,
                                             { borderBottomColor: themeColors.glassBorder },
-                                            isSelected && { backgroundColor: 'rgba(201, 162, 39, 0.15)' },
+                                            isSelected && { backgroundColor: userColors.accent_color + '26' },
                                         ]}
                                         onPress={() => {
                                             setDate(d);
@@ -419,7 +421,7 @@ export default function CreateWorkoutScreen() {
                                                 {d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                                             </Text>
                                         </View>
-                                        {isSelected && <Feather name="check" size={20} color="#c9a227" />}
+                                        {isSelected && <Feather name="check" size={20} color={userColors.accent_color} />}
                                     </Pressable>
                                 );
                             })}
@@ -490,7 +492,7 @@ export default function CreateWorkoutScreen() {
                                             <Text style={[styles.createExerciseCancelText, { color: themeColors.textSecondary }]}>Cancel</Text>
                                         </Pressable>
                                         <Pressable
-                                            style={styles.createExerciseSaveBtn}
+                                            style={[styles.createExerciseSaveBtn, { backgroundColor: userColors.accent_color }]}
                                             onPress={handleCreateNewExercise}
                                             disabled={loading}
                                         >
@@ -501,11 +503,11 @@ export default function CreateWorkoutScreen() {
                                 </View>
                             ) : (
                                 <Pressable
-                                    style={[styles.createExerciseBtn, { borderColor: themeColors.glassBorder }]}
+                                    style={[styles.createExerciseBtn, { borderColor: userColors.accent_color }]}
                                     onPress={() => { setShowCreateExercise(true); setNewExerciseName(exerciseSearch); }}
                                 >
-                                    <Feather name="plus-circle" size={20} color="#c9a227" />
-                                    <Text style={[styles.createExerciseBtnText, { color: '#c9a227' }]}>
+                                    <Feather name="plus-circle" size={20} color={userColors.accent_color} />
+                                    <Text style={[styles.createExerciseBtnText, { color: userColors.accent_color }]}>
                                         {exerciseSearch.trim() ? `Create "${exerciseSearch}"` : 'Create New Exercise'}
                                     </Text>
                                 </Pressable>
@@ -518,7 +520,7 @@ export default function CreateWorkoutScreen() {
                                     style={[
                                         styles.exerciseRow,
                                         { borderBottomColor: themeColors.glassBorder },
-                                        selectedExerciseIds.includes(ex.id) && { backgroundColor: 'rgba(201, 162, 39, 0.1)' },
+                                        selectedExerciseIds.includes(ex.id) && { backgroundColor: userColors.accent_color + '1A' },
                                     ]}
                                     onPress={() => toggleExercise(ex.id)}
                                 >
@@ -529,7 +531,7 @@ export default function CreateWorkoutScreen() {
                                     <View style={[
                                         styles.checkbox,
                                         { borderColor: themeColors.textMuted },
-                                        selectedExerciseIds.includes(ex.id) && styles.checkboxChecked,
+                                        selectedExerciseIds.includes(ex.id) && { backgroundColor: userColors.accent_color, borderColor: userColors.accent_color },
                                     ]}>
                                         {selectedExerciseIds.includes(ex.id) && (
                                             <Feather name="check" size={14} color="#fff" />
@@ -552,7 +554,7 @@ export default function CreateWorkoutScreen() {
                         </ScrollView>
 
                         <Pressable
-                            style={styles.doneBtn}
+                            style={[styles.doneBtn, { backgroundColor: userColors.accent_color }]}
                             onPress={() => setShowExercisePicker(false)}
                         >
                             <Text style={styles.doneBtnText}>Done ({selectedExerciseIds.length} selected)</Text>
@@ -673,7 +675,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 4,
-        backgroundColor: '#1e3a5f',
         paddingHorizontal: 12,
         paddingVertical: 8,
         borderRadius: 16,
@@ -740,7 +741,7 @@ const styles = StyleSheet.create({
         borderTopRightRadius: 24,
         padding: 24,
         paddingBottom: 40,
-        maxHeight: '85%',
+        height: Dimensions.get('window').height * 0.85,
     },
     modalHeader: {
         flexDirection: 'row',
@@ -767,7 +768,8 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     exerciseList: {
-        maxHeight: 400,
+        flex: 1,
+        marginBottom: 16,
     },
     exerciseRow: {
         flexDirection: 'row',
@@ -788,17 +790,14 @@ const styles = StyleSheet.create({
     checkbox: {
         width: 24,
         height: 24,
-        borderRadius: 4,
+        borderRadius: 12,
         borderWidth: 2,
         justifyContent: 'center',
         alignItems: 'center',
     },
     checkboxChecked: {
-        backgroundColor: '#c9a227',
-        borderColor: '#c9a227',
     },
     doneBtn: {
-        backgroundColor: '#1e3a5f',
         height: 52,
         borderRadius: 12,
         justifyContent: 'center',
@@ -908,7 +907,6 @@ const styles = StyleSheet.create({
         flex: 1,
         height: 44,
         borderRadius: 8,
-        backgroundColor: '#c9a227',
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',

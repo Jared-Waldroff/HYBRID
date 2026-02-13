@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { FeedPost } from './useActivityFeed';
 
@@ -6,13 +6,21 @@ export function useUserPosts(userId: string | undefined, pageSize = 3) {
     const [posts, setPosts] = useState<FeedPost[]>([]);
     const [loading, setLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [page, setPage] = useState(0);
+
+    // Use ref for loading guard to avoid dependency cycle
+    const loadingRef = useRef(false);
 
     const loadPosts = useCallback(async (reset = false) => {
         if (!userId) return;
-        if (loading) return;
 
+        // Prevent duplicate requests
+        if (loadingRef.current) return;
+
+        loadingRef.current = true;
         setLoading(true);
+
         const currentPage = reset ? 0 : page;
 
         try {
@@ -73,12 +81,14 @@ export function useUserPosts(userId: string | undefined, pageSize = 3) {
                 setPosts(prev => [...prev, ...postsWithStructure]);
                 setPage(p => p + 1);
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error('Error fetching user posts:', err);
+            setError(err.message);
         } finally {
+            loadingRef.current = false;
             setLoading(false);
         }
-    }, [userId, page, loading, pageSize]);
+    }, [userId, page, pageSize]); // Removed loading from dependencies
 
-    return { posts, loading, hasMore, loadPosts };
+    return { posts, loading, hasMore, loadPosts, error };
 }

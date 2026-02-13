@@ -8,7 +8,6 @@ import {
     ActivityIndicator,
     RefreshControl,
     Image as RNImage,
-    Alert,
     Share,
     Modal,
     Animated,
@@ -29,11 +28,14 @@ import ScreenLayout from '../components/ScreenLayout';
 import { spacing, radii, typography } from '../theme';
 import { RootStackParamList } from '../navigation';
 import { supabase } from '../lib/supabaseClient';
+import { useAlert } from '../components/CustomAlert';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type EventDetailRouteProp = RouteProp<RootStackParamList, 'EventDetail'>;
 
 type TabType = 'overview' | 'training';
+
+import { formatEventActivities } from '../lib/formatting';
 
 export default function EventDetailScreen() {
     const navigation = useNavigation<NavigationProp>();
@@ -42,6 +44,7 @@ export default function EventDetailScreen() {
     const { themeColors, colors: userColors } = useTheme();
     const { getEventById, joinEvent, leaveEvent, getTrainingPlan, updateEvent, deleteEvent } = useSquadEvents();
     const { getParticipantProgress } = useEventWorkouts();
+    const { showAlert } = useAlert();
 
     const [event, setEvent] = useState<SquadEvent | null>(null);
     const [trainingPlan, setTrainingPlan] = useState<TrainingWorkout[]>([]);
@@ -152,10 +155,10 @@ export default function EventDetailScreen() {
 
     const handleLeave = async () => {
         if (!event) return;
-        Alert.alert(
-            'Leave Event',
-            'Are you sure you want to leave this event? Your progress will be preserved.',
-            [
+        showAlert({
+            title: 'Leave Event',
+            message: 'Are you sure you want to leave this event? Your progress will be preserved.',
+            buttons: [
                 { text: 'Cancel', style: 'cancel' },
                 {
                     text: 'Leave',
@@ -168,7 +171,7 @@ export default function EventDetailScreen() {
                     }
                 },
             ]
-        );
+        });
     };
 
     const handleWorkoutPress = (workout: TrainingWorkout) => {
@@ -222,11 +225,10 @@ export default function EventDetailScreen() {
         const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
         if (!permissionResult.granted) {
-            Alert.alert(
-                'Permission Required',
-                'Please allow access to your photo library to update the event photo.',
-                [{ text: 'OK' }]
-            );
+            showAlert({
+                title: 'Permission Required',
+                message: 'Please allow access to your photo library to update the event photo.'
+            });
             return;
         }
 
@@ -283,7 +285,7 @@ export default function EventDetailScreen() {
                 console.log('updateEvent result - error:', error);
 
                 if (error) {
-                    Alert.alert('Error', error);
+                    showAlert({ title: 'Error', message: error });
                 } else {
                     console.log('Reloading event data...');
                     await loadEventData();
@@ -291,7 +293,7 @@ export default function EventDetailScreen() {
                 }
             } catch (err: any) {
                 console.error('Upload error:', err);
-                Alert.alert('Error', 'Failed to upload photo');
+                showAlert({ title: 'Error', message: 'Failed to upload photo' });
             } finally {
                 setUploadingPhoto(false);
             }
@@ -498,7 +500,7 @@ export default function EventDetailScreen() {
                                         <Text style={[styles.targetText, { color: themeColors.textMuted }]}>
                                             {workout.target_value && workout.target_unit
                                                 ? `${workout.target_value} ${workout.target_unit}`
-                                                : workout.target_notes
+                                                : formatEventActivities(workout.target_notes)
                                             }
                                             {workout.target_zone && ` • ${workout.target_zone.replace('zone', 'Zone ')}`}
                                         </Text>
@@ -758,10 +760,10 @@ export default function EventDetailScreen() {
                                     style={styles.menuOption}
                                     onPress={() => {
                                         setShowMenu(false);
-                                        Alert.alert(
-                                            'Delete Event',
-                                            'Are you sure you want to delete this event? This cannot be undone.',
-                                            [
+                                        showAlert({
+                                            title: 'Delete Event',
+                                            message: 'Are you sure you want to delete this event? This cannot be undone.',
+                                            buttons: [
                                                 { text: 'Cancel', style: 'cancel' },
                                                 {
                                                     text: 'Delete',
@@ -769,14 +771,14 @@ export default function EventDetailScreen() {
                                                     onPress: async () => {
                                                         const result = await deleteEvent(event.id);
                                                         if (result.error) {
-                                                            Alert.alert('Error', result.error);
+                                                            showAlert({ title: 'Error', message: result.error });
                                                         } else {
                                                             navigation.goBack();
                                                         }
                                                     }
                                                 },
                                             ]
-                                        );
+                                        });
                                     }}
                                 >
                                     <Feather name="trash-2" size={20} color="#ef4444" />
@@ -1100,6 +1102,7 @@ const styles = StyleSheet.create({
     },
     targetText: {
         fontSize: typography.sizes.sm,
+        lineHeight: 20,
     },
     emptyState: {
         alignItems: 'center',

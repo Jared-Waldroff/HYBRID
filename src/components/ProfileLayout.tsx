@@ -15,6 +15,8 @@ interface ProfileLayoutProps {
     onEditProfile?: () => void;
     onViewBadges?: () => void;
     isSquadMember?: boolean;
+    myEvents?: any[]; // Avoiding circular import for SquadEvent
+    onInviteToEvent?: (eventId: string) => void;
 }
 
 export default function ProfileLayout({
@@ -25,9 +27,49 @@ export default function ProfileLayout({
     loading,
     onEditProfile,
     onViewBadges,
-    isSquadMember
+    isSquadMember,
+    myEvents,
+    onInviteToEvent
 }: ProfileLayoutProps) {
     const { themeColors, colors: userColors } = useTheme();
+
+    // Event Invite Section
+    const renderInviteSection = () => {
+        if (!myEvents || myEvents.length === 0 || isOwnProfile || !onInviteToEvent || !isSquadMember) return null;
+
+        return (
+            <View style={styles.sectionContainer}>
+                <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>
+                    Invite to Event
+                </Text>
+                <View style={styles.eventsList}>
+                    {myEvents.map(event => (
+                        <Pressable
+                            key={event.id}
+                            style={[
+                                styles.eventItem,
+                                { backgroundColor: themeColors.bgSecondary, borderColor: themeColors.glassBorder }
+                            ]}
+                            onPress={() => onInviteToEvent(event.id)}
+                        >
+                            <View style={[styles.eventIcon, { backgroundColor: event.color || userColors.accent_color }]}>
+                                <Feather name="calendar" size={16} color="#fff" />
+                            </View>
+                            <View style={styles.eventInfo}>
+                                <Text style={[styles.eventName, { color: themeColors.textPrimary }]} numberOfLines={1}>
+                                    {event.name}
+                                </Text>
+                                <Text style={[styles.eventDate, { color: themeColors.textSecondary }]}>
+                                    {new Date(event.event_date).toLocaleDateString()}
+                                </Text>
+                            </View>
+                            <Feather name="plus" size={18} color={userColors.accent_color} />
+                        </Pressable>
+                    ))}
+                </View>
+            </View>
+        );
+    };
 
     return (
         <View style={styles.container}>
@@ -44,9 +86,9 @@ export default function ProfileLayout({
 
             {/* Gallery Section */}
             <View style={styles.sectionHeader} />
-            <ProfileGallery userId={user?.id || user?.user_id} />
+            <ProfileGallery userId={user?.user_id || user?.id} />
 
-            {/* View Achievements Button (Replaces Milestones/Badges Section) */}
+            {/* View Achievements Button */}
             <View style={[styles.badgesSection, { borderTopColor: themeColors.glassBorder, borderBottomColor: themeColors.glassBorder }]}>
                 <Pressable
                     style={({ pressed }) => [
@@ -67,6 +109,9 @@ export default function ProfileLayout({
                     <Feather name="chevron-right" size={20} color={themeColors.textMuted} />
                 </Pressable>
             </View>
+
+            {/* Invite to Event Section */}
+            {renderInviteSection()}
 
             {/* Additional Content (Settings, etc.) */}
             {children}
@@ -104,5 +149,42 @@ const styles = StyleSheet.create({
     buttonText: {
         fontSize: typography.sizes.base,
         fontWeight: typography.weights.medium,
+    },
+    sectionContainer: {
+        padding: spacing.md,
+        marginTop: spacing.sm,
+    },
+    sectionTitle: {
+        fontSize: typography.sizes.lg,
+        fontWeight: typography.weights.semibold,
+        marginBottom: spacing.sm,
+    },
+    eventsList: {
+        gap: spacing.sm,
+    },
+    eventItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: spacing.sm,
+        borderRadius: radii.md,
+        borderWidth: 1,
+    },
+    eventIcon: {
+        width: 32,
+        height: 32,
+        borderRadius: radii.sm,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: spacing.sm,
+    },
+    eventInfo: {
+        flex: 1,
+    },
+    eventName: {
+        fontSize: typography.sizes.sm,
+        fontWeight: typography.weights.medium,
+    },
+    eventDate: {
+        fontSize: typography.sizes.xs,
     },
 });

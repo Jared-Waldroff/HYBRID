@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, Pressable, StyleSheet, ScrollView, Switch, Alert, Modal, TextInput, Image, ActivityIndicator, Keyboard, Platform, KeyboardAvoidingView } from 'react-native';
+import { View, Text, Pressable, StyleSheet, ScrollView, Switch, Modal, TextInput, Image, ActivityIndicator, Keyboard, Platform, KeyboardAvoidingView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -14,6 +14,7 @@ import { supabase } from '../lib/supabaseClient';
 import { spacing, radii, typography, colors, presetThemes } from '../theme';
 import ScreenLayout from '../components/ScreenLayout';
 import ProfileLayout from '../components/ProfileLayout';
+import { useAlert } from '../components/CustomAlert';
 
 export default function SettingsScreen() {
     const navigation = useNavigation<any>();
@@ -21,6 +22,7 @@ export default function SettingsScreen() {
     const { theme, toggleTheme, themeColors, colors: userColors, updateColors, showCF, updateShowCF, presetThemeId, updatePresetTheme } = useTheme();
     const { profile, updateProfile, fetchProfile, loading: profileLoading } = useAthleteProfile();
     const { hasPromoAccess, applyPromoCode, removePromoCode, isPro } = useRevenueCat();
+    const { showAlert } = useAlert();
 
     // State
     const [showCustomPicker, setShowCustomPicker] = useState(false);
@@ -31,8 +33,65 @@ export default function SettingsScreen() {
     const [showEditProfile, setShowEditProfile] = useState(false);
     const [bio, setBio] = useState('');
     const [displayName, setDisplayName] = useState('');
+    const [username, setUsername] = useState('');
+    const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'unavailable'>('idle');
     const [uploadingPhoto, setUploadingPhoto] = useState(false);
     const [savingProfile, setSavingProfile] = useState(false);
+
+    // Change Password State
+    const [showChangePassword, setShowChangePassword] = useState(false);
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmNewPassword, setConfirmNewPassword] = useState('');
+    const [changingPassword, setChangingPassword] = useState(false);
+
+    // ... (existing code)
+
+    // Username Check
+    useEffect(() => {
+        if (!username || username.length < 3) {
+            setUsernameStatus('idle');
+            return;
+        }
+
+        if (username === profile?.username) {
+            setUsernameStatus('available');
+            return;
+        }
+
+        setUsernameStatus('checking');
+        const delayDebounceFn = setTimeout(async () => {
+            try {
+                // Determine if username is taken
+                // Assuming 'athlete_profiles' has a unique constraint or we just check existence
+                const { count, error } = await supabase
+                    .from('athlete_profiles')
+                    .select('user_id', { count: 'exact', head: true })
+                    .eq('username', username)
+                    .neq('user_id', user?.id); // Don't count self if we happen to match (though equality check above handles common case)
+
+                if (error) {
+                    console.error('Check username error:', error);
+                    setUsernameStatus('idle'); // Fallback
+                    return;
+                }
+
+                if (count && count > 0) {
+                    setUsernameStatus('unavailable');
+                } else {
+                    setUsernameStatus('available');
+                }
+            } catch (e) {
+                console.error(e);
+                setUsernameStatus('idle');
+            }
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [username, profile?.username, user?.id]);
+
+    // ... (existing code)
+
+
 
     // Stats
     const [stats, setStats] = useState({ posts: 0, followers: 0, following: 0 });
@@ -53,6 +112,7 @@ export default function SettingsScreen() {
         if (profile) {
             setBio(profile.bio || '');
             setDisplayName(profile.display_name || '');
+            setUsername(profile.username || '');
         }
     }, [profile]);
 
@@ -107,7 +167,7 @@ export default function SettingsScreen() {
     const handlePickPhoto = async () => {
         const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (!permissionResult.granted) {
-            Alert.alert('Permission Required', 'Please allow access to your photo library.');
+            showAlert({ title: 'Permission Required', message: 'Please allow access to your photo library.' });
             return;
         }
 
@@ -144,7 +204,7 @@ export default function SettingsScreen() {
             await fetchProfile();
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         } catch (err: any) {
-            Alert.alert('Upload Failed', err.message);
+            showAlert({ title: 'Upload Failed', message: err.message });
         } finally {
             setUploadingPhoto(false);
         }
@@ -154,9 +214,10 @@ export default function SettingsScreen() {
         setSavingProfile(true);
         try {
             const updates = {
-                id: user?.id,
+                user_id: user?.id,
                 bio: bio,
                 display_name: displayName,
+                username: username,
                 updated_at: new Date(),
             };
             const { error } = await supabase.from('athlete_profiles').upsert(updates);
@@ -164,9 +225,9 @@ export default function SettingsScreen() {
             await fetchProfile();
             setShowEditProfile(false);
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            Alert.alert('Success', 'Profile updated successfully');
+            showAlert({ title: 'Success', message: 'Profile updated successfully' });
         } catch (error: any) {
-            Alert.alert('Error', error.message);
+            showAlert({ title: 'Error', message: error.message });
         } finally {
             setSavingProfile(false);
         }
@@ -178,13 +239,13 @@ export default function SettingsScreen() {
             const result = await applyPromoCode(promoCode);
             setApplyingPromo(false);
             if (result.success) {
-                Alert.alert('Success!', result.message);
+                showAlert({ title: 'Success!', message: result.message });
                 setPromoCode('');
             } else {
-                Alert.alert('Invalid Code', result.message);
+                showAlert({ title: 'Invalid Code', message: result.message });
             }
         } catch (e: any) {
-            Alert.alert('Error', e.message);
+            showAlert({ title: 'Error', message: e.message });
             setApplyingPromo(false);
         }
     };
@@ -202,26 +263,90 @@ export default function SettingsScreen() {
             setFeedbackText('');
             setShowFeedbackModal(false);
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            Alert.alert('Thank You', 'Your feedback has been received!');
+            showAlert({ title: 'Thank You', message: 'Your feedback has been received!' });
         } catch (e: any) {
-            Alert.alert('Error', 'Failed to send feedback.');
+            showAlert({ title: 'Error', message: 'Failed to send feedback.' });
         } finally {
             setSendingFeedback(false);
         }
     };
 
-    const handleSignOut = async () => {
-        Alert.alert('Sign Out', 'Are you sure?', [
-            { text: 'Cancel', style: 'cancel' },
-            {
-                text: 'Sign Out',
-                style: 'destructive',
-                onPress: async () => {
-                    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-                    await signOut();
+    const { updatePassword } = useAuth();
+
+    const handleChangePassword = async () => {
+        if (!newPassword || !confirmNewPassword) {
+            showAlert({ title: 'Error', message: 'Please fill in all fields' });
+            return;
+        }
+
+        if (newPassword !== confirmNewPassword) {
+            showAlert({ title: 'Error', message: 'Passwords do not match' });
+            return;
+        }
+
+        if (newPassword.length < 6) {
+            showAlert({ title: 'Error', message: 'Password must be at least 6 characters' });
+            return;
+        }
+
+        setChangingPassword(true);
+        try {
+            const { error } = await updatePassword(newPassword);
+            if (error) throw error;
+
+            setNewPassword('');
+            setConfirmNewPassword('');
+            setShowChangePassword(false);
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            showAlert({ title: 'Success', message: 'Your password has been updated!' });
+        } catch (error: any) {
+            showAlert({ title: 'Error', message: error.message });
+        } finally {
+            setChangingPassword(false);
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        showAlert({
+            title: 'Delete Account',
+            message: 'This action is permanent and cannot be undone. All your data will be erased.',
+            buttons: [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            const { error } = await supabase.rpc('delete_own_account');
+                            if (error) throw error;
+                            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                            await signOut();
+                        } catch (error: any) {
+                            showAlert({ title: 'Error', message: 'Failed to delete account. Please try again.' });
+                            console.error('Delete account error:', error);
+                        }
+                    }
                 }
-            }
-        ]);
+            ]
+        });
+    };
+
+    const handleSignOut = async () => {
+        showAlert({
+            title: 'Sign Out',
+            message: 'Are you sure?',
+            buttons: [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Sign Out',
+                    style: 'destructive',
+                    onPress: async () => {
+                        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+                        await signOut();
+                    }
+                }
+            ]
+        });
     };
 
     // Color Logic
@@ -301,6 +426,8 @@ export default function SettingsScreen() {
                             <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>Account</Text>
                             <View style={styles.sectionContent}>
                                 <SettingsRow icon="mail" label="Email" value={user?.email} showChevron={false} />
+                                <View style={[styles.divider, { marginVertical: 0 }]} />
+                                <SettingsRow icon="lock" label="Change Password" onPress={() => setShowChangePassword(true)} />
                             </View>
                         </View>
 
@@ -406,7 +533,14 @@ export default function SettingsScreen() {
                             <View style={styles.sectionContent}>
                                 {hasPromoAccess ? (
                                     <Pressable style={[styles.settingsRow, { backgroundColor: themeColors.inputBg }]} onPress={() => {
-                                        Alert.alert('Remove Promo Code', 'Remove access?', [{ text: 'Cancel' }, { text: 'Remove', onPress: removePromoCode }]);
+                                        showAlert({
+                                            title: 'Remove Promo Code',
+                                            message: 'Remove access?',
+                                            buttons: [
+                                                { text: 'Cancel', style: 'cancel' },
+                                                { text: 'Remove', style: 'destructive', onPress: removePromoCode }
+                                            ]
+                                        });
                                     }}>
                                         <View style={styles.settingsRowLeft}>
                                             <Feather name="gift" size={18} color={userColors.accent_color} />
@@ -462,6 +596,18 @@ export default function SettingsScreen() {
                                     </View>
                                     <Feather name="chevron-right" size={20} color={colors.error} />
                                 </Pressable>
+
+                                <View style={[styles.divider, { marginVertical: 0 }]} />
+
+                                <Pressable style={[styles.settingsRow, styles.dangerRow, { backgroundColor: 'rgba(239, 68, 68, 0.1)' }]} onPress={handleDeleteAccount}>
+                                    <View style={styles.settingsRowLeft}>
+                                        <View style={[styles.iconContainer, { backgroundColor: colors.error }]}>
+                                            <Feather name="trash-2" size={18} color="#fff" />
+                                        </View>
+                                        <Text style={[styles.settingsLabel, { color: colors.error }]}>Delete Account</Text>
+                                    </View>
+                                    <Feather name="chevron-right" size={20} color={colors.error} />
+                                </Pressable>
                             </View>
                         </View>
 
@@ -503,10 +649,36 @@ export default function SettingsScreen() {
 
                         <Text style={[styles.inputLabel, { color: themeColors.textSecondary }]}>Display Name</Text>
                         <TextInput
-                            style={[styles.textInput, { backgroundColor: themeColors.inputBg, color: themeColors.textPrimary, borderColor: themeColors.inputBorder }]}
+                            style={[styles.textInput, { backgroundColor: themeColors.inputBg, color: themeColors.textPrimary, borderColor: themeColors.inputBorder, marginBottom: spacing.md }]}
                             value={displayName}
                             onChangeText={setDisplayName}
                         />
+
+                        <Text style={[styles.inputLabel, { color: themeColors.textSecondary }]}>Username</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <TextInput
+                                style={[
+                                    styles.textInput,
+                                    {
+                                        backgroundColor: themeColors.inputBg,
+                                        color: themeColors.textPrimary,
+                                        borderColor: usernameStatus === 'unavailable' ? colors.error :
+                                            usernameStatus === 'available' ? colors.success : themeColors.inputBorder,
+                                        flex: 1,
+                                        marginBottom: 0
+                                    }
+                                ]}
+                                value={username}
+                                onChangeText={(text) => setUsername(text.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                                autoCapitalize="none"
+                                autoCorrect={false}
+                            />
+                            <View style={{ width: 40, alignItems: 'center', justifyContent: 'center' }}>
+                                {usernameStatus === 'checking' && <ActivityIndicator size="small" color={themeColors.textMuted} />}
+                                {usernameStatus === 'available' && <Feather name="check-circle" size={24} color={colors.success} />}
+                                {usernameStatus === 'unavailable' && <Feather name="x-circle" size={24} color={colors.error} />}
+                            </View>
+                        </View>
 
                         <Text style={[styles.inputLabel, { color: themeColors.textSecondary, marginTop: spacing.md }]}>Bio</Text>
                         <TextInput
@@ -518,9 +690,13 @@ export default function SettingsScreen() {
                         />
 
                         <Pressable
-                            style={[styles.saveButton, { backgroundColor: userColors.accent_color, marginTop: spacing.xl }]}
+                            style={[
+                                styles.saveButton,
+                                { backgroundColor: userColors.accent_color, marginTop: spacing.xl },
+                                (usernameStatus === 'unavailable' || usernameStatus === 'checking') && { opacity: 0.5 }
+                            ]}
                             onPress={handleSaveProfile}
-                            disabled={savingProfile}
+                            disabled={savingProfile || usernameStatus === 'unavailable' || usernameStatus === 'checking'}
                         >
                             {savingProfile ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>Save</Text>}
                         </Pressable>
@@ -528,8 +704,53 @@ export default function SettingsScreen() {
                 </View>
             </Modal>
 
+            {/* Change Password Modal */}
+            <Modal visible={showChangePassword} transparent animationType="slide" onRequestClose={() => setShowChangePassword(false)}>
+                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalOverlay}>
+                    <Pressable style={{ flex: 1 }} onPress={() => setShowChangePassword(false)}>
+                        {/* Overlay Close */}
+                    </Pressable>
+                    <View style={[styles.modalContent, { backgroundColor: themeColors.bgSecondary }]}>
+                        <View style={styles.modalHeader}>
+                            <Text style={[styles.modalTitle, { color: themeColors.textPrimary }]}>Change Password</Text>
+                            <Pressable onPress={() => setShowChangePassword(false)}>
+                                <Feather name="x" size={24} color={themeColors.textSecondary} />
+                            </Pressable>
+                        </View>
+
+                        <Text style={[styles.inputLabel, { color: themeColors.textSecondary }]}>New Password</Text>
+                        <TextInput
+                            style={[styles.textInput, { backgroundColor: themeColors.inputBg, color: themeColors.textPrimary, borderColor: themeColors.inputBorder, marginBottom: spacing.md }]}
+                            placeholder="Min 6 characters"
+                            placeholderTextColor={themeColors.textMuted}
+                            value={newPassword}
+                            onChangeText={setNewPassword}
+                            secureTextEntry
+                        />
+
+                        <Text style={[styles.inputLabel, { color: themeColors.textSecondary }]}>Confirm Password</Text>
+                        <TextInput
+                            style={[styles.textInput, { backgroundColor: themeColors.inputBg, color: themeColors.textPrimary, borderColor: themeColors.inputBorder, marginBottom: spacing.lg }]}
+                            placeholder="Re-enter password"
+                            placeholderTextColor={themeColors.textMuted}
+                            value={confirmNewPassword}
+                            onChangeText={setConfirmNewPassword}
+                            secureTextEntry
+                        />
+
+                        <Pressable
+                            style={[styles.saveButton, { backgroundColor: userColors.accent_color }]}
+                            onPress={handleChangePassword}
+                            disabled={changingPassword}
+                        >
+                            {changingPassword ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>Update Password</Text>}
+                        </Pressable>
+                    </View>
+                </KeyboardAvoidingView>
+            </Modal >
+
             {/* Color Picker Modal - Visual Palette */}
-            <Modal visible={showCustomPicker} transparent animationType="slide" onRequestClose={() => setShowCustomPicker(false)}>
+            < Modal visible={showCustomPicker} transparent animationType="slide" onRequestClose={() => setShowCustomPicker(false)}>
                 <Pressable style={styles.modalOverlay} onPress={() => setShowCustomPicker(false)}>
                     <Pressable style={[styles.colorPickerModal, { backgroundColor: themeColors.bgSecondary }]} onPress={(e) => e.stopPropagation()}>
                         <View style={styles.modalHeader}>
@@ -572,10 +793,10 @@ export default function SettingsScreen() {
                         </Pressable>
                     </Pressable>
                 </Pressable>
-            </Modal>
+            </Modal >
 
             {/* Feedback Modal */}
-            <Modal visible={showFeedbackModal} transparent animationType="slide" onRequestClose={() => setShowFeedbackModal(false)}>
+            < Modal visible={showFeedbackModal} transparent animationType="slide" onRequestClose={() => setShowFeedbackModal(false)}>
                 <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalOverlay}>
                     <Pressable style={{ flex: 1 }} onPress={() => setShowFeedbackModal(false)}>
                         {/* Overlay Close */}
@@ -602,9 +823,9 @@ export default function SettingsScreen() {
                         </Pressable>
                     </View>
                 </KeyboardAvoidingView>
-            </Modal>
+            </Modal >
 
-        </ScreenLayout>
+        </ScreenLayout >
     );
 }
 

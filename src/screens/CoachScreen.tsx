@@ -8,7 +8,6 @@ import {
     ScrollView,
     ActivityIndicator,
     Platform,
-    Alert,
     Keyboard,
     Animated,
     LayoutAnimation,
@@ -32,6 +31,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation';
 import { supabase } from '../lib/supabaseClient';
+import { useAlert } from '../components/CustomAlert';
 
 // Feature flag: Set to false when ready to launch AI Coach
 const COACH_COMING_SOON = false;
@@ -128,6 +128,7 @@ export default function CoachScreen() {
     // RevenueCat Integration - must be called before Coming Soon check
     const { isPro, isLoading: isPurchasesLoading, hasPromoAccess } = useRevenueCat();
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+    const { showAlert } = useAlert();
 
     // Show Coming Soon screen if feature is disabled - BUT allow promo users through
     if (COACH_COMING_SOON && !hasPromoAccess) {
@@ -294,7 +295,7 @@ export default function CoachScreen() {
 
         } catch (e) {
             console.error(e);
-            Alert.alert('Error', 'Failed to execute action.');
+            showAlert({ title: 'Error', message: 'Failed to execute action.' });
         } finally {
             setProcessingActionId(null);
         }
@@ -320,7 +321,7 @@ export default function CoachScreen() {
             setShowLiabilityModal(false);
             await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         } else {
-            Alert.alert('Error', 'Could not save your agreement. Please try again.');
+            showAlert({ title: 'Error', message: 'Could not save your agreement. Please try again.' });
         }
     };
 
@@ -403,7 +404,7 @@ export default function CoachScreen() {
                         }}
                         onPress={() => navigation.navigate('Paywall', { fromCoach: true })}
                     >
-                        <Text style={{ color: '#000', fontSize: 18, fontWeight: '700' }}>Upgrade to Pro</Text>
+                        <Text style={{ color: themeColors.accentText, fontSize: 18, fontWeight: '700' }}>Upgrade to Pro</Text>
                     </Pressable>
                 </View>
             </ScreenLayout>
@@ -892,7 +893,7 @@ IMPORTANT: When generating custom Workout Plans (PROPOSE_PLAN):
 
         } catch (err) {
             console.error('Error adding workouts:', err);
-            Alert.alert('Error', 'Failed to add workouts. Please try again.');
+            showAlert({ title: 'Error', message: 'Failed to add workouts. Please try again.' });
         } finally {
             setProcessingActionId(null);
         }

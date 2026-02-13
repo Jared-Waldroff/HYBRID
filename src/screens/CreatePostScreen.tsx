@@ -8,7 +8,6 @@ import {
     StyleSheet,
     ActivityIndicator,
     ScrollView,
-    Alert,
     Modal,
     FlatList,
     KeyboardAvoidingView,
@@ -25,6 +24,7 @@ import { useActivityFeed, uploadFeedPhotos } from '../hooks/useActivityFeed';
 import { useWorkouts } from '../hooks/useWorkouts';
 import ScreenLayout from '../components/ScreenLayout';
 import AppHeader from '../components/AppHeader';
+import { useAlert } from '../components/CustomAlert';
 import { spacing, radii, typography } from '../theme';
 
 export default function CreatePostScreen() {
@@ -35,6 +35,7 @@ export default function CreatePostScreen() {
     const { user } = useAuth();
     const { createPost } = useActivityFeed();
     const { getRecentCompletedWorkouts, loading: workoutsLoading } = useWorkouts();
+    const { showAlert } = useAlert();
 
     // Use context for draft state
     const {
@@ -67,11 +68,10 @@ export default function CreatePostScreen() {
         const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
         if (!permissionResult.granted) {
-            Alert.alert(
-                'Permission Required',
-                'Please allow access to your photo library to add photos to your post.',
-                [{ text: 'OK' }]
-            );
+            showAlert({
+                title: 'Permission Required',
+                message: 'Please allow access to your photo library to add photos to your post.'
+            });
             return;
         }
 
@@ -96,7 +96,7 @@ export default function CreatePostScreen() {
 
     const handlePost = async () => {
         if (!caption.trim() && selectedPhotos.length === 0 && !selectedWorkout) {
-            Alert.alert('Empty Post', 'Please add a caption, photo, or workout to your post.');
+            showAlert({ title: 'Empty Post', message: 'Please add a caption, photo, or workout to your post.' });
             return;
         }
 
@@ -133,7 +133,7 @@ export default function CreatePostScreen() {
         } catch (err: any) {
             // For now, if it fails due to event_id, let's just show an alert
             // But primarily we want to build the UI first.
-            Alert.alert('Error', err.message);
+            showAlert({ title: 'Error', message: err.message });
         } finally {
             setUploading(false);
         }

@@ -10,6 +10,7 @@ import { User, Session } from '@supabase/supabase-js';
 import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
 import { makeRedirectUri } from 'expo-auth-session';
+import * as AppleAuthentication from 'expo-apple-authentication';
 
 // Required for expo-auth-session to work properly
 WebBrowser.maybeCompleteAuthSession();
@@ -28,8 +29,10 @@ interface AuthContextType {
         password: string
     ) => Promise<{ data: any; error: any }>;
     signInWithGoogle: () => Promise<{ data: any; error: any }>;
+    signInWithApple: () => Promise<{ data: any; error: any }>;
     signOut: () => Promise<{ error: any }>;
     resetPassword: (email: string) => Promise<{ data: any; error: any }>;
+    updatePassword: (password: string) => Promise<{ data: any; error: any }>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -238,6 +241,61 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
     };
 
+    const signInWithApple = async () => {
+        try {
+            const credential = await AppleAuthentication.signInAsync({
+                requestedScopes: [
+                    AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+                    AppleAuthentication.AppleAuthenticationScope.EMAIL,
+                ],
+            });
+
+            // Sign in via Supabase with the ID token
+            if (credential.identityToken) {
+                const { data, error } = await supabase.auth.signInWithIdToken({
+                    provider: 'apple',
+                    token: credential.identityToken,
+                });
+
+                if (error) throw error;
+
+                // If successful, we might need to create the profile manually if it's the first time
+                // The onAuthStateChange listener handles most of this, but we can capture the name here
+                // because Apple only sends it ONCE (on first login).
+                if (data.user && credential.fullName) {
+                    // We can try to update metadata or profile here if needed, 
+                    // but the listener usually handles profile creation.
+                    // IMPORTANT: Apple only returns fullName on the VERY FIRST sign in.
+                    // If we miss it here, it's gone.
+                    const name = [credential.fullName.givenName, credential.fullName.familyName]
+                        .filter(Boolean)
+                        .join(' ');
+
+                    if (name) {
+                        try {
+                            // Update user metadata with the name
+                            await supabase.auth.updateUser({
+                                data: { name: name }
+                            });
+                        } catch (e) {
+                            console.log("Error updating user metadata with Apple name", e);
+                        }
+                    }
+                }
+
+                return { data, error: null };
+            } else {
+                throw new Error('No identity token returned from Apple');
+            }
+        } catch (e: any) {
+            if (e.code === 'ERR_CANCELED') {
+                return { data: null, error: { message: 'Sign in cancelled' } };
+            }
+            console.error('Apple Sign In Error:', e);
+            return { data: null, error: e };
+        }
+    };
+
     const signOut = async () => {
         const { error } = await supabase.auth.signOut();
         return { error };
@@ -248,6 +306,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return { data, error };
     };
 
+    const updatePassword = async (password: string) => {
+        const { data, error } = await supabase.auth.updateUser({ password });
+        return { data, error };
+    };
+
     const value: AuthContextType = {
         user,
         session,
@@ -255,8 +318,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         signUp,
         signIn,
         signInWithGoogle,
+        signInWithApple,
         signOut,
         resetPassword,
+        updatePassword,
     };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

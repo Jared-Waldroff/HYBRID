@@ -6,13 +6,13 @@ import {
     Pressable,
     StyleSheet,
     Switch,
-    Alert,
     ActivityIndicator,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { useNotifications } from '../context/NotificationContext';
 import ScreenLayout from '../components/ScreenLayout';
+import { useAlert } from '../components/CustomAlert';
 import { spacing, radii, typography } from '../theme';
 import { cancelAllNotifications, getScheduledNotificationCount } from '../services/notificationService';
 
@@ -29,6 +29,7 @@ export default function NotificationSettingsScreen() {
 
     const [loading, setLoading] = useState(false);
     const [registeringPush, setRegisteringPush] = useState(false);
+    const { showAlert } = useAlert();
 
     useEffect(() => {
         refreshScheduledCount();
@@ -40,10 +41,10 @@ export default function NotificationSettingsScreen() {
         setRegisteringPush(false);
 
         if (!success) {
-            Alert.alert(
-                'Notifications Disabled',
-                'Please enable notifications in your device settings to receive workout reminders and squad activity updates.'
-            );
+            showAlert({
+                title: 'Notifications Disabled',
+                message: 'Please enable notifications in your device settings to receive workout reminders and squad activity updates.'
+            });
         }
     };
 
@@ -54,10 +55,10 @@ export default function NotificationSettingsScreen() {
     };
 
     const handleClearAll = async () => {
-        Alert.alert(
-            'Clear All Reminders',
-            'This will cancel all scheduled workout reminders. Are you sure?',
-            [
+        showAlert({
+            title: 'Clear All Reminders',
+            message: 'This will cancel all scheduled workout reminders. Are you sure?',
+            buttons: [
                 { text: 'Cancel', style: 'cancel' },
                 {
                     text: 'Clear All',
@@ -65,11 +66,11 @@ export default function NotificationSettingsScreen() {
                     onPress: async () => {
                         await cancelAllNotifications();
                         await refreshScheduledCount();
-                        Alert.alert('Done', 'All scheduled reminders have been cleared.');
+                        showAlert({ title: 'Done', message: 'All scheduled reminders have been cleared.' });
                     }
                 }
             ]
-        );
+        });
     };
 
     return (

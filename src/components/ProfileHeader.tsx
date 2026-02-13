@@ -57,7 +57,7 @@ export default function ProfileHeader({
                         ) : (
                             <View style={[styles.avatarPlaceholder, { backgroundColor: themeColors.bgTertiary }]}>
                                 <Text style={[styles.avatarInitial, { color: themeColors.textSecondary }]}>
-                                    {user.display_name?.[0]?.toUpperCase() || '?'}
+                                    {user.display_name?.[0]?.toUpperCase() || user.username?.[0]?.toUpperCase() || '?'}
                                 </Text>
                             </View>
                         )}
@@ -81,42 +81,53 @@ export default function ProfileHeader({
                         </View>
                     </View>
                 </View>
-            </View>
+            </View >
+
+            {/* Username */}
+            {user.username && (
+                <Text style={[styles.username, { color: themeColors.textSecondary, marginBottom: spacing.sm, marginLeft: spacing.sm }]}>
+                    @{user.username}
+                </Text>
+            )}
 
             {/* Bio Section */}
-            <View style={styles.bioContainer}>
-                {user.bio && (
-                    <Text style={[styles.bio, { color: themeColors.textSecondary }]}>
-                        {user.bio}
-                    </Text>
-                )}
-            </View>
+            < View style={styles.bioContainer} >
+                {
+                    user.bio && (
+                        <Text style={[styles.bio, { color: themeColors.textSecondary }]}>
+                            {user.bio}
+                        </Text>
+                    )
+                }
+            </View >
 
             {/* Action Buttons */}
-            <View style={styles.actionsContainer}>
-                {isOwnProfile ? (
-                    <Pressable
-                        style={[styles.actionBtn, { backgroundColor: themeColors.bgSecondary, borderColor: themeColors.glassBorder }]}
-                        onPress={onEditProfile}
-                    >
-                        <Text style={[styles.actionBtnText, { color: themeColors.textPrimary }]}>Edit profile</Text>
-                    </Pressable>
-                ) : (
-                    <>
-                        {!isSquadMember && (
-                            <Pressable
-                                style={[styles.actionBtn, { backgroundColor: userColors.accent_color }]}
-                                onPress={onFollow}
-                            >
-                                <Text style={[styles.actionBtnText, { color: '#fff' }]}>Add to Squad</Text>
-                            </Pressable>
-                        )}
-                    </>
-                )}
-            </View>
+            < View style={styles.actionsContainer} >
+                {
+                    isOwnProfile ? (
+                        <Pressable
+                            style={[styles.actionBtn, { backgroundColor: themeColors.bgSecondary, borderColor: themeColors.glassBorder }]}
+                            onPress={onEditProfile}
+                        >
+                            <Text style={[styles.actionBtnText, { color: themeColors.textPrimary }]}>Edit profile</Text>
+                        </Pressable>
+                    ) : (
+                        <>
+                            {!isSquadMember && (
+                                <Pressable
+                                    style={[styles.actionBtn, { backgroundColor: userColors.accent_color }]}
+                                    onPress={onFollow}
+                                >
+                                    <Text style={[styles.actionBtnText, { color: '#fff' }]}>Add to Squad</Text>
+                                </Pressable>
+                            )}
+                        </>
+                    )
+                }
+            </View >
 
             {/* Full Photo Modal */}
-            <Modal visible={showFullPhoto} transparent animationType="fade" onRequestClose={() => setShowFullPhoto(false)}>
+            < Modal visible={showFullPhoto} transparent animationType="fade" onRequestClose={() => setShowFullPhoto(false)}>
                 <Pressable style={styles.modalOverlay} onPress={() => setShowFullPhoto(false)}>
                     <View style={styles.fullPhotoContainer}>
                         {user.avatar_url ? (
@@ -130,8 +141,8 @@ export default function ProfileHeader({
                         )}
                     </View>
                 </Pressable>
-            </Modal>
-        </View>
+            </Modal >
+        </View >
     );
 }
 

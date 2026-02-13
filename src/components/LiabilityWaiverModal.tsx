@@ -86,9 +86,9 @@ export default function LiabilityWaiverModal({ visible, onAgree, isUpdating }: L
                             disabled={isUpdating}
                         >
                             {isUpdating ? (
-                                <ActivityIndicator color="#000" />
+                                <ActivityIndicator color={themeColors.accentText} />
                             ) : (
-                                <Text style={[themeStyles.btnPrimaryText, { color: '#000', fontWeight: 'bold' }]}>
+                                <Text style={[themeStyles.btnPrimaryText, { color: themeColors.accentText, fontWeight: 'bold' }]}>
                                     I Acknowledge & Agree
                                 </Text>
                             )}

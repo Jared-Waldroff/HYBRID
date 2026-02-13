@@ -6,7 +6,6 @@ import {
     TextInput,
     Pressable,
     StyleSheet,
-    Alert,
     ActivityIndicator,
     Switch,
     Modal,
@@ -19,6 +18,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTheme } from '../context/ThemeContext';
 import { useSquadEvents, EVENT_TYPES, CreateTrainingWorkoutInput } from '../hooks/useSquadEvents';
 import ScreenLayout from '../components/ScreenLayout';
+import { useAlert } from '../components/CustomAlert';
 import { spacing, radii, typography } from '../theme';
 import { RootStackParamList } from '../navigation';
 
@@ -28,6 +28,7 @@ export default function CreateEventScreen() {
     const navigation = useNavigation<NavigationProp>();
     const { themeColors, colors: userColors } = useTheme();
     const { templates, createEvent, createEventFromTemplate } = useSquadEvents();
+    const { showAlert } = useAlert();
 
     // Form state
     const [step, setStep] = useState<'type' | 'details' | 'plan'>('type');
@@ -37,7 +38,23 @@ export default function CreateEventScreen() {
     const [eventDate, setEventDate] = useState(new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)); // 3 months out
     const [visibility, setVisibility] = useState<'public' | 'squad' | 'invite_only'>('public');
     const [showDatePicker, setShowDatePicker] = useState(false);
+    const [selectedColor, setSelectedColor] = useState('#6366f1');
     const [customPlan, setCustomPlan] = useState<CreateTrainingWorkoutInput[]>([]);
+
+    const PRESET_COLORS = [
+        '#6366f1', // Indigo (Default)
+        '#3b82f6', // Blue
+        '#0ea5e9', // Sky
+        '#06b6d4', // Cyan
+        '#14b8a6', // Teal
+        '#10b981', // Emerald
+        '#f59e0b', // Amber
+        '#f97316', // Orange
+        '#ef4444', // Red
+        '#ec4899', // Pink
+        '#8b5cf6', // Violet
+        '#a855f7', // Purple
+    ];
 
     const [loading, setLoading] = useState(false);
     const [showTemplateModal, setShowTemplateModal] = useState(false);
@@ -75,12 +92,12 @@ export default function CreateEventScreen() {
 
     const handleCreate = async () => {
         if (!eventName.trim()) {
-            Alert.alert('Error', 'Please enter an event name');
+            showAlert({ title: 'Error', message: 'Please enter an event name' });
             return;
         }
 
         if (!selectedType) {
-            Alert.alert('Error', 'Please select an event type');
+            showAlert({ title: 'Error', message: 'Please select an event type' });
             return;
         }
 
@@ -136,6 +153,7 @@ export default function CreateEventScreen() {
                         visibility,
                         invite_code: inviteCode,
                         template_id: selectedTemplate,
+                        color: selectedColor,
                     },
                     trainingPlan
                 );
@@ -148,23 +166,28 @@ export default function CreateEventScreen() {
                         is_private: visibility === 'invite_only',
                         visibility,
                         invite_code: inviteCode,
+                        color: selectedColor,
                     },
                     customPlan.length > 0 ? customPlan : undefined
                 );
             }
 
             if (result.error) {
-                Alert.alert('Error', result.error);
+                showAlert({ title: 'Error', message: result.error });
             } else {
-                Alert.alert('Success', 'Event created successfully!', [
-                    {
-                        text: 'OK',
-                        onPress: () => navigation.goBack()
-                    }
-                ]);
+                showAlert({
+                    title: 'Success',
+                    message: 'Event created successfully!',
+                    buttons: [
+                        {
+                            text: 'OK',
+                            onPress: () => navigation.goBack()
+                        }
+                    ]
+                });
             }
         } catch (err: any) {
-            Alert.alert('Error', err.message);
+            showAlert({ title: 'Error', message: err.message });
         } finally {
             setLoading(false);
         }
@@ -349,6 +372,33 @@ export default function CreateEventScreen() {
                     {visibility === 'public' && 'Anyone can see and join this event.'}
                     {visibility === 'squad' && 'Only your squad (followers) can see and join.'}
                     {visibility === 'invite_only' && 'Hidden from search. Only people with the link can join.'}
+                </Text>
+            </View>
+
+            {/* Event Color */}
+            <View style={styles.inputGroup}>
+                <Text style={[styles.label, { color: themeColors.textSecondary }]}>
+                    Event Color
+                </Text>
+                <View style={styles.colorGrid}>
+                    {PRESET_COLORS.map(color => (
+                        <Pressable
+                            key={color}
+                            style={[
+                                styles.colorOption,
+                                { backgroundColor: color },
+                                selectedColor === color && { borderWidth: 2, borderColor: themeColors.textPrimary }
+                            ]}
+                            onPress={() => setSelectedColor(color)}
+                        >
+                            {selectedColor === color && (
+                                <Feather name="check" size={16} color="#fff" />
+                            )}
+                        </Pressable>
+                    ))}
+                </View>
+                <Text style={[styles.visibilityDesc, { color: themeColors.textSecondary }]}>
+                    This color will be used for all workouts in this plan.
                 </Text>
             </View>
 
@@ -793,6 +843,18 @@ const styles = StyleSheet.create({
     visibilityText: {
         fontSize: typography.sizes.sm,
         fontWeight: typography.weights.medium,
+    },
+    colorGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: spacing.sm,
+    },
+    colorOption: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     visibilityDesc: {
         fontSize: typography.sizes.sm,

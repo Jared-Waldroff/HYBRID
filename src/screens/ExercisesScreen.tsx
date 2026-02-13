@@ -8,7 +8,6 @@ import {
     ScrollView,
     ActivityIndicator,
     Modal,
-    Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
@@ -16,6 +15,7 @@ import * as Haptics from 'expo-haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useExercises } from '../hooks/useExercises';
 import ScreenLayout from '../components/ScreenLayout';
+import { useAlert } from '../components/CustomAlert';
 
 const MUSCLE_GROUPS = [
     'Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps',
@@ -24,7 +24,7 @@ const MUSCLE_GROUPS = [
 
 export default function ExercisesScreen() {
     const navigation = useNavigation();
-    const { themeColors } = useTheme();
+    const { themeColors, colors: userColors } = useTheme();
     const { groupedExercises, loading, createExercise, updateExercise, deleteExercise } = useExercises();
 
     const [search, setSearch] = useState('');
@@ -33,6 +33,7 @@ export default function ExercisesScreen() {
     const [formName, setFormName] = useState('');
     const [formMuscleGroup, setFormMuscleGroup] = useState('Chest');
     const [saving, setSaving] = useState(false);
+    const { showAlert } = useAlert();
 
     // Filter exercises by search
     const filteredGroups = useMemo(() => {
@@ -76,10 +77,10 @@ export default function ExercisesScreen() {
 
     const handleDeletePress = async (exercise: any) => {
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-        Alert.alert(
-            'Delete Exercise',
-            `Are you sure you want to delete "${exercise.name}"? This will also remove it from any workouts.`,
-            [
+        showAlert({
+            title: 'Delete Exercise',
+            message: `Are you sure you want to delete "${exercise.name}"? This will also remove it from any workouts.`,
+            buttons: [
                 { text: 'Cancel', style: 'cancel' },
                 {
                     text: 'Delete',
@@ -90,12 +91,12 @@ export default function ExercisesScreen() {
                     },
                 },
             ]
-        );
+        });
     };
 
     const handleSave = async () => {
         if (!formName.trim()) {
-            Alert.alert('Error', 'Please enter an exercise name');
+            showAlert({ title: 'Error', message: 'Please enter an exercise name' });
             return;
         }
 
@@ -115,7 +116,7 @@ export default function ExercisesScreen() {
             await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             setShowForm(false);
         } catch (err: any) {
-            Alert.alert('Error', err.message);
+            showAlert({ title: 'Error', message: err.message });
         } finally {
             setSaving(false);
         }
@@ -155,7 +156,7 @@ export default function ExercisesScreen() {
                         </Pressable>
                     )}
                 </View>
-                <Pressable style={styles.addBtn} onPress={handleAddPress}>
+                <Pressable style={[styles.addBtn, { backgroundColor: userColors.accent_color }]} onPress={handleAddPress}>
                     <Feather name="plus" size={20} color="#fff" />
                 </Pressable>
             </View>
@@ -254,7 +255,7 @@ export default function ExercisesScreen() {
                                         style={[
                                             styles.muscleChip,
                                             { borderColor: themeColors.glassBorder },
-                                            formMuscleGroup === group && styles.muscleChipActive,
+                                            formMuscleGroup === group && { backgroundColor: userColors.accent_color + '26', borderColor: userColors.accent_color },
                                         ]}
                                         onPress={() => {
                                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -263,7 +264,7 @@ export default function ExercisesScreen() {
                                     >
                                         <Text style={[
                                             styles.muscleChipText,
-                                            { color: formMuscleGroup === group ? '#c9a227' : themeColors.textSecondary },
+                                            { color: formMuscleGroup === group ? userColors.accent_color : themeColors.textSecondary },
                                         ]}>
                                             {group}
                                         </Text>
@@ -321,7 +322,6 @@ const styles = StyleSheet.create({
         width: 48,
         height: 48,
         borderRadius: 12,
-        backgroundColor: '#1e3a5f',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -445,8 +445,6 @@ const styles = StyleSheet.create({
         marginRight: 8,
     },
     muscleChipActive: {
-        backgroundColor: 'rgba(201, 162, 39, 0.15)',
-        borderColor: '#c9a227',
     },
     muscleChipText: {
         fontSize: 14,

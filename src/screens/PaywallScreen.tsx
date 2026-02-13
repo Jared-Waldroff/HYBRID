@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, ActivityIndicator, Linking } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import ScreenLayout from '../components/ScreenLayout';
 import { useRevenueCat } from '../context/RevenueCatContext';
 import * as Haptics from 'expo-haptics';
 import { useNavigation } from '@react-navigation/native';
+import { useAlert } from '../components/CustomAlert';
 
 export default function PaywallScreen() {
     const { themeColors, colors: userColors } = useTheme();
     const { purchasePro, restorePurchases, isLoading, isPro } = useRevenueCat();
     const navigation = useNavigation();
+    const { showAlert } = useAlert();
     const [isPurchasing, setIsPurchasing] = useState(false);
 
     const accentColor = userColors.accent_color;
@@ -23,13 +25,13 @@ export default function PaywallScreen() {
             console.log('Purchase result:', success);
             if (success) {
                 await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                Alert.alert('Success', 'Welcome to HYBRID Pro!');
+                showAlert({ title: 'Success', message: 'Welcome to HYBRID Pro!' });
                 navigation.goBack();
             }
             // If success is false, user cancelled - no alert needed
         } catch (error: any) {
             console.log('Purchase error in PaywallScreen:', error);
-            Alert.alert('Error', error.message || 'Purchase failed. Please try again.');
+            showAlert({ title: 'Error', message: error.message || 'Purchase failed. Please try again.' });
         } finally {
             setIsPurchasing(false);
         }
@@ -40,10 +42,10 @@ export default function PaywallScreen() {
         const success = await restorePurchases();
         setIsPurchasing(false);
         if (success) {
-            Alert.alert('Restored', 'Your purchases have been restored.');
+            showAlert({ title: 'Restored', message: 'Your purchases have been restored.' });
             if (isPro) navigation.goBack();
         } else {
-            Alert.alert('Notice', 'No active subscription found to restore.');
+            showAlert({ title: 'Notice', message: 'No active subscription found to restore.' });
         }
     };
 
@@ -114,6 +116,17 @@ export default function PaywallScreen() {
                         <Text style={[styles.restoreText, { color: themeColors.textSecondary }]}>
                             Restore Purchases
                         </Text>
+                    </Pressable>
+                </View>
+
+                {/* Legal Links (Required for App Store) */}
+                <View style={styles.legalContainer}>
+                    <Pressable onPress={() => Linking.openURL('https://walsansoftware.com/terms_of_use')}>
+                        <Text style={styles.legalLink}>Terms of Use</Text>
+                    </Pressable>
+                    <Text style={styles.legalDivider}>•</Text>
+                    <Pressable onPress={() => Linking.openURL('https://walsansoftware.com/privacy')}>
+                        <Text style={styles.legalLink}>Privacy Policy</Text>
                     </Pressable>
                 </View>
 
@@ -270,5 +283,22 @@ const styles = StyleSheet.create({
     dismissBtn: {
         marginTop: 20,
         alignItems: 'center',
+    },
+    legalContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 8,
+        marginTop: 32,
+        marginBottom: 8,
+    },
+    legalLink: {
+        fontSize: 12,
+        color: 'rgba(255,255,255,0.5)',
+        textDecorationLine: 'underline',
+    },
+    legalDivider: {
+        fontSize: 12,
+        color: 'rgba(255,255,255,0.3)',
     }
 });

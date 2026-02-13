@@ -88,7 +88,10 @@ export type HomeStackParamList = {
     CreateWorkout: { date?: string };
     AthleteProfile: { id: string };
     ActivityFeed: { eventId?: string };
+    CreatePost: { eventId?: string; eventName?: string };
     Comments: { postId: string };
+    CompleteEventWorkout: { trainingWorkoutId: string; eventId: string };
+    Badges: { user: any }; // Added to fix type error
 };
 
 export type ExercisesStackParamList = {
@@ -108,6 +111,13 @@ export type SquadStackParamList = {
     Comments: { postId: string };
     AthleteProfile: { id?: string };
     Badges: { user: any };
+};
+
+export type SettingsStackParamList = {
+    SettingsMain: undefined;
+    CreatePost: { eventId?: string; eventName?: string };
+    Badges: { user: any };
+    Admin: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -349,10 +359,12 @@ function HomeStack() {
             <HomeStackNav.Screen name="ExerciseDetail" component={ExerciseDetailScreen} />
             <HomeStackNav.Screen name="CreateWorkout" component={CreateWorkoutScreen} />
             <HomeStackNav.Screen name="AthleteProfile" component={AthleteProfileScreen} />
+            <HomeStackNav.Screen name="CreatePost" component={CreatePostScreen} />
 
             <HomeStackNav.Screen name="ActivityFeed" component={ActivityFeedScreen} />
             <HomeStackNav.Screen name="Comments" component={CommentsScreen} />
             <HomeStackNav.Screen name="Badges" component={BadgesScreen} />
+            <HomeStackNav.Screen name="CompleteEventWorkout" component={CompleteEventWorkoutScreen} />
         </HomeStackNav.Navigator>
     );
 }
@@ -434,6 +446,7 @@ function SettingsStack() {
             initialRouteName="SettingsMain"
         >
             <SettingsStackNav.Screen name="SettingsMain" component={SettingsScreen} />
+            <SettingsStackNav.Screen name="CreatePost" component={CreatePostScreen} />
             <SettingsStackNav.Screen name="Badges" component={BadgesScreen} />
             <SettingsStackNav.Screen name="Admin" component={AdminScreen} />
         </SettingsStackNav.Navigator>

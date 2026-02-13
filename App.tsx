@@ -16,6 +16,7 @@ import { AuthProvider } from './src/context/AuthContext';
 import { ThemeProvider } from './src/context/ThemeContext';
 import { PostDraftProvider } from './src/context/PostDraftContext';
 import { RevenueCatProvider } from './src/context/RevenueCatContext';
+import { AlertProvider } from './src/components/CustomAlert';
 import Navigation from './src/navigation';
 
 // Keep the splash screen visible while we fetch resources
@@ -122,14 +123,16 @@ export default function App() {
       <SafeAreaProvider onLayout={onLayoutRootView}>
         <AuthProvider>
           <ThemeProvider>
-            <RevenueCatProvider>
-              <PostDraftProvider>
-                <View style={styles.container}>
-                  <StatusBar style="light" />
-                  <Navigation />
-                </View>
-              </PostDraftProvider>
-            </RevenueCatProvider>
+            <AlertProvider>
+              <RevenueCatProvider>
+                <PostDraftProvider>
+                  <View style={styles.container}>
+                    <StatusBar style="light" />
+                    <Navigation />
+                  </View>
+                </PostDraftProvider>
+              </RevenueCatProvider>
+            </AlertProvider>
           </ThemeProvider>
         </AuthProvider>
       </SafeAreaProvider>

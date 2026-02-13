@@ -8,9 +8,8 @@ import {
     ActivityIndicator,
     Modal,
     TextInput,
-    Alert,
-    KeyboardAvoidingView,
     Platform,
+    Dimensions,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -28,7 +27,9 @@ import ExerciseSection from '../components/ExerciseSection';
 import ConfirmDialog from '../components/ConfirmDialog';
 import ScreenLayout from '../components/ScreenLayout';
 import { colors, spacing, radii, typography, MIN_TOUCH_TARGET } from '../theme';
-import { useWorkouts } from '../hooks/useWorkouts'; // Assuming this hook exists and provides removeExerciseFromWorkout
+import { useWorkouts } from '../hooks/useWorkouts';
+import { formatEventActivities } from '../lib/formatting';
+import { useAlert } from '../components/CustomAlert';
 
 type ActiveWorkoutRouteProp = RouteProp<RootStackParamList, 'ActiveWorkout'>;
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -41,6 +42,7 @@ export default function ActiveWorkoutScreen() {
     const { addBadge, hasBadge } = useAthleteProfile();
     const { exercises, createExercise, fetchExercises, getLastExerciseSetValues } = useExercises();
     const { removeExerciseFromWorkout } = useWorkouts(); // Added removeExerciseFromWorkout
+    const { showAlert } = useAlert();
 
     const [workout, setWorkout] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -246,7 +248,7 @@ export default function ActiveWorkoutScreen() {
             setExerciseSearch('');
         } catch (err) {
             console.error('Error adding exercise:', err);
-            Alert.alert('Error', 'Failed to add exercise');
+            showAlert({ title: 'Error', message: 'Failed to add exercise' });
         }
         setAddingExercise(false);
     };
@@ -254,7 +256,7 @@ export default function ActiveWorkoutScreen() {
     // Create new exercise and add to workout
     const handleCreateNewExercise = async () => {
         if (!newExerciseName.trim() || !newExerciseMuscle.trim()) {
-            Alert.alert('Error', 'Please fill in both exercise name and muscle group');
+            showAlert({ title: 'Error', message: 'Please fill in both exercise name and muscle group' });
             return;
         }
 
@@ -279,7 +281,7 @@ export default function ActiveWorkoutScreen() {
             }
         } catch (err) {
             console.error('Error creating exercise:', err);
-            Alert.alert('Error', 'Failed to create exercise');
+            showAlert({ title: 'Error', message: 'Failed to create exercise' });
         }
         setAddingExercise(false);
     };
@@ -399,7 +401,7 @@ export default function ActiveWorkoutScreen() {
             });
         } catch (err) {
             console.error('Error removing exercise:', err);
-            Alert.alert('Error', 'Failed to remove exercise');
+            showAlert({ title: 'Error', message: 'Failed to remove exercise' });
         } finally {
             setExerciseToDelete(null);
         }
@@ -493,10 +495,26 @@ export default function ActiveWorkoutScreen() {
                 </Pressable>
 
                 {workout.workout_exercises?.length === 0 && (
-                    <View style={[styles.emptyExercises, { backgroundColor: themeColors.inputBg }]}>
-                        <Text style={[styles.emptyText, { color: themeColors.textTertiary }]}>
-                            No exercises in this workout
-                        </Text>
+                    <View style={styles.emptyContainer}>
+                        {workout.notes && (
+                            <View style={[styles.planContainer, { backgroundColor: themeColors.bgSecondary, borderColor: themeColors.inputBorder }]}>
+                                <View style={styles.planHeader}>
+                                    <Feather name="list" size={18} color={userColors.accent_color} />
+                                    <Text style={[styles.planTitle, { color: themeColors.textPrimary }]}>Workout Plan</Text>
+                                </View>
+                                <Text style={[styles.planText, { color: themeColors.textSecondary }]}>
+                                    {formatEventActivities(workout.notes)}
+                                </Text>
+                            </View>
+                        )}
+
+                        {!workout.notes && (
+                            <View style={[styles.emptyExercises, { backgroundColor: themeColors.inputBg }]}>
+                                <Text style={[styles.emptyText, { color: themeColors.textTertiary }]}>
+                                    No exercises in this workout
+                                </Text>
+                            </View>
+                        )}
                     </View>
                 )}
 
@@ -532,11 +550,7 @@ export default function ActiveWorkoutScreen() {
 
             {/* Add Exercise Modal */}
             <Modal visible={showAddExercise} animationType="slide" transparent>
-                <KeyboardAvoidingView
-                    style={styles.modalOverlay}
-                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                    keyboardVerticalOffset={0}
-                >
+                <View style={styles.modalOverlay}>
                     <View style={[styles.modalContent, { backgroundColor: themeColors.bgSecondary }]}>
                         <View style={styles.modalHeader}>
                             <Text style={[styles.modalTitle, { color: themeColors.textPrimary }]}>Add Exercise</Text>
@@ -585,7 +599,7 @@ export default function ActiveWorkoutScreen() {
                                             style={[
                                                 styles.muscleGroupChip,
                                                 { borderColor: themeColors.glassBorder },
-                                                newExerciseMuscle === group && styles.muscleGroupChipActive,
+                                                newExerciseMuscle === group && { backgroundColor: userColors.accent_color + '26', borderColor: userColors.accent_color },
                                             ]}
                                             onPress={() => {
                                                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -594,7 +608,7 @@ export default function ActiveWorkoutScreen() {
                                         >
                                             <Text style={[
                                                 styles.muscleGroupChipText,
-                                                { color: newExerciseMuscle === group ? '#c9a227' : themeColors.textSecondary },
+                                                { color: newExerciseMuscle === group ? userColors.accent_color : themeColors.textSecondary },
                                             ]}>
                                                 {group}
                                             </Text>
@@ -679,7 +693,7 @@ export default function ActiveWorkoutScreen() {
                             )}
                         </ScrollView>
                     </View>
-                </KeyboardAvoidingView>
+                </View>
             </Modal>
 
             {/* Delete Confirm Dialog */}
@@ -827,8 +841,10 @@ const styles = StyleSheet.create({
         borderStyle: 'dashed',
         marginBottom: spacing.md,
     },
+    checkIcon: {
+        fontSize: typography.sizes.lg,
+    },
     addExerciseText: {
-        color: '#c9a227',
         fontSize: typography.sizes.base,
         fontWeight: typography.weights.medium,
     },
@@ -863,7 +879,7 @@ const styles = StyleSheet.create({
     modalContent: {
         borderTopLeftRadius: radii.xl,
         borderTopRightRadius: radii.xl,
-        height: '90%',
+        height: Dimensions.get('window').height * 0.85,
         paddingBottom: spacing.xl,
     },
     modalHeader: {
@@ -907,7 +923,6 @@ const styles = StyleSheet.create({
         borderStyle: 'dashed',
     },
     createExerciseBtnText: {
-        color: '#c9a227',
         fontSize: typography.sizes.sm,
         fontWeight: typography.weights.medium,
     },
@@ -956,6 +971,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         gap: spacing.xs,
+        height: 36,
     },
     createExerciseSaveText: {
         color: '#fff',
@@ -1034,6 +1050,14 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         zIndex: 200,
     },
+    timerButton: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        borderWidth: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     badgeModal: {
         borderRadius: radii.xl,
         padding: spacing.xl,
@@ -1091,12 +1115,33 @@ const styles = StyleSheet.create({
         marginRight: spacing.xs,
     },
     muscleGroupChipActive: {
-        backgroundColor: 'rgba(201, 162, 39, 0.15)',
-        borderColor: '#c9a227',
     },
     muscleGroupChipText: {
         fontSize: typography.sizes.sm,
         fontWeight: typography.weights.medium,
+    },
+    emptyContainer: {
+        marginBottom: spacing.lg,
+    },
+    planContainer: {
+        padding: spacing.md,
+        borderRadius: radii.md,
+        borderWidth: 1,
+        marginBottom: spacing.md,
+    },
+    planHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: spacing.sm,
+        gap: spacing.xs,
+    },
+    planTitle: {
+        fontSize: typography.sizes.base,
+        fontWeight: typography.weights.semibold,
+    },
+    planText: {
+        fontSize: typography.sizes.base,
+        lineHeight: 24,
     },
     workoutHeader: {
         alignItems: 'center',

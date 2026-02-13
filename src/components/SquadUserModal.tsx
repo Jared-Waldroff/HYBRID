@@ -7,13 +7,13 @@ import {
     Image,
     ActivityIndicator,
     StyleSheet,
-    Alert
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import BadgeRow from './BadgeRow';
+import { useAlert } from './CustomAlert';
 import { typography, spacing, radii } from '../theme';
 
 interface UserProfile {
@@ -32,6 +32,7 @@ interface Props {
 export default function SquadUserModal({ visible, onClose, user }: Props) {
     const { themeColors, colors: userColors } = useTheme();
     const { user: currentUser } = useAuth();
+    const { showAlert } = useAlert();
 
     const [status, setStatus] = useState<'none' | 'pending' | 'accepted' | 'self' | 'loading'>('loading');
     const [actionLoading, setActionLoading] = useState(false);
@@ -98,10 +99,10 @@ export default function SquadUserModal({ visible, onClose, user }: Props) {
             if (error) throw error;
 
             setStatus('accepted');
-            Alert.alert('Success', `${user.display_name} Added to Squad!`);
+            showAlert({ title: 'Success', message: `${user.display_name} Added to Squad!` });
         } catch (err: any) {
             console.error('Add squad error:', err);
-            Alert.alert('Error', 'Failed to add to squad');
+            showAlert({ title: 'Error', message: 'Failed to add to squad' });
         } finally {
             setActionLoading(false);
         }

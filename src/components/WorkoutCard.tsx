@@ -19,6 +19,7 @@ interface WorkoutCardProps {
         is_completed?: boolean;
         notes?: string | null;  // JSON metadata for event workouts
         source_event_name?: string | null;  // Event name if synced from event
+        source_event_id?: string | null;    // Event ID for redirection
         source_training_workout_id?: string | null;  // Link to event training workout
         workout_exercises?: Array<{
             id: string;
@@ -32,7 +33,7 @@ interface WorkoutCardProps {
 
 function WorkoutCard({ workout, onDelete }: WorkoutCardProps) {
     const navigation = useNavigation<NavigationProp>();
-    const { themeColors } = useTheme();
+    const { themeColors, colors: userColors } = useTheme();
     const [showMenu, setShowMenu] = useState(false);
 
     const exerciseNames = workout.workout_exercises
@@ -62,8 +63,45 @@ function WorkoutCard({ workout, onDelete }: WorkoutCardProps) {
             const zoneLabel = eventMetadata.target_zone.replace('zone', 'Zone ');
             parts.push(zoneLabel);
         }
-        if (eventMetadata.workout_type && parts.length === 0) {
-            parts.push(eventMetadata.workout_type);
+        // Always show workout type if available (unless it's 'custom' and we have other parts)
+        if (eventMetadata.workout_type) {
+            if (eventMetadata.workout_type !== 'custom' || parts.length === 0) {
+                // Push to beginning if it's the main type
+                if (eventMetadata.workout_type !== 'custom') {
+                    parts.unshift(eventMetadata.workout_type);
+                } else {
+                    // Try to parse activity names from target_notes (which is JSON)
+                    let activityNames: string[] = [];
+                    try {
+                        let activities = [];
+                        if (eventMetadata.target_notes) {
+                            const notesParsed = typeof eventMetadata.target_notes === 'string'
+                                ? JSON.parse(eventMetadata.target_notes)
+                                : eventMetadata.target_notes;
+
+                            if (Array.isArray(notesParsed)) {
+                                activities = notesParsed;
+                            } else if (notesParsed?.activities && Array.isArray(notesParsed.activities)) {
+                                activities = notesParsed.activities;
+                            }
+                        }
+
+                        if (activities.length > 0) {
+                            activityNames = activities.map((a: any) =>
+                                a.workoutTypeName || a.exerciseName || a.type
+                            ).filter(Boolean);
+                        }
+                    } catch (e) {
+                        // ignore parse error
+                    }
+
+                    if (activityNames.length > 0) {
+                        parts.push(activityNames.join(' | '));
+                    } else {
+                        parts.push('Custom');
+                    }
+                }
+            }
         }
         return parts.length > 0 ? parts.join(' • ') : null;
     }, [eventMetadata]);
@@ -74,11 +112,33 @@ function WorkoutCard({ workout, onDelete }: WorkoutCardProps) {
             return;
         }
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+        // Redirect event workouts to CompleteEventWorkout (now in HomeStack)
+        if (workout.source_event_id && workout.source_training_workout_id) {
+            // @ts-ignore - CompleteEventWorkout is in HomeStack params now
+            navigation.navigate('CompleteEventWorkout', {
+                eventId: workout.source_event_id,
+                trainingWorkoutId: workout.source_training_workout_id,
+            });
+            return;
+        }
+
         navigation.navigate('ActiveWorkout', { id: workout.id });
     };
 
     const handleStartPress = () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+        // Redirect event workouts to CompleteEventWorkout (now in HomeStack)
+        if (workout.source_event_id && workout.source_training_workout_id) {
+            // @ts-ignore - CompleteEventWorkout is in HomeStack params now
+            navigation.navigate('CompleteEventWorkout', {
+                eventId: workout.source_event_id,
+                trainingWorkoutId: workout.source_training_workout_id,
+            });
+            return;
+        }
+
         navigation.navigate('ActiveWorkout', { id: workout.id });
     };
 
@@ -121,7 +181,7 @@ function WorkoutCard({ workout, onDelete }: WorkoutCardProps) {
                         </Pressable>
 
                         <Pressable
-                            style={[styles.startButton, { backgroundColor: colors.accentPrimary }]}
+                            style={[styles.startButton, { backgroundColor: userColors.accent_color }]}
                             onPress={handleStartPress}
                         >
                             <Feather name="play" size={14} color="#fff" />
@@ -157,8 +217,11 @@ function WorkoutCard({ workout, onDelete }: WorkoutCardProps) {
                                 {eventMetadata.description}
                             </Text>
                         )}
+                        {/* If we have event text, we can show it here if we want more detail?
+                            For now, targetDisplay covers the main info.
+                        */}
                     </View>
-                ) : exerciseNames.length > 0 && (
+                ) : (exerciseNames.length > 0 && (
                     <View style={styles.exercises}>
                         {exerciseNames.map((name, index) => (
                             <View key={index} style={styles.exerciseItem}>
@@ -172,13 +235,13 @@ function WorkoutCard({ workout, onDelete }: WorkoutCardProps) {
                             </View>
                         ))}
                     </View>
-                )}
+                ))}
 
                 {/* Event tag */}
                 {workout.source_event_name && (
-                    <View style={[styles.eventTag, { backgroundColor: colors.accentPrimary + '20' }]}>
-                        <Feather name="flag" size={12} color={colors.accentPrimary} />
-                        <Text style={[styles.eventTagText, { color: colors.accentPrimary }]} numberOfLines={1}>
+                    <View style={[styles.eventTag, { backgroundColor: colors.accentPrimary }]}>
+                        <Feather name="flag" size={12} color="#fff" />
+                        <Text style={[styles.eventTagText, { color: '#fff' }]} numberOfLines={1}>
                             {workout.source_event_name}
                         </Text>
                     </View>

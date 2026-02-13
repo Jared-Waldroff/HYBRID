@@ -35,7 +35,7 @@ export default function SquadEventsScreen() {
     } = useSquadEvents();
     const { getParticipantProgress } = useEventWorkouts();
 
-    const [activeTab, setActiveTab] = useState<TabType>('my_events');
+    // const [activeTab, setActiveTab] = useState<TabType>('my_events'); // Removed tab state
     const [refreshing, setRefreshing] = useState(false);
     const [eventProgress, setEventProgress] = useState<Record<string, { completed: number; total: number }>>({});
 
@@ -90,46 +90,29 @@ export default function SquadEventsScreen() {
         navigation.navigate('CreateEvent' as any);
     };
 
-    // Filter discover events (not in my events)
-    const discoverEvents = events.filter(e => !e.is_participating && e.creator_id !== e.id);
+
 
     const renderEmptyState = () => {
-        if (activeTab === 'my_events') {
-            return (
-                <View style={styles.emptyState}>
-                    <View style={[styles.emptyIcon, { backgroundColor: `${userColors.accent_color}20` }]}>
-                        <Feather name="calendar" size={48} color={userColors.accent_color} />
-                    </View>
-                    <Text style={[styles.emptyTitle, { color: themeColors.textPrimary }]}>
-                        No Events Yet
-                    </Text>
-                    <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>
-                        Create an event for your squad or join an existing one to start training together.
-                    </Text>
-                    <Pressable
-                        style={[styles.createButton, { backgroundColor: userColors.accent_color }]}
-                        onPress={handleCreateEvent}
-                    >
-                        <Feather name="plus" size={20} color={themeColors.accentText} />
-                        <Text style={[styles.createButtonText, { color: themeColors.accentText }]}>
-                            Create Event
-                        </Text>
-                    </Pressable>
-                </View>
-            );
-        }
-
         return (
             <View style={styles.emptyState}>
                 <View style={[styles.emptyIcon, { backgroundColor: `${userColors.accent_color}20` }]}>
-                    <Feather name="search" size={48} color={userColors.accent_color} />
+                    <Feather name="calendar" size={48} color={userColors.accent_color} />
                 </View>
                 <Text style={[styles.emptyTitle, { color: themeColors.textPrimary }]}>
-                    No Events to Discover
+                    No Events Yet
                 </Text>
                 <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>
-                    There are no public events available right now. Check back later or create your own!
+                    Create an event for your squad or join an existing one to start training together.
                 </Text>
+                <Pressable
+                    style={[styles.createButton, { backgroundColor: userColors.accent_color }]}
+                    onPress={handleCreateEvent}
+                >
+                    <Feather name="plus" size={20} color={themeColors.accentText} />
+                    <Text style={[styles.createButtonText, { color: themeColors.accentText }]}>
+                        Create Event
+                    </Text>
+                </Pressable>
             </View>
         );
     };
@@ -137,52 +120,7 @@ export default function SquadEventsScreen() {
     return (
         <ScreenLayout hideHeader>
             {/* Tabs */}
-            <View style={[styles.tabContainer, { borderBottomColor: themeColors.divider }]}>
-                <Pressable
-                    style={[
-                        styles.tab,
-                        activeTab === 'my_events' && [styles.activeTab, { borderBottomColor: userColors.accent_color }]
-                    ]}
-                    onPress={() => setActiveTab('my_events')}
-                >
-                    <Feather
-                        name="user"
-                        size={16}
-                        color={activeTab === 'my_events' ? userColors.accent_color : themeColors.textMuted}
-                    />
-                    <Text style={[
-                        styles.tabText,
-                        { color: activeTab === 'my_events' ? userColors.accent_color : themeColors.textMuted }
-                    ]}>
-                        My Events
-                    </Text>
-                    {myEvents.length > 0 && (
-                        <View style={[styles.badge, { backgroundColor: userColors.accent_color }]}>
-                            <Text style={styles.badgeText}>{myEvents.length}</Text>
-                        </View>
-                    )}
-                </Pressable>
-
-                <Pressable
-                    style={[
-                        styles.tab,
-                        activeTab === 'discover' && [styles.activeTab, { borderBottomColor: userColors.accent_color }]
-                    ]}
-                    onPress={() => setActiveTab('discover')}
-                >
-                    <Feather
-                        name="compass"
-                        size={16}
-                        color={activeTab === 'discover' ? userColors.accent_color : themeColors.textMuted}
-                    />
-                    <Text style={[
-                        styles.tabText,
-                        { color: activeTab === 'discover' ? userColors.accent_color : themeColors.textMuted }
-                    ]}>
-                        Discover
-                    </Text>
-                </Pressable>
-            </View>
+            {/* Header / Title area could go here if needed, but for now just the list */}
 
             {loading && !refreshing ? (
                 <View style={styles.loadingContainer}>
@@ -201,34 +139,19 @@ export default function SquadEventsScreen() {
                     }
                     showsVerticalScrollIndicator={false}
                 >
-                    {activeTab === 'my_events' ? (
-                        myEvents.length > 0 ? (
-                            <>
-                                {myEvents.map(event => (
-                                    <EventCard
-                                        key={event.id}
-                                        event={event}
-                                        progress={eventProgress[event.id]}
-                                        onPress={() => handleEventPress(event)}
-                                    />
-                                ))}
-                            </>
-                        ) : (
-                            renderEmptyState()
-                        )
-                    ) : (
-                        discoverEvents.length > 0 ? (
-                            discoverEvents.map(event => (
+                    {myEvents.length > 0 ? (
+                        <>
+                            {myEvents.map(event => (
                                 <EventCard
                                     key={event.id}
                                     event={event}
+                                    progress={eventProgress[event.id]}
                                     onPress={() => handleEventPress(event)}
-                                    onJoin={() => handleJoinEvent(event.id)}
                                 />
-                            ))
-                        ) : (
-                            renderEmptyState()
-                        )
+                            ))}
+                        </>
+                    ) : (
+                        renderEmptyState()
                     )}
                 </ScrollView>
             )}

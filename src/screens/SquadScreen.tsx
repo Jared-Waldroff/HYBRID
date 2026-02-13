@@ -10,12 +10,13 @@ import {
     ActivityIndicator,
     Modal,
     Share,
-    Alert,
     RefreshControl,
     Image,
     PanResponder,
     Animated,
     Dimensions,
+    Platform,
+    KeyboardAvoidingView,
 } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -34,6 +35,7 @@ import { useActivityFeed, FeedPost } from '../hooks/useActivityFeed';
 import { useSquadEvents, SquadEvent } from '../hooks/useSquadEvents';
 import { useSquad, SquadMember } from '../hooks/useSquad';
 import BadgeRow from '../components/BadgeRow';
+import { useAlert } from '../components/CustomAlert';
 import { spacing, radii, typography } from '../theme';
 import { RootStackParamList } from '../navigation';
 import { SquadStackParamList } from '../navigation';
@@ -58,6 +60,7 @@ export default function SquadScreen({ route }: any) {
     const navigation = useNavigation<NavigationProp>();
     const { themeColors, colors: userColors } = useTheme();
     const { user } = useAuth();
+    const { showAlert } = useAlert();
 
     // Main tab state
     const [activeTab, setActiveTab] = useState<TabType>('feed');
@@ -90,27 +93,27 @@ export default function SquadScreen({ route }: any) {
                     if (data && data.length > 0) {
                         const inviter = data[0]; // { user_id, display_name, ... }
                         if (inviter.user_id === user.id) {
-                            Alert.alert('Squad', 'You cannot join your own squad!');
+                            showAlert({ title: 'Squad', message: 'You cannot join your own squad!' });
                             return;
                         }
 
-                        Alert.alert(
-                            'Join Squad',
-                            `Do you want to join ${inviter.display_name}'s Squad?`,
-                            [
+                        showAlert({
+                            title: 'Join Squad',
+                            message: `Do you want to join ${inviter.display_name}'s Squad?`,
+                            buttons: [
                                 { text: 'Cancel', style: 'cancel' },
                                 {
                                     text: 'Join',
                                     onPress: () => handleAddSquad(inviter.user_id)
                                 }
                             ]
-                        );
+                        });
                     } else {
-                        Alert.alert('Error', 'Invalid invite code.');
+                        showAlert({ title: 'Error', message: 'Invalid invite code.' });
                     }
                 } catch (err) {
                     console.error('Invite check failed:', err);
-                    Alert.alert('Error', 'Failed to verify invite link.');
+                    showAlert({ title: 'Error', message: 'Failed to verify invite link.' });
                 }
             })();
             // Clear param to prevent loop? (Navigation preserves params unless replaced)
@@ -156,17 +159,20 @@ export default function SquadScreen({ route }: any) {
         PanResponder.create({
             onMoveShouldSetPanResponderCapture: (_, gestureState) => {
                 const isHorizontal = Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
-                if (!isHorizontal) return false;
+                // Require significant horizontal movement to avoid capturing vertical scrolls
+                if (!isHorizontal || Math.abs(gestureState.dx) < 10) return false;
 
                 const currentTab = activeTabRef.current;
 
-                // If on Feed (first tab) and swiping Right -> Capture to go to Coach
-                if (currentTab === 'feed' && gestureState.dx > 50) {
+                // If on Feed (first tab) and swiping Right (trying to go Left/Back) -> Capture to go to Coach
+                // Lower threshold to 30 for easier triggering
+                if (currentTab === 'feed' && gestureState.dx > 30) {
                     return true;
                 }
 
-                // If on Members (last tab) and swiping Left -> Capture to go to Settings
-                if (currentTab === 'members' && gestureState.dx < -50) {
+                // If on Members (last tab) and swiping Left (trying to go Right/Forward) -> Capture to go to Settings
+                // Lower threshold to 30 for easier triggering
+                if (currentTab === 'members' && gestureState.dx < -30) {
                     return true;
                 }
 
@@ -175,11 +181,13 @@ export default function SquadScreen({ route }: any) {
             onPanResponderRelease: (_, gestureState) => {
                 const currentTab = activeTabRef.current;
 
-                if (currentTab === 'feed' && gestureState.dx > 50) {
-                    // @ts-ignore - Coach is in Main tab navigator
+                if (currentTab === 'feed' && gestureState.dx > 30) {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    // Navigate to Coach tab
                     navigation.navigate('Main', { screen: 'Coach' });
-                } else if (currentTab === 'members' && gestureState.dx < -50) {
-                    // @ts-ignore - SettingsTab is in Main tab navigator
+                } else if (currentTab === 'members' && gestureState.dx < -30) {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    // Navigate to Settings tab
                     navigation.navigate('Main', { screen: 'SettingsTab' });
                 }
             },
@@ -267,9 +275,9 @@ export default function SquadScreen({ route }: any) {
         if (!error) {
             setSearchResults(prev => prev.filter(u => u.user_id !== userId));
             await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            Alert.alert('Request Sent', 'Squad invitation sent!');
+            showAlert({ title: 'Request Sent', message: 'Squad invitation sent!' });
         } else {
-            Alert.alert('Error', error);
+            showAlert({ title: 'Error', message: error });
         }
     };
 
@@ -279,7 +287,7 @@ export default function SquadScreen({ route }: any) {
         if (!error) {
             await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         } else {
-            Alert.alert('Error', error);
+            showAlert({ title: 'Error', message: error });
         }
     };
 
@@ -308,7 +316,7 @@ export default function SquadScreen({ route }: any) {
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         const inviteLink = `https://hybrid.app/join/${inviteCode}`;
         await Clipboard.setStringAsync(inviteLink);
-        Alert.alert('Copied!', 'Invite link copied to clipboard');
+        showAlert({ title: 'Copied!', message: 'Invite link copied to clipboard' });
     };
 
     const getInitials = (name?: string) => {
@@ -334,10 +342,10 @@ export default function SquadScreen({ route }: any) {
 
     const handlePostOptions = (post: FeedPost) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        Alert.alert(
-            'Post Options',
-            'What would you like to do?',
-            [
+        showAlert({
+            title: 'Post Options',
+            message: 'What would you like to do?',
+            buttons: [
                 {
                     text: 'Cancel',
                     style: 'cancel',
@@ -348,14 +356,14 @@ export default function SquadScreen({ route }: any) {
                     onPress: () => confirmDeletePost(post.id),
                 },
             ]
-        );
+        });
     };
 
     const confirmDeletePost = (postId: string) => {
-        Alert.alert(
-            'Delete Post',
-            'Are you sure? This cannot be undone.',
-            [
+        showAlert({
+            title: 'Delete Post',
+            message: 'Are you sure? This cannot be undone.',
+            buttons: [
                 { text: 'Cancel', style: 'cancel' },
                 {
                     text: 'Delete',
@@ -366,7 +374,7 @@ export default function SquadScreen({ route }: any) {
                     }
                 }
             ]
-        );
+        });
     };
 
     // RENDER: Stats Bar
@@ -493,8 +501,6 @@ export default function SquadScreen({ route }: any) {
             );
         }
 
-        const discoverEvents = events.filter(e => !e.is_participating);
-
         return (
             <ScrollView
                 style={styles.eventsContainer}
@@ -509,7 +515,7 @@ export default function SquadScreen({ route }: any) {
                 }
             >
                 {/* My Events Section */}
-                {myEvents.length > 0 && (
+                {myEvents.length > 0 ? (
                     <View style={styles.eventsSection}>
                         <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>
                             My Events
@@ -522,28 +528,22 @@ export default function SquadScreen({ route }: any) {
                             />
                         ))}
                     </View>
-                )}
-
-                {/* Discover Section */}
-                <View style={styles.eventsSection}>
-                    <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>
-                        Discover Events
-                    </Text>
-                    {discoverEvents.length > 0 ? (
-                        discoverEvents.map(event => (
-                            <EventCard
-                                key={event.id}
-                                event={event}
-                                onPress={() => handleEventPress(event)}
-                                onJoin={() => handleJoinEvent(event.id)}
-                            />
-                        ))
-                    ) : (
-                        <Text style={[styles.noEventsText, { color: themeColors.textMuted }]}>
-                            No public events available
+                ) : (
+                    <View style={styles.emptyState}>
+                        <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>
+                            You haven't joined any events yet. Create one to get started!
                         </Text>
-                    )}
-                </View>
+                        <Pressable
+                            style={[styles.findAthletesBtn, { borderColor: userColors.accent_color, marginTop: spacing.md }]}
+                            onPress={handleCreateEvent}
+                        >
+                            <Feather name="plus" size={16} color={userColors.accent_color} />
+                            <Text style={[styles.findAthletesBtnText, { color: userColors.accent_color }]}>
+                                Create Event
+                            </Text>
+                        </Pressable>
+                    </View>
+                )}
             </ScrollView>
         );
     };
@@ -582,10 +582,14 @@ export default function SquadScreen({ route }: any) {
                     <Pressable
                         style={{ padding: 8 }}
                         onPress={() => {
-                            Alert.alert('Remove Squad Member', `Allow ${member.display_name} to leave your squad?`, [
-                                { text: 'Cancel', style: 'cancel' },
-                                { text: 'Remove', style: 'destructive', onPress: () => removeSquadMember(member.relationship_id) }
-                            ]);
+                            showAlert({
+                                title: 'Remove Squad Member',
+                                message: `Allow ${member.display_name} to leave your squad?`,
+                                buttons: [
+                                    { text: 'Cancel', style: 'cancel' },
+                                    { text: 'Remove', style: 'destructive', onPress: () => removeSquadMember(member.relationship_id) }
+                                ]
+                            });
                         }}
                     >
                         <Feather name="user-x" size={20} color={themeColors.textMuted} />
@@ -596,7 +600,14 @@ export default function SquadScreen({ route }: any) {
 
         const renderRequest = (request: SquadMember) => {
             return (
-                <View key={request.relationship_id} style={[styles.requestItem, { backgroundColor: themeColors.glassBg, borderColor: themeColors.glassBorder }]}>
+                <Pressable
+                    key={request.relationship_id}
+                    style={[styles.requestItem, { backgroundColor: themeColors.glassBg, borderColor: themeColors.glassBorder }]}
+                    onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        navigation.navigate('AthleteProfile', { id: request.user_id });
+                    }}
+                >
                     <View style={[styles.avatar, { backgroundColor: themeColors.bgTertiary }]}>
                         <Text style={[styles.avatarText, { color: themeColors.textPrimary }]}>
                             {getInitials(request.display_name)}
@@ -625,7 +636,7 @@ export default function SquadScreen({ route }: any) {
                             <Feather name="x" size={18} color={themeColors.textSecondary} />
                         </Pressable>
                     </View>
-                </View>
+                </Pressable>
             );
         };
 
@@ -741,112 +752,118 @@ export default function SquadScreen({ route }: any) {
 
                 {/* Add to Squad Modal */}
                 <Modal visible={showAddModal} animationType="slide" transparent>
-                    <Pressable style={styles.modalOverlay} onPress={() => setShowAddModal(false)}>
-                        <Pressable style={[styles.modalContent, { backgroundColor: themeColors.bgSecondary }]} onPress={(e) => e.stopPropagation()}>
-                            <View style={styles.modalHeader}>
-                                <Text style={[styles.modalTitle, { color: themeColors.textPrimary }]}>Find Athletes</Text>
-                                <Pressable onPress={() => setShowAddModal(false)}>
-                                    <Feather name="x" size={24} color={themeColors.textSecondary} />
-                                </Pressable>
-                            </View>
-
-                            {/* Invite Tabs */}
-                            <View style={styles.inviteTabs}>
-                                <Pressable
-                                    style={[styles.inviteTab, inviteTab === 'search' && styles.inviteTabActive]}
-                                    onPress={() => setInviteTab('search')}
-                                >
-                                    <Feather name="search" size={16} color={inviteTab === 'search' ? userColors.accent_color : themeColors.textSecondary} />
-                                    <Text style={[styles.inviteTabText, inviteTab === 'search' && { color: userColors.accent_color }]}>Search</Text>
-                                </Pressable>
-                                <Pressable
-                                    style={[styles.inviteTab, inviteTab === 'link' && styles.inviteTabActive]}
-                                    onPress={() => setInviteTab('link')}
-                                >
-                                    <Feather name="link" size={16} color={inviteTab === 'link' ? userColors.accent_color : themeColors.textSecondary} />
-                                    <Text style={[styles.inviteTabText, inviteTab === 'link' && { color: userColors.accent_color }]}>Invite Link</Text>
-                                </Pressable>
-                            </View>
-
-                            {inviteTab === 'search' && (
-                                <View style={styles.searchSection}>
-                                    <TextInput
-                                        style={[styles.searchInput, { backgroundColor: themeColors.inputBg, borderColor: themeColors.inputBorder, color: themeColors.textPrimary }]}
-                                        placeholder="Search by username..."
-                                        placeholderTextColor={themeColors.textMuted}
-                                        value={searchQuery}
-                                        onChangeText={handleSearch}
-                                        autoCapitalize="none"
-                                    />
-
-                                    {searching && (
-                                        <View style={styles.searchLoading}>
-                                            <ActivityIndicator size="small" color={themeColors.textSecondary} />
-                                            <Text style={[styles.searchLoadingText, { color: themeColors.textSecondary }]}>Searching...</Text>
-                                        </View>
-                                    )}
-
-                                    <ScrollView style={styles.searchResults}>
-                                        {searchResults.map(result => (
-                                            <View key={result.user_id} style={[styles.searchResult, { borderBottomColor: themeColors.glassBorder }]}>
-                                                <View style={[styles.avatar, { backgroundColor: themeColors.inputBg }]}>
-                                                    <Text style={[styles.avatarText, { color: themeColors.textPrimary }]}>
-                                                        {getInitials(result.display_name || result.username)}
-                                                    </Text>
-                                                </View>
-                                                <View style={styles.resultInfo}>
-                                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-                                                        <Text style={[styles.resultName, { color: themeColors.textPrimary }]}>
-                                                            {result.display_name || result.username}
-                                                        </Text>
-                                                        {result.badges && result.badges.length > 0 && (
-                                                            <BadgeRow badges={result.badges} maxDisplay={2} userName={result.display_name || result.username} />
-                                                        )}
-                                                    </View>
-                                                    {result.username && (
-                                                        <Text style={[styles.resultUsername, { color: themeColors.textSecondary }]}>
-                                                            @{result.username}
-                                                        </Text>
-                                                    )}
-                                                </View>
-                                                <Pressable
-                                                    style={[styles.followBtn, { backgroundColor: userColors.accent_color }]}
-                                                    onPress={() => handleAddSquad(result.user_id)}
-                                                >
-                                                    <Text style={styles.followBtnText}>Add</Text>
-                                                </Pressable>
-                                            </View>
-                                        ))}
-                                    </ScrollView>
-                                </View>
-                            )}
-
-                            {inviteTab === 'link' && (
-                                <View style={styles.linkSection}>
-                                    <View style={styles.qrContainer}>
-                                        <QRCode
-                                            value={`https://hybrid.app/join/${inviteCode || 'loading'}`}
-                                            size={160}
-                                            backgroundColor="transparent"
-                                            color={themeColors.textPrimary}
-                                        />
-                                    </View>
-                                    <View style={[styles.linkBox, { backgroundColor: themeColors.inputBg }]}>
-                                        <Text style={[styles.linkText, { color: themeColors.textSecondary }]} numberOfLines={1}>
-                                            https://.../{inviteCode || 'loading...'}
-                                        </Text>
-                                        <Pressable style={styles.copyBtn} onPress={copyInviteLink}>
-                                            <Feather name="copy" size={18} color={themeColors.textSecondary} />
-                                        </Pressable>
-                                    </View>
-                                    <Pressable style={[styles.shareBtn, { backgroundColor: userColors.accent_color }]} onPress={shareInviteLink}>
-                                        <Feather name="share" size={18} color="#fff" />
-                                        <Text style={styles.shareBtnText}>Share Invite</Text>
+                    <KeyboardAvoidingView
+                        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                        style={styles.modalOverlay}
+                    >
+                        <Pressable style={styles.modalOverlay} onPress={() => setShowAddModal(false)}>
+                            <Pressable style={[styles.modalContent, { backgroundColor: themeColors.bgSecondary }]} onPress={(e) => e.stopPropagation()}>
+                                <View style={styles.modalHeader}>
+                                    <Text style={[styles.modalTitle, { color: themeColors.textPrimary }]}>Find Athletes</Text>
+                                    <Pressable onPress={() => setShowAddModal(false)}>
+                                        <Feather name="x" size={24} color={themeColors.textSecondary} />
                                     </Pressable>
                                 </View>
-                            )}
+
+                                {/* Invite Tabs */}
+                                <View style={styles.inviteTabs}>
+                                    <Pressable
+                                        style={[styles.inviteTab, inviteTab === 'search' && styles.inviteTabActive]}
+                                        onPress={() => setInviteTab('search')}
+                                    >
+                                        <Feather name="search" size={16} color={inviteTab === 'search' ? userColors.accent_color : themeColors.textSecondary} />
+                                        <Text style={[styles.inviteTabText, inviteTab === 'search' && { color: userColors.accent_color }]}>Search</Text>
+                                    </Pressable>
+                                    <Pressable
+                                        style={[styles.inviteTab, inviteTab === 'link' && styles.inviteTabActive]}
+                                        onPress={() => setInviteTab('link')}
+                                    >
+                                        <Feather name="link" size={16} color={inviteTab === 'link' ? userColors.accent_color : themeColors.textSecondary} />
+                                        <Text style={[styles.inviteTabText, inviteTab === 'link' && { color: userColors.accent_color }]}>Invite Link</Text>
+                                    </Pressable>
+                                </View>
+
+                                {inviteTab === 'search' && (
+                                    <View style={styles.searchSection}>
+                                        <TextInput
+                                            style={[styles.searchInput, { backgroundColor: themeColors.inputBg, borderColor: themeColors.inputBorder, color: themeColors.textPrimary }]}
+                                            placeholder="Search by username..."
+                                            placeholderTextColor={themeColors.textMuted}
+                                            value={searchQuery}
+                                            onChangeText={handleSearch}
+                                            autoCapitalize="none"
+                                            autoFocus
+                                        />
+
+                                        {searching && (
+                                            <View style={styles.searchLoading}>
+                                                <ActivityIndicator size="small" color={themeColors.textSecondary} />
+                                                <Text style={[styles.searchLoadingText, { color: themeColors.textSecondary }]}>Searching...</Text>
+                                            </View>
+                                        )}
+
+                                        <ScrollView style={styles.searchResults} keyboardShouldPersistTaps="handled">
+                                            {searchResults.map(result => (
+                                                <View key={result.user_id} style={[styles.searchResult, { borderBottomColor: themeColors.glassBorder }]}>
+                                                    <View style={[styles.avatar, { backgroundColor: themeColors.inputBg }]}>
+                                                        <Text style={[styles.avatarText, { color: themeColors.textPrimary }]}>
+                                                            {getInitials(result.display_name || result.username)}
+                                                        </Text>
+                                                    </View>
+                                                    <View style={styles.resultInfo}>
+                                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                                                            <Text style={[styles.resultName, { color: themeColors.textPrimary }]}>
+                                                                {result.display_name || result.username}
+                                                            </Text>
+                                                            {result.badges && result.badges.length > 0 && (
+                                                                <BadgeRow badges={result.badges} maxDisplay={2} userName={result.display_name || result.username} />
+                                                            )}
+                                                        </View>
+                                                        {result.username && (
+                                                            <Text style={[styles.resultUsername, { color: themeColors.textSecondary }]}>
+                                                                @{result.username}
+                                                            </Text>
+                                                        )}
+                                                    </View>
+                                                    <Pressable
+                                                        style={[styles.followBtn, { backgroundColor: userColors.accent_color }]}
+                                                        onPress={() => handleAddSquad(result.user_id)}
+                                                    >
+                                                        <Text style={styles.followBtnText}>Add</Text>
+                                                    </Pressable>
+                                                </View>
+                                            ))}
+                                        </ScrollView>
+                                    </View>
+                                )}
+
+                                {inviteTab === 'link' && (
+                                    <View style={styles.linkSection}>
+                                        <View style={styles.qrContainer}>
+                                            <QRCode
+                                                value={`https://hybrid.app/join/${inviteCode || 'loading'}`}
+                                                size={160}
+                                                backgroundColor="transparent"
+                                                color={themeColors.textPrimary}
+                                            />
+                                        </View>
+                                        <View style={[styles.linkBox, { backgroundColor: themeColors.inputBg }]}>
+                                            <Text style={[styles.linkText, { color: themeColors.textSecondary }]} numberOfLines={1}>
+                                                https://.../{inviteCode || 'loading...'}
+                                            </Text>
+                                            <Pressable style={styles.copyBtn} onPress={copyInviteLink}>
+                                                <Feather name="copy" size={18} color={themeColors.textSecondary} />
+                                            </Pressable>
+                                        </View>
+                                        <Pressable style={[styles.shareBtn, { backgroundColor: userColors.accent_color }]} onPress={shareInviteLink}>
+                                            <Feather name="share" size={18} color="#fff" />
+                                            <Text style={styles.shareBtnText}>Share Invite</Text>
+                                        </Pressable>
+                                    </View>
+                                )}
+                            </Pressable>
                         </Pressable>
-                    </Pressable>
+                    </KeyboardAvoidingView>
                 </Modal>
             </View>
         </ScreenLayout>
@@ -1120,7 +1137,7 @@ const styles = StyleSheet.create({
         borderTopRightRadius: 24,
         paddingTop: spacing.md,
         paddingBottom: spacing.xl,
-        maxHeight: '80%',
+        height: '85%', // Fixed taller height
     },
     modalHeader: {
         flexDirection: 'row',

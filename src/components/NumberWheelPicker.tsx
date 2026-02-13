@@ -1,11 +1,9 @@
-import React, { useRef, useCallback, memo } from 'react';
-import { View, Text, FlatList, StyleSheet, Pressable, Modal } from 'react-native';
+import React, { useMemo, useCallback } from 'react';
+import { View, Text, StyleSheet, Pressable, Modal } from 'react-native';
+import WheelPicker from '@quidone/react-native-wheel-picker';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../context/ThemeContext';
 import { spacing, radii, typography } from '../theme';
-
-const ITEM_HEIGHT = 44;
-const VISIBLE_ITEMS = 5;
 
 interface NumberWheelPickerProps {
     value: number;
@@ -39,16 +37,19 @@ export default function NumberWheelPicker({
     title = 'Select Value',
 }: NumberWheelPickerProps) {
     const { themeColors, colors: userColors } = useTheme();
-    const flatListRef = useRef<FlatList>(null);
-    const values = generateValues(min, max, step);
 
-    // Find initial index
-    const initialIndex = values.findIndex(v => v === value);
-    const startIndex = initialIndex >= 0 ? initialIndex : 0;
+    // Generate picker data
+    const data = useMemo(() => {
+        const values = generateValues(min, max, step);
+        return values.map(v => ({
+            value: v,
+            label: unit ? `${v} ${unit}` : `${v}`,
+        }));
+    }, [min, max, step, unit]);
 
-    const handleValueChange = useCallback((newValue: number) => {
+    const handleValueChange = useCallback(({ item }: { item: { value: number } }) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        onChange(newValue);
+        onChange(item.value);
     }, [onChange]);
 
     const handleConfirm = useCallback(() => {
@@ -56,75 +57,29 @@ export default function NumberWheelPicker({
         onClose();
     }, [onClose]);
 
-    const getItemLayout = useCallback((_: any, index: number) => ({
-        length: ITEM_HEIGHT,
-        offset: ITEM_HEIGHT * index,
-        index,
-    }), []);
-
-    const renderItem = useCallback(({ item }: { item: number }) => {
-        const isSelected = item === value;
-        return (
-            <Pressable
-                style={[
-                    styles.item,
-                    isSelected && { backgroundColor: userColors.accent_color + '20' },
-                ]}
-                onPress={() => handleValueChange(item)}
-            >
-                <Text
-                    style={[
-                        styles.itemText,
-                        { color: isSelected ? userColors.accent_color : themeColors.textSecondary },
-                        isSelected && styles.itemTextSelected,
-                    ]}
-                >
-                    {item} {unit}
-                </Text>
-            </Pressable>
-        );
-    }, [value, themeColors, userColors, unit, handleValueChange]);
-
-    const keyExtractor = useCallback((item: number) => item.toString(), []);
-
     return (
         <Modal visible={visible} transparent animationType="slide">
             <Pressable style={styles.overlay} onPress={handleConfirm}>
-                <Pressable style={[styles.container, { backgroundColor: themeColors.bgSecondary }]} onPress={(e) => e.stopPropagation()}>
+                <Pressable
+                    style={[styles.container, { backgroundColor: themeColors.bgSecondary }]}
+                    onPress={(e) => e.stopPropagation()}
+                >
                     <View style={styles.header}>
                         <Text style={[styles.title, { color: themeColors.textPrimary }]}>{title}</Text>
                     </View>
 
                     <View style={styles.pickerContainer}>
-                        {/* Selection indicator */}
-                        <View style={[styles.selectionIndicator, { backgroundColor: userColors.accent_color + '20', borderColor: userColors.accent_color + '40' }]} pointerEvents="none" />
-                        <FlatList
-                            ref={flatListRef}
-                            data={values}
-                            keyExtractor={keyExtractor}
-                            renderItem={renderItem}
-                            getItemLayout={getItemLayout}
-                            initialScrollIndex={startIndex}
-                            showsVerticalScrollIndicator={false}
-                            snapToInterval={ITEM_HEIGHT}
-                            decelerationRate="fast"
-                            style={styles.flatList}
-                            contentContainerStyle={styles.listContent}
-                            onMomentumScrollEnd={(e) => {
-                                const offsetY = e.nativeEvent.contentOffset.y;
-                                const index = Math.round(offsetY / ITEM_HEIGHT);
-                                if (index >= 0 && index < values.length && values[index] !== value) {
-                                    handleValueChange(values[index]);
-                                }
+                        <WheelPicker
+                            data={data}
+                            value={value}
+                            onValueChanged={handleValueChange}
+                            itemHeight={50}
+                            visibleItemCount={5}
+                            itemTextStyle={{
+                                fontSize: 22,
+                                color: themeColors.textSecondary,
                             }}
-                            onScrollEndDrag={(e) => {
-                                // Also handle when user stops dragging without momentum
-                                const offsetY = e.nativeEvent.contentOffset.y;
-                                const index = Math.round(offsetY / ITEM_HEIGHT);
-                                if (index >= 0 && index < values.length && values[index] !== value) {
-                                    handleValueChange(values[index]);
-                                }
-                            }}
+                            width="100%"
                         />
                     </View>
 
@@ -162,36 +117,10 @@ const styles = StyleSheet.create({
         fontWeight: typography.weights.semibold,
     },
     pickerContainer: {
-        height: ITEM_HEIGHT * VISIBLE_ITEMS,
-        position: 'relative',
-    },
-    selectionIndicator: {
-        position: 'absolute',
-        top: ITEM_HEIGHT * 2,
-        left: 0,
-        right: 0,
-        height: ITEM_HEIGHT,
-        borderTopWidth: 1,
-        borderBottomWidth: 1,
-        zIndex: 1,
-    },
-    flatList: {
-        flex: 1,
-    },
-    listContent: {
-        paddingVertical: ITEM_HEIGHT * 2,
-    },
-    item: {
-        height: ITEM_HEIGHT,
-        justifyContent: 'center',
+        height: 250,
         alignItems: 'center',
-    },
-    itemText: {
-        fontSize: typography.sizes.xl,
-    },
-    itemTextSelected: {
-        fontWeight: typography.weights.bold,
-        fontSize: typography.sizes.xxl,
+        justifyContent: 'center',
+        paddingHorizontal: spacing.md,
     },
     confirmButton: {
         marginHorizontal: spacing.md,

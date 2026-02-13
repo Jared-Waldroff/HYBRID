@@ -6,7 +6,6 @@ import {
     TextInput,
     Pressable,
     StyleSheet,
-    Alert,
     ActivityIndicator,
     Image,
 } from 'react-native';
@@ -22,6 +21,8 @@ import { useAuth } from '../context/AuthContext';
 import ScreenLayout from '../components/ScreenLayout';
 import { spacing, radii, typography } from '../theme';
 import { RootStackParamList } from '../navigation';
+import { formatEventActivities } from '../lib/formatting';
+import { useAlert } from '../components/CustomAlert';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type CompleteEventWorkoutRouteProp = RouteProp<RootStackParamList, 'CompleteEventWorkout'>;
@@ -34,6 +35,7 @@ export default function CompleteEventWorkoutScreen() {
     const { getTrainingPlan } = useSquadEvents();
     const { completeWorkout, getWorkoutCompletion, deleteCompletion } = useEventWorkouts();
     const { createPost } = useActivityFeed();
+    const { showAlert } = useAlert();
 
     const [workout, setWorkout] = useState<TrainingWorkout | null>(null);
     const [loading, setLoading] = useState(true);
@@ -84,7 +86,7 @@ export default function CompleteEventWorkoutScreen() {
 
     const handlePickPhotos = async () => {
         if (photos.length >= 5) {
-            Alert.alert('Limit Reached', 'You can add up to 5 photos');
+            showAlert({ title: 'Limit Reached', message: 'You can add up to 5 photos' });
             return;
         }
 
@@ -92,11 +94,10 @@ export default function CompleteEventWorkoutScreen() {
         const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
         if (!permissionResult.granted) {
-            Alert.alert(
-                'Permission Required',
-                'Please allow access to your photo library to add photos.',
-                [{ text: 'OK' }]
-            );
+            showAlert({
+                title: 'Permission Required',
+                message: 'Please allow access to your photo library to add photos.'
+            });
             return;
         }
 
@@ -134,7 +135,7 @@ export default function CompleteEventWorkoutScreen() {
             });
 
             if (completionResult.error) {
-                Alert.alert('Error', completionResult.error);
+                showAlert({ title: 'Error', message: completionResult.error });
                 setSaving(false);
                 return;
             }
@@ -161,11 +162,13 @@ export default function CompleteEventWorkoutScreen() {
                 });
             }
 
-            Alert.alert('Workout Complete! 🔥', 'Great job staying on track with your training!', [
-                { text: 'OK', onPress: () => navigation.goBack() }
-            ]);
+            showAlert({
+                title: 'Workout Complete! 🔥',
+                message: 'Great job staying on track with your training!',
+                buttons: [{ text: 'OK', onPress: () => navigation.goBack() }]
+            });
         } catch (err: any) {
-            Alert.alert('Error', err.message);
+            showAlert({ title: 'Error', message: err.message });
         } finally {
             setSaving(false);
         }
@@ -175,10 +178,10 @@ export default function CompleteEventWorkoutScreen() {
     const handleUncomplete = async () => {
         if (!completionId) return;
 
-        Alert.alert(
-            'Undo Completion',
-            'Are you sure you want to undo this workout completion? The feed post will remain.',
-            [
+        showAlert({
+            title: 'Undo Completion',
+            message: 'Are you sure you want to undo this workout completion? The feed post will remain.',
+            buttons: [
                 { text: 'Cancel', style: 'cancel' },
                 {
                     text: 'Undo',
@@ -187,7 +190,7 @@ export default function CompleteEventWorkoutScreen() {
                         setSaving(true);
                         const result = await deleteCompletion(completionId);
                         if (result.error) {
-                            Alert.alert('Error', result.error);
+                            showAlert({ title: 'Error', message: result.error });
                         } else {
                             setIsCompleted(false);
                             setCompletionId(null);
@@ -202,7 +205,7 @@ export default function CompleteEventWorkoutScreen() {
                     }
                 }
             ]
-        );
+        });
     };
 
     if (loading) {
@@ -253,7 +256,7 @@ export default function CompleteEventWorkoutScreen() {
                                 <Text style={[styles.targetText, { color: userColors.accent_color }]}>
                                     Target: {workout.target_value && workout.target_unit
                                         ? `${workout.target_value} ${workout.target_unit}`
-                                        : workout.target_notes
+                                        : formatEventActivities(workout.target_notes)
                                     }
                                     {workout.target_zone && ` • ${workout.target_zone.replace('zone', 'Zone ')}`}
                                 </Text>

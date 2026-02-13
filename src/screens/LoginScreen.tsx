@@ -6,22 +6,26 @@ import {
     Pressable,
     StyleSheet,
     ActivityIndicator,
-    Alert,
     Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import * as SecureStore from 'expo-secure-store';
 import { Feather, Ionicons } from '@expo/vector-icons';
+import * as AppleAuthentication from 'expo-apple-authentication';
+import { Platform } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import GradientBackground from '../components/GradientBackground';
+import { useAlert } from '../components/CustomAlert';
 
 export default function LoginScreen() {
-    const { signIn, signUp, signInWithGoogle, resetPassword } = useAuth();
+    const { signIn, signUp, signInWithGoogle, signInWithApple, resetPassword } = useAuth();
+    const { showAlert } = useAlert();
 
     const [isSignUp, setIsSignUp] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [username, setUsername] = useState('');
     const [rememberMe, setRememberMe] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -52,9 +56,15 @@ export default function LoginScreen() {
             return;
         }
 
-        if (isSignUp && !username) {
-            setError('Please enter a username');
-            return;
+        if (isSignUp) {
+            if (!username) {
+                setError('Please enter a username');
+                return;
+            }
+            if (password !== confirmPassword) {
+                setError('Passwords do not match');
+                return;
+            }
         }
 
         setLoading(true);
@@ -79,10 +89,10 @@ export default function LoginScreen() {
                     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
                 } else {
                     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                    Alert.alert(
-                        'Check your email',
-                        'We sent you a confirmation link. Please verify your email to continue.'
-                    );
+                    showAlert({
+                        title: 'Check your email',
+                        message: 'We sent you a confirmation link. Please verify your email to continue.'
+                    });
                 }
             } else {
                 const { error: signInError } = await signIn(email, password);
@@ -101,9 +111,34 @@ export default function LoginScreen() {
     };
 
 
+    const handleAppleSignIn = async () => {
+        setLoading(true);
+        setError('');
+
+        try {
+            await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            const { error: appleError } = await signInWithApple();
+
+            if (appleError) {
+                // Ignore cancellation errors
+                if (appleError.message !== 'Sign in cancelled') {
+                    setError(appleError.message || 'Apple sign-in failed');
+                    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+                }
+            } else {
+                await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            }
+        } catch (err: any) {
+            setError(err.message || 'An error occurred');
+            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleForgotPassword = async () => {
         if (!email) {
-            Alert.alert('Enter your email', 'Please enter your email address first');
+            showAlert({ title: 'Enter your email', message: 'Please enter your email address first' });
             return;
         }
 
@@ -112,9 +147,9 @@ export default function LoginScreen() {
         setLoading(false);
 
         if (error) {
-            Alert.alert('Error', error.message);
+            showAlert({ title: 'Error', message: error.message });
         } else {
-            Alert.alert('Check your email', 'We sent you a password reset link');
+            showAlert({ title: 'Check your email', message: 'We sent you a password reset link' });
         }
     };
 
@@ -150,7 +185,7 @@ export default function LoginScreen() {
                         style={styles.logoImage}
                         resizeMode="contain"
                     />
-                    <Text style={styles.tagline}>Out lift the runners, out run the lifters</Text>
+                    <Text style={styles.tagline}>Out Lift The Runners, Out Run The Lifters</Text>
                 </View>
 
                 {/* Form */}
@@ -198,6 +233,21 @@ export default function LoginScreen() {
                         />
                     </View>
 
+                    {isSignUp && (
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.label}>Confirm Password</Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="••••••••"
+                                placeholderTextColor="rgba(255,255,255,0.4)"
+                                value={confirmPassword}
+                                onChangeText={setConfirmPassword}
+                                secureTextEntry={true}
+                                textContentType="password"
+                            />
+                        </View>
+                    )}
+
                     {/* Remember Me Toggle */}
                     {!isSignUp && (
                         <Pressable
@@ -238,6 +288,17 @@ export default function LoginScreen() {
                             <Text style={styles.dividerText}>or</Text>
                             <View style={styles.divider} />
                         </View>
+                    )}
+
+                    {/* Apple Sign In (iOS Only) */}
+                    {!isSignUp && Platform.OS === 'ios' && (
+                        <AppleAuthentication.AppleAuthenticationButton
+                            buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+                            buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE}
+                            cornerRadius={12}
+                            style={{ width: '100%', height: 48, marginBottom: 12 }}
+                            onPress={handleAppleSignIn}
+                        />
                     )}
 
                     {/* Google Sign In */}
@@ -290,7 +351,9 @@ const styles = StyleSheet.create({
     content: {
         flex: 1,
         justifyContent: 'center',
-        padding: 24,
+        paddingHorizontal: 24,
+        paddingBottom: 24,
+        paddingTop: 120, // Move content down visually
     },
     header: {
         alignItems: 'center',

@@ -157,10 +157,12 @@ export const colors = {
     textPrimary: '#ffffff',
     textSecondary: 'rgba(255, 255, 255, 0.75)',
     textTertiary: 'rgba(255, 255, 255, 0.5)',
-    textMuted: 'rgba(255, 255, 255, 0.3)',
+    textMuted: 'rgba(255, 255, 255, 0.5)',
     inputBg: 'rgba(255, 255, 255, 0.05)',
     inputBorder: 'rgba(201, 162, 39, 0.2)',
     divider: 'rgba(201, 162, 39, 0.15)',
+    accent_color: '#c9a227',
+    secondary_color: '#1e3a5f',
   },
 
   // Light theme
@@ -177,6 +179,8 @@ export const colors = {
     inputBg: 'rgba(30, 58, 95, 0.05)',
     inputBorder: 'rgba(30, 58, 95, 0.15)',
     divider: 'rgba(30, 58, 95, 0.1)',
+    accent_color: '#1e3a5f',
+    secondary_color: '#c9a227',
   },
 };
 

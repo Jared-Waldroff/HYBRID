@@ -9,12 +9,15 @@ import { useAthleteProfile } from '../hooks/useAthleteProfile';
 import { spacing, typography, MIN_TOUCH_TARGET } from '../theme';
 
 interface AppHeaderProps {
+    /**
+     * @deprecated showBack is now ignored as the header always shows the bell.
+     */
     showBack?: boolean;
     title?: string;
     showProfile?: boolean;
 }
 
-export default function AppHeader({ showBack = false, title, showProfile = true }: AppHeaderProps) {
+export default function AppHeader({ title, showProfile = true }: AppHeaderProps) {
     const navigation = useNavigation<any>();
     const { themeColors, colors: userColors } = useTheme();
     const { user } = useAuth();
@@ -42,17 +45,12 @@ export default function AppHeader({ showBack = false, title, showProfile = true 
         navigation.navigate('Main', { screen: 'SettingsTab' });
     };
 
-    const handleBack = () => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        navigation.goBack();
-    };
-
     return (
         <View style={[styles.header, { backgroundColor: themeColors.glassBg, borderBottomColor: themeColors.glassBorder }]}>
-            {/* Left - Bell or Back */}
-            <Pressable style={styles.iconButton} onPress={showBack ? handleBack : handleBell}>
+            {/* Left - Always Bell */}
+            <Pressable style={styles.iconButton} onPress={handleBell}>
                 <Feather
-                    name={showBack ? 'arrow-left' : 'bell'}
+                    name="bell"
                     size={22}
                     color={themeColors.textPrimary}
                 />

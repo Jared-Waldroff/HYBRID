@@ -1,7 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, Pressable, Dimensions, FlatList } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 import { useUserPosts } from '../hooks/useUserPosts';
 import { spacing, colors } from '../theme';
 
@@ -15,8 +17,11 @@ interface ProfileGalleryProps {
 }
 
 export default function ProfileGallery({ userId, onPostPress }: ProfileGalleryProps) {
+    const navigation = useNavigation<any>();
+    const { user } = useAuth();
     const { themeColors, colors: userColors } = useTheme();
-    const { posts, loading, hasMore, loadPosts } = useUserPosts(userId, 6); // Start with 6
+
+    const { posts, loading, hasMore, loadPosts, error } = useUserPosts(userId, 6); // Start with 6
 
     // Initial load
     React.useEffect(() => {
@@ -89,10 +94,26 @@ export default function ProfileGallery({ userId, onPostPress }: ProfileGalleryPr
 
             {posts.length === 0 && !loading && (
                 <View style={[styles.emptyContainer, { borderColor: themeColors.glassBorder }]}>
-                    <View style={[styles.emptyIcon, { backgroundColor: themeColors.bgTertiary }]}>
-                        <Feather name="camera-off" size={24} color={themeColors.textSecondary} />
+                    <View style={[styles.emptyIcon, { backgroundColor: userColors.accent_color + '20' }]}>
+                        <Feather name="image" size={48} color={userColors.accent_color} />
                     </View>
-                    <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>No posts yet</Text>
+                    <Text style={[styles.emptyTitle, { color: themeColors.textPrimary }]}>No Posts Yet</Text>
+                    <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>
+                        Share your workouts and achievements with your squad.
+                    </Text>
+
+                    {/* Show Create Post button if it's my profile */}
+                    {user?.id === userId && (
+                        <Pressable
+                            style={[styles.createButton, { backgroundColor: userColors.accent_color }]}
+                            onPress={() => navigation.navigate('CreatePost')}
+                        >
+                            <Feather name="plus" size={20} color={themeColors.accentText} />
+                            <Text style={[styles.createButtonText, { color: themeColors.accentText }]}>
+                                Create Post
+                            </Text>
+                        </Pressable>
+                    )}
                 </View>
             )}
         </View>
@@ -153,19 +174,39 @@ const styles = StyleSheet.create({
     },
     emptyContainer: {
         alignItems: 'center',
-        padding: spacing.xl,
-        borderTopWidth: 1,
-        borderBottomWidth: 1,
+        padding: spacing.md, // Reduced from xl
+        marginTop: spacing.sm, // Reduced from md
     },
     emptyIcon: {
-        width: 48,
-        height: 48,
+        width: 48, // Reduced from 80
+        height: 48, // Reduced from 80
         borderRadius: 24,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: spacing.sm,
+        marginBottom: spacing.sm, // Reduced from md
+    },
+    emptyTitle: {
+        fontSize: 14, // Reduced from 18
+        fontWeight: '600',
+        marginBottom: 2, // Reduced
     },
     emptyText: {
-        fontSize: 14,
+        fontSize: 12, // Reduced from 14
+        textAlign: 'center',
+        maxWidth: 200, // Reduced width
+        marginBottom: spacing.md, // Reduced from lg
+        color: '#6b7280', // Gray 500 equivalent
+    },
+    createButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 8, // Reduced
+        paddingHorizontal: spacing.md,
+        borderRadius: 20,
+        gap: spacing.xs,
+    },
+    createButtonText: {
+        fontSize: 12, // Reduced from 14
+        fontWeight: '600',
     }
 });
