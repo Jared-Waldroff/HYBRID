@@ -7,13 +7,17 @@ import {
     StyleSheet,
     ActivityIndicator,
     Image,
+    Platform,
+    KeyboardAvoidingView,
+    ScrollView,
+    Keyboard,
+    TouchableWithoutFeedback,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import * as SecureStore from 'expo-secure-store';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import * as AppleAuthentication from 'expo-apple-authentication';
-import { Platform } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import GradientBackground from '../components/GradientBackground';
 import { useAlert } from '../components/CustomAlert';
@@ -178,7 +182,16 @@ export default function LoginScreen() {
     return (
         <SafeAreaView style={styles.container}>
             <GradientBackground />
-            <View style={styles.content}>
+            <KeyboardAvoidingView
+                style={{ flex: 1 }}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            >
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <ScrollView
+                contentContainerStyle={styles.content}
+                keyboardShouldPersistTaps="handled"
+                bounces={false}
+            >
                 <View style={styles.header}>
                     <Image
                         source={require('../../assets/hybrid-logo.png')}
@@ -315,30 +328,36 @@ export default function LoginScreen() {
 
                     {/* Forgot Password */}
                     {!isSignUp && (
-                        <Pressable style={styles.linkButton} onPress={handleForgotPassword}>
+                        <Pressable
+                            style={[styles.linkButton, { marginTop: 8 }]}
+                            onPress={handleForgotPassword}
+                        >
                             <Text style={styles.linkText}>Forgot password?</Text>
                         </Pressable>
                     )}
 
-                    {/* Toggle Sign Up / Sign In */}
-                    <View style={styles.toggleContainer}>
-                        <Text style={styles.toggleText}>
-                            {isSignUp ? 'Already have an account?' : "Don't have an account?"}
-                        </Text>
-                        <Pressable
-                            style={styles.linkButton}
-                            onPress={() => {
-                                setIsSignUp(!isSignUp);
-                                setError('');
-                            }}
-                        >
-                            <Text style={styles.linkTextAccent}>
-                                {isSignUp ? 'Sign In' : 'Sign Up'}
-                            </Text>
-                        </Pressable>
-                    </View>
                 </View>
-            </View>
+
+                {/* Toggle Sign Up / Sign In */}
+                <View style={styles.toggleContainer}>
+                    <Text style={styles.toggleText}>
+                        {isSignUp ? 'Already have an account?' : "Don't have an account?"}
+                    </Text>
+                    <Pressable
+                        style={styles.linkButton}
+                        onPress={() => {
+                            setIsSignUp(!isSignUp);
+                            setError('');
+                        }}
+                    >
+                        <Text style={styles.linkTextAccent}>
+                            {isSignUp ? 'Sign In' : 'Sign Up'}
+                        </Text>
+                    </Pressable>
+                </View>
+            </ScrollView>
+            </TouchableWithoutFeedback>
+            </KeyboardAvoidingView>
         </SafeAreaView>
     );
 }
@@ -349,11 +368,11 @@ const styles = StyleSheet.create({
         backgroundColor: '#0a141f',
     },
     content: {
-        flex: 1,
+        flexGrow: 1,
         justifyContent: 'center',
         paddingHorizontal: 24,
         paddingBottom: 24,
-        paddingTop: 120, // Move content down visually
+        paddingTop: 60,
     },
     header: {
         alignItems: 'center',
@@ -422,7 +441,7 @@ const styles = StyleSheet.create({
         fontFamily: 'Inter_600SemiBold',
     },
     linkButton: {
-        minHeight: 48,
+        minHeight: 12,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -442,7 +461,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         gap: 4,
-        marginTop: 16,
+        marginTop: 20,
     },
     toggleText: {
         fontSize: 14,

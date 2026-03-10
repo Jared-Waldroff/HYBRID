@@ -88,10 +88,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
             data: { subscription },
         } = supabase.auth.onAuthStateChange(async (event, session) => {
             console.log('Auth state changed:', event, session?.user?.email);
-            setSession(session);
-            setUser(session?.user ?? null);
 
-            // Create user preferences if new sign up
+            // For SIGNED_IN, ensure profile/preferences exist before setting user
+            // This prevents downstream providers from querying records that don't exist yet
             if (event === 'SIGNED_IN' && session?.user) {
                 try {
                     const { data: existingPrefs } = await supabase
@@ -135,6 +134,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
                     console.warn('Could not create user preferences/profile:', err.message);
                 }
             }
+
+            // Set user/session AFTER profile records are ready
+            setSession(session);
+            setUser(session?.user ?? null);
         });
 
         return () => subscription.unsubscribe();
