@@ -1,26 +1,28 @@
-# HYBRID 💪🏃‍♂️🔥
+# HYBRID
 
-> **Train Like a Hybrid Athlete** — The all-in-one workout companion for athletes who refuse to specialize.
+> **Out Lift The Runners, Out Run The Lifters**
+>
+> The all-in-one workout companion for athletes who refuse to specialize.
 
 HYBRID is a mobile fitness application built for the modern athlete who wants it all: strength, endurance, power, and longevity. Whether you're training for HYROX, CrossFit, a marathon, or just want to be strong *and* conditioned — HYBRID has you covered.
 
 ---
 
-## ✨ Why HYBRID?
+## Why HYBRID?
 
 Most fitness apps force you to choose: strength OR cardio, bodybuilding OR functional fitness. **HYBRID breaks that mold.**
 
-- 🏋️ **Strength Training** — Log sets, reps, and weights with a beautiful, intuitive interface
-- 🏃 **Endurance Work** — Track Zone 2 runs, intervals, and conditioning
-- 🔥 **CrossFit & HYROX** — Built-in database of 40+ CrossFit Open workouts with timers and score tracking
-- 🤖 **AI-Powered Coaching** — Get personalized workout plans from an AI coach trained on elite methodologies
-- 👥 **Train With Friends** — Squad features let you connect, share, and compete with training partners
+- **Strength Training** — Log sets, reps, and weights with a clean, intuitive interface
+- **Endurance Work** — Track Zone 2 runs, intervals, and conditioning
+- **CrossFit & HYROX** — Built-in database of 40+ CrossFit Open workouts with timers and score tracking
+- **AI-Powered Coaching** — Get personalized workout plans from an AI coach trained on elite methodologies
+- **Train With Friends** — Squad features let you connect, share, and compete with training partners
 
 ---
 
-## 🎯 Core Features
+## Core Features
 
-### 📅 Smart Workout Planning
+### Smart Workout Planning
 
 Plan your training with an intuitive calendar interface. See your week at a glance, schedule workouts in advance, and never miss a session.
 
@@ -29,7 +31,7 @@ Plan your training with an intuitive calendar interface. See your week at a glan
 - **Copy previous workouts** — Repeat successful sessions with one tap
 - **Quick-add buttons** — Create workouts in seconds
 
-### 💪 Exercise Library
+### Exercise Library
 
 Access a comprehensive database of **60+ exercises** organized by muscle group, or create your own custom movements.
 
@@ -38,9 +40,9 @@ Access a comprehensive database of **60+ exercises** organized by muscle group, 
 - **Custom exercises** — Add your own unique movements
 - **Exercise history** — See your progress over time
 
-### 🤖 AI Fitness Coach
+### AI Fitness Coach
 
-Chat with an intelligent AI coach that understands hybrid athletic training. Our coach is trained on methodologies from the world's best trainers and researchers:
+Chat with an intelligent AI coach that understands hybrid athletic training. The coach is trained on methodologies from leading trainers and researchers:
 
 | Methodology | Source |
 |-------------|--------|
@@ -51,13 +53,13 @@ Chat with an intelligent AI coach that understands hybrid athletic training. Our
 | **Longevity Training** | Dr. Peter Attia's 4 Pillars |
 | **HYROX & CrossFit Prep** | Competition-specific programming |
 
-**What makes our AI different:**
-- 🎯 Asks about your lifestyle, sleep, stress, and goals before recommending workouts
-- ⚠️ Calls out bad programming decisions (too much volume, not enough recovery)
-- 📊 Generates structured workout plans you can add to your calendar with one tap
-- 🦵 Prioritizes joint health and longevity over short-term gains
+**What makes the AI different:**
+- Asks about your lifestyle, sleep, stress, and goals before recommending workouts
+- Flags poor programming decisions (excessive volume, insufficient recovery)
+- Generates structured workout plans you can add to your calendar with one tap
+- Prioritizes joint health and longevity over short-term gains
 
-### 🏆 CrossFit Open Workouts
+### CrossFit Open Workouts
 
 A complete database of **CrossFit Open workouts from 2017-2025** with:
 
@@ -66,9 +68,9 @@ A complete database of **CrossFit Open workouts from 2017-2025** with:
 - **Countdown with audio cues** — 3-2-1-GO with haptic feedback
 - **Score logging** — Track your times, reps, and rounds
 - **Historical scores** — Compare your performance over time
-- **Random workout generator** — Can't decide? Let fate choose your WOD
+- **Random workout generator** — Let fate choose your WOD
 
-### 👥 Squad System
+### Squad System
 
 Fitness is better with friends. Connect with training partners and build your squad.
 
@@ -79,18 +81,18 @@ Fitness is better with friends. Connect with training partners and build your sq
 - **Privacy controls** — Choose who can follow you
 - **Real-time notifications** — Stay connected with your squad
 
-### 🎨 Beautiful Theming
+### Theming
 
 Make the app yours with extensive customization options:
 
 - **8 Curated Themes** — Midnight, Ocean, Forest, Sunset, Royal, Slate, Rose, Amber
 - **Custom Colors** — Set your own primary and secondary accent colors
 - **Dark & Light Modes** — Easy on the eyes, day or night
-- **Persistent Preferences** — Your settings sync across devices
+- **Persistent Preferences** — Settings sync across devices
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 |-------|------------|
@@ -99,18 +101,19 @@ Make the app yours with extensive customization options:
 | **Backend** | Supabase (PostgreSQL + Auth + Realtime) |
 | **AI** | Google Gemini 1.5 Flash |
 | **Navigation** | React Navigation 7 |
-| **Auth** | Supabase Auth (Email/Password + Google OAuth) |
+| **Auth** | Supabase Auth (Email/Password + Google OAuth + Apple Sign In) |
+| **Payments** | RevenueCat (In-App Subscriptions) |
 | **Icons** | Expo Vector Icons (Feather) |
 
 ---
 
-## 📱 Screenshots
+## Screenshots
 
-*Coming soon — the app looks as good as it functions!*
+*Coming soon.*
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -134,7 +137,7 @@ Make the app yours with extensive customization options:
    ```
 
 3. **Set up environment variables**
-   
+
    Copy `.env.example` to `.env` and fill in your credentials:
    ```env
    EXPO_PUBLIC_SUPABASE_URL=your_supabase_project_url
@@ -143,7 +146,7 @@ Make the app yours with extensive customization options:
    ```
 
 4. **Set up database**
-   
+
    Run the SQL migration files in your Supabase SQL Editor:
    - `supabase-schema.sql` — Core tables and seed data
    - `supabase-athlete-profiles.sql` — Extended profile for AI context
@@ -160,7 +163,7 @@ Make the app yours with extensive customization options:
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 HYBRID/
@@ -179,15 +182,15 @@ HYBRID/
 
 ---
 
-## 🔒 Security
+## Security
 
 - **Row Level Security (RLS)** — All database tables enforce user-level access
 - **Secure token storage** — Auth tokens stored in Expo SecureStore
-- **No sensitive data in code** — All secrets via environment variables
+- **No sensitive data in code** — All secrets managed via environment variables
 
 ---
 
-## 🗺 Roadmap
+## Roadmap
 
 - [ ] Apple Health / Google Fit integration
 - [ ] Workout sharing to social media
@@ -199,22 +202,21 @@ HYBRID/
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome. Please feel free to submit a Pull Request.
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License.
 
 ---
 
-## 👨‍💻 Author
+## Author
 
-**Jared Waldroff**  
-Building tools for hybrid athletes 🏋️🏃‍♂️
+**Jared Waldroff**
 
 ---
 
