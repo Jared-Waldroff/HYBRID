@@ -6,6 +6,8 @@
 
 HYBRID is a mobile fitness application built for the modern athlete who wants it all: strength, endurance, power, and longevity. Whether you're training for HYROX, CrossFit, a marathon, or just want to be strong *and* conditioned — HYBRID has you covered.
 
+## DOWNLOAD ON THE APP STORE HERE: https://apps.apple.com/ca/app/hybrid/id6758261099
+
 ---
 
 ## Why HYBRID?
