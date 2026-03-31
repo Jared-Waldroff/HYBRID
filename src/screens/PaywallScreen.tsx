@@ -86,12 +86,12 @@ export default function PaywallScreen() {
                         <View style={[styles.bestValueTag, { backgroundColor: accentColor }]}>
                             <Text style={styles.bestValueText}>BEST VALUE</Text>
                         </View>
-                        <Text style={[styles.priceTitle, { color: themeColors.textPrimary }]}>Monthly</Text>
+                        <Text style={[styles.priceTitle, { color: themeColors.textPrimary }]}>HYBRID Pro</Text>
                         <Text style={[styles.priceAmount, { color: accentColor }]}>
                             <Text style={[styles.currency, { color: accentColor }]}>$</Text>1.99
                             <Text style={[styles.period, { color: accentColor }]}>/mo</Text>
                         </Text>
-                        <Text style={[styles.cancelText, { color: themeColors.textMuted }]}>Cancel anytime</Text>
+                        <Text style={[styles.pricePeriod, { color: themeColors.textSecondary }]}>Monthly auto-renewable subscription</Text>
                     </View>
                 </View>
 
@@ -121,14 +121,18 @@ export default function PaywallScreen() {
 
                 {/* Legal Links (Required for App Store) */}
                 <View style={styles.legalContainer}>
-                    <Pressable onPress={() => Linking.openURL('https://walsansoftware.com/terms_of_use')}>
-                        <Text style={styles.legalLink}>Terms of Use</Text>
+                    <Pressable onPress={() => Linking.openURL('https://walsansoftware.com/terms')}>
+                        <Text style={[styles.legalLink, { color: themeColors.textSecondary }]}>Terms of Use</Text>
                     </Pressable>
-                    <Text style={styles.legalDivider}>•</Text>
+                    <Text style={[styles.legalDivider, { color: themeColors.textMuted }]}>•</Text>
                     <Pressable onPress={() => Linking.openURL('https://walsansoftware.com/privacy')}>
-                        <Text style={styles.legalLink}>Privacy Policy</Text>
+                        <Text style={[styles.legalLink, { color: themeColors.textSecondary }]}>Privacy Policy</Text>
                     </Pressable>
                 </View>
+
+                <Text style={[styles.subscriptionDisclosure, { color: themeColors.textMuted }]}>
+                    Payment will be charged to your Apple ID account at confirmation of purchase. Subscription automatically renews unless canceled at least 24 hours before the end of the current period. Your account will be charged for renewal within 24 hours prior to the end of the current period at $1.99/month. You can manage and cancel your subscriptions in your App Store account settings after purchase.
+                </Text>
 
                 <Pressable onPress={() => navigation.goBack()} style={styles.dismissBtn}>
                     <Text style={{ color: themeColors.textMuted }}>Maybe Later</Text>
@@ -248,8 +252,17 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '500',
     },
-    cancelText: {
-        fontSize: 12,
+    pricePeriod: {
+        fontSize: 13,
+        marginTop: 4,
+    },
+    subscriptionDisclosure: {
+        fontSize: 11,
+        lineHeight: 16,
+        textAlign: 'center',
+        paddingHorizontal: 16,
+        marginTop: 16,
+        marginBottom: 8,
     },
     actions: {
         gap: 16,
@@ -281,7 +294,7 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     dismissBtn: {
-        marginTop: 20,
+        marginTop: 16,
         alignItems: 'center',
     },
     legalContainer: {
@@ -289,16 +302,14 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         gap: 8,
-        marginTop: 32,
-        marginBottom: 8,
+        marginTop: 12,
+        marginBottom: 4,
     },
     legalLink: {
         fontSize: 12,
-        color: 'rgba(255,255,255,0.5)',
         textDecorationLine: 'underline',
     },
     legalDivider: {
         fontSize: 12,
-        color: 'rgba(255,255,255,0.3)',
     }
 });

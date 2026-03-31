@@ -185,7 +185,7 @@ export default function EventDetailScreen() {
     const handleInvite = async () => {
         if (!event) return;
 
-        let inviteLink = `https://hybrid.app/event/${event.id}`;
+        let inviteLink = `https://hybrid.walsansoftware.com/event/${event.id}`;
         if (event.invite_code) {
             inviteLink += `?code=${event.invite_code}`;
         }

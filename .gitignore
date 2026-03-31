@@ -3,6 +3,9 @@
 # dependencies
 node_modules/
 
+# brainstorming visual companion
+.superpowers/
+
 # Expo
 .expo/
 dist/
@@ -65,3 +68,5 @@ docs/sql/
 
 # Supabase (Exclude all backend files)
 supabase/
+
+CLAUDE.md

@@ -12,6 +12,7 @@ import {
     Animated,
     LayoutAnimation,
     UIManager,
+    Linking,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -126,7 +127,7 @@ export default function CoachScreen() {
     const { themeColors, colors: userColors } = useTheme();
 
     // RevenueCat Integration - must be called before Coming Soon check
-    const { isPro, isLoading: isPurchasesLoading, hasPromoAccess } = useRevenueCat();
+    const { isPro, isLoading: isPurchasesLoading, hasPromoAccess, purchasePro, restorePurchases } = useRevenueCat();
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
     const { showAlert } = useAlert();
 
@@ -195,6 +196,7 @@ export default function CoachScreen() {
     const { stats, fetchStats } = useUserStats();
     const [showLiabilityModal, setShowLiabilityModal] = useState(false);
     const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+    const [isPurchasing, setIsPurchasing] = useState(false);
 
     // Filter events created by this user
     const myCreatedEvents = events.filter(e => e.creator_id === user?.id);
@@ -317,11 +319,13 @@ export default function CoachScreen() {
         const { error } = await updateProfile({ agreed_to_terms_at: new Date().toISOString() });
         setIsUpdatingProfile(false);
 
+        // Always close the modal so the user isn't trapped
+        setShowLiabilityModal(false);
+
         if (!error) {
-            setShowLiabilityModal(false);
             await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         } else {
-            showAlert({ title: 'Error', message: 'Could not save your agreement. Please try again.' });
+            console.warn('Failed to save terms agreement:', error);
         }
     };
 
@@ -383,30 +387,121 @@ export default function CoachScreen() {
         );
     }
 
-    // Show inline paywall if not Pro - user cannot bypass this
+    // Show full inline paywall if not Pro — no navigation needed, works reliably on all devices
     if (!isPro) {
+        const handleInlinePurchase = async () => {
+            setIsPurchasing(true);
+            try {
+                const success = await purchasePro();
+                if (success) {
+                    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                    showAlert({ title: 'Success', message: 'Welcome to HYBRID Pro!' });
+                }
+            } catch (error: any) {
+                showAlert({ title: 'Error', message: error.message || 'Purchase failed. Please try again.' });
+            } finally {
+                setIsPurchasing(false);
+            }
+        };
+
+        const handleInlineRestore = async () => {
+            setIsPurchasing(true);
+            const success = await restorePurchases();
+            setIsPurchasing(false);
+            if (success) {
+                showAlert({ title: 'Restored', message: 'Your purchases have been restored.' });
+            } else {
+                showAlert({ title: 'Notice', message: 'No active subscription found to restore.' });
+            }
+        };
+
         return (
             <ScreenLayout hideHeader>
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
-                    <Feather name="lock" size={64} color={userColors.accent_color} style={{ marginBottom: 20 }} />
-                    <Text style={{ color: themeColors.textPrimary, fontSize: 24, fontWeight: '700', textAlign: 'center', marginBottom: 12 }}>
-                        AI Coach is a Pro Feature
-                    </Text>
-                    <Text style={{ color: themeColors.textSecondary, fontSize: 16, textAlign: 'center', marginBottom: 32, lineHeight: 24 }}>
-                        Subscribe to HYBRID Pro to unlock unlimited AI coaching and personalized workout plans.
-                    </Text>
+                <ScrollView contentContainerStyle={{ padding: 24, paddingTop: 60, paddingBottom: 40 }}>
+                    <View style={{ alignItems: 'center', marginBottom: 32 }}>
+                        <Feather name="lock" size={64} color={userColors.accent_color} style={{ marginBottom: 20 }} />
+                        <Text style={{ color: themeColors.textPrimary, fontSize: 28, fontWeight: '800', textAlign: 'center', marginBottom: 12 }}>
+                            AI Coach is a <Text style={{ color: userColors.accent_color }}>Pro</Text> Feature
+                        </Text>
+                        <Text style={{ color: themeColors.textSecondary, fontSize: 16, textAlign: 'center', lineHeight: 24, paddingHorizontal: 20 }}>
+                            Subscribe to HYBRID Pro to unlock unlimited AI coaching and personalized workout plans.
+                        </Text>
+                    </View>
+
+                    {/* Subscription pricing card */}
+                    <View style={{ marginBottom: 32 }}>
+                        <View style={{
+                            borderWidth: 2,
+                            borderColor: userColors.accent_color,
+                            borderRadius: 20,
+                            padding: 24,
+                            alignItems: 'center' as const,
+                            backgroundColor: themeColors.glassBg,
+                        }}>
+                            <Text style={{ color: themeColors.textPrimary, fontSize: 18, fontWeight: '600', marginBottom: 8 }}>
+                                HYBRID Pro
+                            </Text>
+                            <Text style={{ color: userColors.accent_color, fontSize: 48, fontWeight: '800', marginBottom: 4 }}>
+                                <Text style={{ fontSize: 24, fontWeight: '600' }}>$</Text>1.99
+                                <Text style={{ fontSize: 16, fontWeight: '500' }}>/mo</Text>
+                            </Text>
+                            <Text style={{ color: themeColors.textSecondary, fontSize: 13, marginTop: 4 }}>
+                                Monthly auto-renewable subscription
+                            </Text>
+                        </View>
+                    </View>
+
+                    {/* Subscribe button */}
                     <Pressable
                         style={{
                             backgroundColor: userColors.accent_color,
-                            paddingHorizontal: 32,
-                            paddingVertical: 16,
+                            height: 56,
                             borderRadius: 28,
+                            justifyContent: 'center' as const,
+                            alignItems: 'center' as const,
+                            shadowColor: userColors.accent_color,
+                            shadowOffset: { width: 0, height: 4 },
+                            shadowOpacity: 0.3,
+                            shadowRadius: 10,
+                            opacity: isPurchasing ? 0.7 : 1,
                         }}
-                        onPress={() => navigation.navigate('Paywall', { fromCoach: true })}
+                        onPress={handleInlinePurchase}
+                        disabled={isPurchasing}
                     >
-                        <Text style={{ color: themeColors.accentText, fontSize: 18, fontWeight: '700' }}>Upgrade to Pro</Text>
+                        {isPurchasing ? (
+                            <ActivityIndicator color="#000" />
+                        ) : (
+                            <Text style={{ color: '#000', fontSize: 18, fontWeight: '700' }}>Subscribe Now</Text>
+                        )}
                     </Pressable>
-                </View>
+
+                    {/* Restore purchases */}
+                    <Pressable
+                        style={{ height: 44, justifyContent: 'center' as const, alignItems: 'center' as const, marginTop: 16 }}
+                        onPress={handleInlineRestore}
+                        disabled={isPurchasing}
+                    >
+                        <Text style={{ color: themeColors.textSecondary, fontSize: 14, fontWeight: '600' }}>
+                            Restore Purchases
+                        </Text>
+                    </Pressable>
+
+                    {/* Legal links (required by App Store) */}
+                    <View style={{ flexDirection: 'row' as const, justifyContent: 'center' as const, alignItems: 'center' as const, gap: 8, marginTop: 12, marginBottom: 4 }}>
+                        <Pressable onPress={() => Linking.openURL('https://walsansoftware.com/terms')}>
+                            <Text style={{ color: themeColors.textSecondary, fontSize: 12, textDecorationLine: 'underline' as const }}>Terms of Use</Text>
+                        </Pressable>
+                        <Text style={{ color: themeColors.textMuted, fontSize: 12 }}>•</Text>
+                        <Pressable onPress={() => Linking.openURL('https://walsansoftware.com/privacy')}>
+                            <Text style={{ color: themeColors.textSecondary, fontSize: 12, textDecorationLine: 'underline' as const }}>Privacy Policy</Text>
+                        </Pressable>
+                    </View>
+
+                    {/* Subscription disclosure */}
+                    <Text style={{ color: themeColors.textMuted, fontSize: 11, lineHeight: 16, textAlign: 'center', paddingHorizontal: 16, marginTop: 16 }}>
+                        Payment will be charged to your Apple ID account at confirmation of purchase. Subscription automatically renews unless canceled at least 24 hours before the end of the current period. Your account will be charged for renewal within 24 hours prior to the end of the current period at $1.99/month. You can manage and cancel your subscriptions in your App Store account settings after purchase.
+                    </Text>
+                </ScrollView>
             </ScreenLayout>
         );
     }

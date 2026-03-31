@@ -32,3 +32,5 @@ android/
 
 # Backend / Database (Not needed in app bundle)
 supabase/
+
+CLAUDE.md
