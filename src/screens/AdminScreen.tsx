@@ -16,9 +16,7 @@ export default function AdminScreen() {
     const fetchFeedback = async () => {
         setLoading(true);
         const { data, error } = await supabase
-            .from('feedback')
-            .select('*')
-            .order('created_at', { ascending: false });
+            .rpc('get_all_feedback');
 
         if (error) {
             console.error('Error fetching feedback:', error);
