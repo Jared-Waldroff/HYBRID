@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, Pressable, StyleSheet, ScrollView, Switch, Modal, TextInput, Image, ActivityIndicator, Keyboard, Platform, KeyboardAvoidingView } from 'react-native';
+import { View, Text, Pressable, StyleSheet, ScrollView, Switch, Modal, TextInput, Image, ActivityIndicator, Keyboard, Platform, KeyboardAvoidingView, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -421,6 +421,33 @@ export default function SettingsScreen() {
                 >
                     <View style={{ marginTop: spacing.xl, paddingHorizontal: spacing.md }}>
 
+                        {/* Subscription */}
+                        <View style={styles.section}>
+                            <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>Subscription</Text>
+                            <View style={styles.sectionContent}>
+                                {isPro ? (
+                                    <View style={[styles.settingsRow, { backgroundColor: themeColors.inputBg }]}>
+                                        <View style={styles.settingsRowLeft}>
+                                            <View style={[styles.iconContainer, { backgroundColor: userColors.accent_color }]}>
+                                                <Feather name="award" size={18} color="#fff" />
+                                            </View>
+                                            <View>
+                                                <Text style={[styles.settingsLabel, { color: themeColors.textPrimary }]}>HYBRID Pro</Text>
+                                                <Text style={[styles.settingsSubLabel, { color: themeColors.textMuted }]}>Active</Text>
+                                            </View>
+                                        </View>
+                                        <Feather name="check-circle" size={20} color={userColors.accent_color} />
+                                    </View>
+                                ) : (
+                                    <SettingsRow
+                                        icon="star"
+                                        label="Upgrade to HYBRID Pro"
+                                        onPress={() => navigation.navigate('Paywall')}
+                                    />
+                                )}
+                            </View>
+                        </View>
+
                         {/* Account */}
                         <View style={styles.section}>
                             <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>Account</Text>
@@ -428,6 +455,8 @@ export default function SettingsScreen() {
                                 <SettingsRow icon="mail" label="Email" value={user?.email} showChevron={false} />
                                 <View style={[styles.divider, { marginVertical: 0 }]} />
                                 <SettingsRow icon="lock" label="Change Password" onPress={() => setShowChangePassword(true)} />
+                                <View style={[styles.divider, { marginVertical: 0 }]} />
+                                <SettingsRow icon="bell" label="Notification Settings" onPress={() => navigation.navigate('NotificationSettings')} />
                             </View>
                         </View>
 
@@ -587,7 +616,7 @@ export default function SettingsScreen() {
                         <View style={styles.section}>
                             <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>Account Actions</Text>
                             <View style={styles.sectionContent}>
-                                <Pressable style={[styles.settingsRow, styles.dangerRow, { backgroundColor: 'rgba(239, 68, 68, 0.1)' }]} onPress={handleSignOut}>
+                                <Pressable style={[styles.settingsRow, styles.dangerRow, { backgroundColor: 'rgba(239, 68, 68, 0.1)', borderRadius: 12, overflow: 'hidden' }]} onPress={handleSignOut}>
                                     <View style={styles.settingsRowLeft}>
                                         <View style={[styles.iconContainer, { backgroundColor: colors.error }]}>
                                             <Feather name="log-out" size={18} color="#fff" />
@@ -597,9 +626,9 @@ export default function SettingsScreen() {
                                     <Feather name="chevron-right" size={20} color={colors.error} />
                                 </Pressable>
 
-                                <View style={[styles.divider, { marginVertical: 0 }]} />
+                                <View style={[styles.divider, { marginVertical: 16 }]} />
 
-                                <Pressable style={[styles.settingsRow, styles.dangerRow, { backgroundColor: 'rgba(239, 68, 68, 0.1)' }]} onPress={handleDeleteAccount}>
+                                <Pressable style={[styles.settingsRow, styles.dangerRow, { backgroundColor: 'rgba(239, 68, 68, 0.1)', borderRadius: 12, overflow: 'hidden' }]} onPress={handleDeleteAccount}>
                                     <View style={styles.settingsRowLeft}>
                                         <View style={[styles.iconContainer, { backgroundColor: colors.error }]}>
                                             <Feather name="trash-2" size={18} color="#fff" />
@@ -611,11 +640,21 @@ export default function SettingsScreen() {
                             </View>
                         </View>
 
+                        {/* Legal */}
+                        <View style={styles.section}>
+                            <Text style={[styles.sectionTitle, { color: themeColors.textSecondary }]}>Legal</Text>
+                            <View style={styles.sectionContent}>
+                                <SettingsRow icon="file-text" label="Terms of Use" onPress={() => Linking.openURL('https://walsansoftware.com/terms')} />
+                                <View style={[styles.divider, { marginVertical: 0 }]} />
+                                <SettingsRow icon="shield" label="Privacy Policy" onPress={() => Linking.openURL('https://walsansoftware.com/privacy')} />
+                            </View>
+                        </View>
+
                         {/* Footer Version Info */}
                         <View style={styles.appInfo}>
                             <Text style={[styles.appName, { color: themeColors.textMuted }]}>HYBRID</Text>
                             <Text style={[styles.appVersion, { color: themeColors.textMuted, marginTop: 4 }]}>Walsan Software</Text>
-                            <Text style={[styles.appVersion, { color: themeColors.textMuted }]}>Version 1.0.0</Text>
+                            <Text style={[styles.appVersion, { color: themeColors.textMuted }]}>Version 1.0.1</Text>
                         </View>
 
                         <View style={{ height: keyboardHeight }} />

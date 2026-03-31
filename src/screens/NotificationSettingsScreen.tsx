@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
     View,
     Text,
@@ -8,94 +8,238 @@ import {
     Switch,
     ActivityIndicator,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { useNotifications } from '../context/NotificationContext';
 import ScreenLayout from '../components/ScreenLayout';
-import { useAlert } from '../components/CustomAlert';
 import { spacing, radii, typography } from '../theme';
-import { cancelAllNotifications, getScheduledNotificationCount } from '../services/notificationService';
+
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+type PrefKey =
+    | 'squadRequests'
+    | 'squadPosts'
+    | 'comments'
+    | 'lfgReactions'
+    | 'eventInvites'
+    | 'eventSoon'
+    | 'workoutReminders'
+    | 'checkInReminders';
+
+interface ToggleRowItem {
+    icon: React.ComponentProps<typeof Feather>['name'];
+    label: string;
+    description: string;
+    prefKey: PrefKey;
+}
+
+// ─── Toggle Row ───────────────────────────────────────────────────────────────
+
+interface ToggleRowProps {
+    item: ToggleRowItem;
+    value: boolean;
+    onValueChange: (v: boolean) => void;
+    accent: string;
+    bgTertiary: string;
+    textPrimary: string;
+    textSecondary: string;
+    textMuted: string;
+    showDivider: boolean;
+    dividerColor: string;
+}
+
+function ToggleRow({
+    item,
+    value,
+    onValueChange,
+    accent,
+    bgTertiary,
+    textPrimary,
+    textSecondary,
+    textMuted,
+    showDivider,
+    dividerColor,
+}: ToggleRowProps) {
+    return (
+        <>
+            <View style={styles.toggleItem}>
+                <View style={styles.toggleInfo}>
+                    <Feather name={item.icon} size={18} color={textSecondary} />
+                    <View style={styles.toggleText}>
+                        <Text style={[styles.toggleTitle, { color: textPrimary }]}>
+                            {item.label}
+                        </Text>
+                        <Text style={[styles.toggleDesc, { color: textMuted }]}>
+                            {item.description}
+                        </Text>
+                    </View>
+                </View>
+                <Switch
+                    value={value}
+                    onValueChange={onValueChange}
+                    trackColor={{ false: bgTertiary, true: `${accent}50` }}
+                    thumbColor={value ? accent : textMuted}
+                />
+            </View>
+            {showDivider && (
+                <View style={[styles.divider, { backgroundColor: dividerColor }]} />
+            )}
+        </>
+    );
+}
+
+// ─── Section Header ───────────────────────────────────────────────────────────
+
+interface SectionHeaderProps {
+    icon: React.ComponentProps<typeof Feather>['name'];
+    title: string;
+    accent: string;
+    textPrimary: string;
+}
+
+function SectionHeader({ icon, title, accent, textPrimary }: SectionHeaderProps) {
+    return (
+        <View style={styles.sectionHeader}>
+            <Feather name={icon} size={20} color={accent} />
+            <Text style={[styles.sectionTitle, { color: textPrimary }]}>
+                {title}
+            </Text>
+        </View>
+    );
+}
+
+// ─── Main Screen ──────────────────────────────────────────────────────────────
+
+const SQUAD_TOGGLES: ToggleRowItem[] = [
+    {
+        icon: 'user-plus',
+        label: 'Squad Requests',
+        description: 'Someone sends or accepts a request',
+        prefKey: 'squadRequests',
+    },
+    {
+        icon: 'message-circle',
+        label: 'Comments',
+        description: 'Someone comments on your post',
+        prefKey: 'comments',
+    },
+    {
+        icon: 'zap',
+        label: 'LFG Reactions',
+        description: 'Someone reacts LFG to your post',
+        prefKey: 'lfgReactions',
+    },
+    {
+        icon: 'edit-3',
+        label: 'Squad Posts',
+        description: 'Someone in your squad posts',
+        prefKey: 'squadPosts',
+    },
+];
+
+const EVENT_TOGGLES: ToggleRowItem[] = [
+    {
+        icon: 'mail',
+        label: 'Event Invites',
+        description: 'Someone invites you to an event',
+        prefKey: 'eventInvites',
+    },
+    {
+        icon: 'clock',
+        label: 'Event Starting Soon',
+        description: 'Reminder before an event',
+        prefKey: 'eventSoon',
+    },
+];
+
+const TRAINING_TOGGLES: ToggleRowItem[] = [
+    {
+        icon: 'bell',
+        label: 'Workout Reminders',
+        description: 'Reminder before a training workout',
+        prefKey: 'workoutReminders',
+    },
+    {
+        icon: 'check-square',
+        label: 'Check-In Reminders',
+        description: 'Periodic training progress nudges',
+        prefKey: 'checkInReminders',
+    },
+];
 
 export default function NotificationSettingsScreen() {
+    const navigation = useNavigation<any>();
     const { themeColors, colors: userColors } = useTheme();
-    const {
-        preferences,
-        updatePreferences,
-        isRegistered,
-        registerForNotifications,
-        scheduledCount,
-        refreshScheduledCount,
-    } = useNotifications();
+    const { preferences, updatePreferences, isRegistered, registerForNotifications } = useNotifications();
 
-    const [loading, setLoading] = useState(false);
-    const [registeringPush, setRegisteringPush] = useState(false);
-    const { showAlert } = useAlert();
+    const [registeringPush, setRegisteringPush] = React.useState(false);
 
-    useEffect(() => {
-        refreshScheduledCount();
-    }, [refreshScheduledCount]);
+    const accent = userColors.accent_color;
 
     const handleEnablePush = async () => {
         setRegisteringPush(true);
-        const success = await registerForNotifications();
+        await registerForNotifications();
         setRegisteringPush(false);
-
-        if (!success) {
-            showAlert({
-                title: 'Notifications Disabled',
-                message: 'Please enable notifications in your device settings to receive workout reminders and squad activity updates.'
-            });
-        }
     };
 
-    const handleToggle = async (key: keyof typeof preferences, value: boolean) => {
-        setLoading(true);
-        await updatePreferences({ [key]: value });
-        setLoading(false);
+    const handleToggle = (key: PrefKey, value: boolean) => {
+        updatePreferences({ [key]: value });
     };
 
-    const handleClearAll = async () => {
-        showAlert({
-            title: 'Clear All Reminders',
-            message: 'This will cancel all scheduled workout reminders. Are you sure?',
-            buttons: [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Clear All',
-                    style: 'destructive',
-                    onPress: async () => {
-                        await cancelAllNotifications();
-                        await refreshScheduledCount();
-                        showAlert({ title: 'Done', message: 'All scheduled reminders have been cleared.' });
-                    }
-                }
-            ]
-        });
+    const handleSoundToggle = (choice: 'custom' | 'default') => {
+        updatePreferences({ sound: choice });
     };
+
+    const renderToggles = (items: ToggleRowItem[]) =>
+        items.map((item, index) => (
+            <ToggleRow
+                key={item.prefKey}
+                item={item}
+                value={preferences[item.prefKey]}
+                onValueChange={(v) => handleToggle(item.prefKey, v)}
+                accent={accent}
+                bgTertiary={themeColors.bgTertiary}
+                textPrimary={themeColors.textPrimary}
+                textSecondary={themeColors.textSecondary}
+                textMuted={themeColors.textMuted}
+                showDivider={index < items.length - 1}
+                dividerColor={themeColors.divider}
+            />
+        ));
 
     return (
         <ScreenLayout hideHeader>
+            {/* ── Custom Header ── */}
+            <View style={[styles.header, { borderBottomColor: themeColors.divider }]}>
+                <Pressable onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={8}>
+                    <Feather name="arrow-left" size={24} color={themeColors.textPrimary} />
+                </Pressable>
+                <Text style={[styles.headerTitle, { color: themeColors.textPrimary }]}>
+                    Notification Settings
+                </Text>
+                <View style={styles.headerSpacer} />
+            </View>
+
             <ScrollView
-                style={styles.container}
+                style={styles.scroll}
                 contentContainerStyle={styles.contentContainer}
                 showsVerticalScrollIndicator={false}
             >
-                {/* Push Notification Status */}
+                {/* ── 1. Push Notifications ── */}
                 <View style={[styles.section, { backgroundColor: themeColors.bgSecondary }]}>
-                    <View style={styles.sectionHeader}>
-                        <Feather name="bell" size={20} color={userColors.accent_color} />
-                        <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>
-                            Push Notifications
-                        </Text>
-                    </View>
+                    <SectionHeader
+                        icon="bell"
+                        title="Push Notifications"
+                        accent={accent}
+                        textPrimary={themeColors.textPrimary}
+                    />
 
                     {isRegistered ? (
                         <View style={styles.statusRow}>
                             <View style={[styles.statusBadge, { backgroundColor: '#10b98120' }]}>
                                 <Feather name="check-circle" size={16} color="#10b981" />
-                                <Text style={[styles.statusText, { color: '#10b981' }]}>
-                                    Enabled
-                                </Text>
+                                <Text style={[styles.statusText, { color: '#10b981' }]}>Enabled</Text>
                             </View>
                             <Text style={[styles.statusHint, { color: themeColors.textMuted }]}>
                                 You'll receive notifications on this device
@@ -105,165 +249,154 @@ export default function NotificationSettingsScreen() {
                         <View style={styles.statusRow}>
                             <View style={[styles.statusBadge, { backgroundColor: '#f5970620' }]}>
                                 <Feather name="alert-circle" size={16} color="#f59706" />
-                                <Text style={[styles.statusText, { color: '#f59706' }]}>
-                                    Not Enabled
-                                </Text>
+                                <Text style={[styles.statusText, { color: '#f59706' }]}>Not Enabled</Text>
                             </View>
                             <Text style={[styles.statusHint, { color: themeColors.textMuted }]}>
-                                Enable to receive workout reminders
+                                Enable to receive push notifications on this device
                             </Text>
                             <Pressable
-                                style={[styles.enableButton, { backgroundColor: userColors.accent_color }]}
+                                style={[styles.enableButton, { backgroundColor: accent }]}
                                 onPress={handleEnablePush}
                                 disabled={registeringPush}
                             >
                                 {registeringPush ? (
-                                    <ActivityIndicator size="small" color={themeColors.accentText} />
+                                    <ActivityIndicator size="small" color="#fff" />
                                 ) : (
-                                    <Text style={[styles.enableButtonText, { color: themeColors.accentText }]}>
-                                        Enable Notifications
-                                    </Text>
+                                    <Text style={styles.enableButtonText}>Enable Notifications</Text>
                                 )}
                             </Pressable>
                         </View>
                     )}
                 </View>
 
-                {/* Notification Types */}
+                {/* ── 2. Sound ── */}
                 <View style={[styles.section, { backgroundColor: themeColors.bgSecondary }]}>
-                    <View style={styles.sectionHeader}>
-                        <Feather name="sliders" size={20} color={userColors.accent_color} />
-                        <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>
-                            Notification Types
-                        </Text>
-                    </View>
+                    <SectionHeader
+                        icon="volume-2"
+                        title="Sound"
+                        accent={accent}
+                        textPrimary={themeColors.textPrimary}
+                    />
 
-                    <View style={styles.toggleItem}>
-                        <View style={styles.toggleInfo}>
-                            <Feather name="activity" size={18} color={themeColors.textSecondary} />
-                            <View style={styles.toggleText}>
-                                <Text style={[styles.toggleTitle, { color: themeColors.textPrimary }]}>
-                                    Workout Reminders
-                                </Text>
-                                <Text style={[styles.toggleDesc, { color: themeColors.textMuted }]}>
-                                    Get reminded about upcoming training workouts
-                                </Text>
-                            </View>
-                        </View>
-                        <Switch
-                            value={preferences.workoutReminders}
-                            onValueChange={(v) => handleToggle('workoutReminders', v)}
-                            trackColor={{ false: themeColors.bgTertiary, true: `${userColors.accent_color}50` }}
-                            thumbColor={preferences.workoutReminders ? userColors.accent_color : themeColors.textMuted}
-                            disabled={loading}
-                        />
-                    </View>
-
-                    <View style={[styles.divider, { backgroundColor: themeColors.divider }]} />
-
-                    <View style={styles.toggleItem}>
-                        <View style={styles.toggleInfo}>
-                            <Feather name="calendar" size={18} color={themeColors.textSecondary} />
-                            <View style={styles.toggleText}>
-                                <Text style={[styles.toggleTitle, { color: themeColors.textPrimary }]}>
-                                    Check-In Reminders
-                                </Text>
-                                <Text style={[styles.toggleDesc, { color: themeColors.textMuted }]}>
-                                    Periodic reminders to log your training progress
-                                </Text>
-                            </View>
-                        </View>
-                        <Switch
-                            value={preferences.checkInReminders}
-                            onValueChange={(v) => handleToggle('checkInReminders', v)}
-                            trackColor={{ false: themeColors.bgTertiary, true: `${userColors.accent_color}50` }}
-                            thumbColor={preferences.checkInReminders ? userColors.accent_color : themeColors.textMuted}
-                            disabled={loading}
-                        />
-                    </View>
-
-                    <View style={[styles.divider, { backgroundColor: themeColors.divider }]} />
-
-                    <View style={styles.toggleItem}>
-                        <View style={styles.toggleInfo}>
-                            <Feather name="users" size={18} color={themeColors.textSecondary} />
-                            <View style={styles.toggleText}>
-                                <Text style={[styles.toggleTitle, { color: themeColors.textPrimary }]}>
-                                    Squad Activity
-                                </Text>
-                                <Text style={[styles.toggleDesc, { color: themeColors.textMuted }]}>
-                                    LFG reactions and comments on your posts
-                                </Text>
-                            </View>
-                        </View>
-                        <Switch
-                            value={preferences.squadActivity}
-                            onValueChange={(v) => handleToggle('squadActivity', v)}
-                            trackColor={{ false: themeColors.bgTertiary, true: `${userColors.accent_color}50` }}
-                            thumbColor={preferences.squadActivity ? userColors.accent_color : themeColors.textMuted}
-                            disabled={loading}
-                        />
-                    </View>
-                </View>
-
-                {/* Scheduled Reminders */}
-                <View style={[styles.section, { backgroundColor: themeColors.bgSecondary }]}>
-                    <View style={styles.sectionHeader}>
-                        <Feather name="clock" size={20} color={userColors.accent_color} />
-                        <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>
-                            Scheduled Reminders
-                        </Text>
-                    </View>
-
-                    <View style={styles.scheduledInfo}>
-                        <View style={[styles.countBadge, { backgroundColor: `${userColors.accent_color}20` }]}>
-                            <Text style={[styles.countNumber, { color: userColors.accent_color }]}>
-                                {scheduledCount}
-                            </Text>
-                        </View>
-                        <Text style={[styles.scheduledText, { color: themeColors.textSecondary }]}>
-                            {scheduledCount === 1 ? 'reminder scheduled' : 'reminders scheduled'}
-                        </Text>
-                    </View>
-
-                    {scheduledCount > 0 && (
+                    <View style={styles.soundRow}>
                         <Pressable
-                            style={[styles.clearButton, { borderColor: '#ef4444' }]}
-                            onPress={handleClearAll}
+                            style={[
+                                styles.soundOption,
+                                preferences.sound === 'custom'
+                                    ? { backgroundColor: `${accent}20`, borderColor: accent }
+                                    : { backgroundColor: 'transparent', borderColor: themeColors.glassBorder },
+                            ]}
+                            onPress={() => handleSoundToggle('custom')}
                         >
-                            <Feather name="trash-2" size={16} color="#ef4444" />
-                            <Text style={[styles.clearButtonText, { color: '#ef4444' }]}>
-                                Clear All Reminders
+                            <Text
+                                style={[
+                                    styles.soundOptionText,
+                                    { color: preferences.sound === 'custom' ? accent : themeColors.textMuted },
+                                ]}
+                            >
+                                Custom (HYBRID)
                             </Text>
                         </Pressable>
-                    )}
+
+                        <Pressable
+                            style={[
+                                styles.soundOption,
+                                preferences.sound === 'default'
+                                    ? { backgroundColor: `${accent}20`, borderColor: accent }
+                                    : { backgroundColor: 'transparent', borderColor: themeColors.glassBorder },
+                            ]}
+                            onPress={() => handleSoundToggle('default')}
+                        >
+                            <Text
+                                style={[
+                                    styles.soundOptionText,
+                                    { color: preferences.sound === 'default' ? accent : themeColors.textMuted },
+                                ]}
+                            >
+                                System Default
+                            </Text>
+                        </Pressable>
+                    </View>
                 </View>
 
-                {/* Info */}
-                <View style={[styles.infoCard, { backgroundColor: `${userColors.accent_color}10` }]}>
-                    <Feather name="info" size={18} color={userColors.accent_color} />
-                    <Text style={[styles.infoText, { color: themeColors.textSecondary }]}>
-                        Workout reminders are automatically scheduled when you join events with training plans.
-                        You'll receive a reminder the evening before each workout.
-                    </Text>
+                {/* ── 3. Squad Activity ── */}
+                <View style={[styles.section, { backgroundColor: themeColors.bgSecondary }]}>
+                    <SectionHeader
+                        icon="users"
+                        title="Squad Activity"
+                        accent={accent}
+                        textPrimary={themeColors.textPrimary}
+                    />
+                    {renderToggles(SQUAD_TOGGLES)}
+                </View>
+
+                {/* ── 4. Events ── */}
+                <View style={[styles.section, { backgroundColor: themeColors.bgSecondary }]}>
+                    <SectionHeader
+                        icon="calendar"
+                        title="Events"
+                        accent={accent}
+                        textPrimary={themeColors.textPrimary}
+                    />
+                    {renderToggles(EVENT_TOGGLES)}
+                </View>
+
+                {/* ── 5. Training ── */}
+                <View style={[styles.section, { backgroundColor: themeColors.bgSecondary }]}>
+                    <SectionHeader
+                        icon="activity"
+                        title="Training"
+                        accent={accent}
+                        textPrimary={themeColors.textPrimary}
+                    />
+                    {renderToggles(TRAINING_TOGGLES)}
                 </View>
             </ScrollView>
         </ScreenLayout>
     );
 }
 
+// ─── Styles ───────────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
-    container: {
+    // Header
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: spacing.md,
+        paddingVertical: spacing.sm,
+        borderBottomWidth: 1,
+    },
+    backButton: {
+        width: 40,
+        height: 40,
+        justifyContent: 'center',
+        alignItems: 'flex-start',
+    },
+    headerTitle: {
+        flex: 1,
+        textAlign: 'center',
+        fontSize: typography.sizes.lg,
+        fontWeight: typography.weights.semibold,
+    },
+    headerSpacer: {
+        width: 40,
+    },
+
+    // ScrollView
+    scroll: {
         flex: 1,
     },
     contentContainer: {
         padding: spacing.md,
         paddingBottom: spacing.xxl,
+        gap: spacing.md,
     },
+
+    // Section card
     section: {
         borderRadius: radii.lg,
         padding: spacing.md,
-        marginBottom: spacing.md,
     },
     sectionHeader: {
         flexDirection: 'row',
@@ -275,6 +408,8 @@ const styles = StyleSheet.create({
         fontSize: typography.sizes.lg,
         fontWeight: typography.weights.semibold,
     },
+
+    // Push status
     statusRow: {
         gap: spacing.sm,
     },
@@ -293,19 +428,39 @@ const styles = StyleSheet.create({
     },
     statusHint: {
         fontSize: typography.sizes.sm,
-        marginTop: spacing.xs,
     },
     enableButton: {
         paddingVertical: spacing.sm,
         paddingHorizontal: spacing.lg,
         borderRadius: radii.md,
         alignItems: 'center',
-        marginTop: spacing.sm,
+        marginTop: spacing.xs,
     },
     enableButtonText: {
+        color: '#fff',
         fontSize: typography.sizes.base,
         fontWeight: typography.weights.semibold,
     },
+
+    // Sound toggle
+    soundRow: {
+        flexDirection: 'row',
+        gap: spacing.sm,
+    },
+    soundOption: {
+        flex: 1,
+        paddingVertical: spacing.sm,
+        paddingHorizontal: spacing.md,
+        borderRadius: radii.md,
+        borderWidth: 1,
+        alignItems: 'center',
+    },
+    soundOptionText: {
+        fontSize: typography.sizes.sm,
+        fontWeight: typography.weights.medium,
+    },
+
+    // Toggle rows
     toggleItem: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -333,49 +488,5 @@ const styles = StyleSheet.create({
     divider: {
         height: 1,
         marginVertical: spacing.xs,
-    },
-    scheduledInfo: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: spacing.sm,
-        marginBottom: spacing.md,
-    },
-    countBadge: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    countNumber: {
-        fontSize: typography.sizes.xl,
-        fontWeight: typography.weights.bold,
-    },
-    scheduledText: {
-        fontSize: typography.sizes.base,
-    },
-    clearButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: spacing.sm,
-        borderRadius: radii.md,
-        borderWidth: 1,
-        gap: spacing.xs,
-    },
-    clearButtonText: {
-        fontSize: typography.sizes.base,
-        fontWeight: typography.weights.medium,
-    },
-    infoCard: {
-        flexDirection: 'row',
-        padding: spacing.md,
-        borderRadius: radii.md,
-        gap: spacing.sm,
-    },
-    infoText: {
-        flex: 1,
-        fontSize: typography.sizes.sm,
-        lineHeight: 20,
     },
 });

@@ -1,45 +1,46 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigation } from '@react-navigation/native';
-// import * as Notifications from 'expo-notifications';
+import { supabase } from '../lib/supabaseClient';
 import { useAuth } from './AuthContext';
 import {
     registerForPushNotificationsAsync,
     savePushToken,
     getNotificationPreferences,
     saveNotificationPreferences,
-    addNotificationListeners,
     NotificationPreferences,
 } from '../services/notificationService';
-
-// Mock types
-type Notification = any;
-type NotificationResponse = any;
 
 interface NotificationContextType {
     pushToken: string | null;
     preferences: NotificationPreferences;
     isRegistered: boolean;
-    scheduledCount: number;
+    unreadCount: number;
     registerForNotifications: () => Promise<boolean>;
     updatePreferences: (prefs: Partial<NotificationPreferences>) => Promise<void>;
-    refreshScheduledCount: () => Promise<void>;
+    markAllRead: () => Promise<void>;
+    refreshUnreadCount: () => Promise<void>;
 }
 
 const defaultPreferences: NotificationPreferences = {
+    squadRequests: true,
+    squadPosts: true,
+    comments: true,
+    lfgReactions: true,
+    eventInvites: true,
+    eventSoon: true,
     workoutReminders: true,
     checkInReminders: true,
-    squadActivity: true,
-    reminderTime: '08:00',
+    sound: 'custom',
 };
 
 const NotificationContext = createContext<NotificationContextType>({
     pushToken: null,
     preferences: defaultPreferences,
     isRegistered: false,
-    scheduledCount: 0,
+    unreadCount: 0,
     registerForNotifications: async () => false,
     updatePreferences: async () => { },
-    refreshScheduledCount: async () => { },
+    markAllRead: async () => { },
+    refreshUnreadCount: async () => { },
 });
 
 export function useNotifications() {
@@ -52,61 +53,49 @@ interface NotificationProviderProps {
 
 export function NotificationProvider({ children }: NotificationProviderProps) {
     const { user } = useAuth();
-    const navigation = useNavigation();
     const [pushToken, setPushToken] = useState<string | null>(null);
     const [preferences, setPreferences] = useState<NotificationPreferences>(defaultPreferences);
     const [isRegistered, setIsRegistered] = useState(false);
-    const [scheduledCount, setScheduledCount] = useState(0);
-    const notificationListener = useRef<(() => void) | null>(null);
+    const [unreadCount, setUnreadCount] = useState(0);
+    const realtimeChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
-    // Load preferences when user logs in
-    useEffect(() => {
-        if (user?.id) {
-            loadPreferences();
+    // Fetch initial unread count from DB
+    const refreshUnreadCount = useCallback(async () => {
+        if (!user?.id) return;
+
+        const { count, error } = await supabase
+            .from('notifications')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+            .eq('is_read', false);
+
+        if (error) {
+            console.error('Error fetching unread count:', error);
+            return;
         }
+
+        setUnreadCount(count ?? 0);
     }, [user?.id]);
 
-    // Set up notification listeners
-    useEffect(() => {
-        const handleNotificationReceived = (notification: Notification) => {
-            console.log('Notification received:', notification);
-        };
-
-        const handleNotificationResponse = (response: NotificationResponse) => {
-            const data = response.notification.request.content.data;
-            console.log('Notification tapped:', data);
-
-            // Navigate based on notification type
-            if (data?.type === 'workout_reminder' && data?.eventId) {
-                // Navigate to event detail
-                (navigation as any).navigate('EventDetail', { id: data.eventId });
-            } else if (data?.type === 'check_in' && data?.eventId) {
-                (navigation as any).navigate('EventDetail', { id: data.eventId });
-            } else if (data?.type === 'squad_activity') {
-                (navigation as any).navigate('ActivityFeed');
-            }
-        };
-
-        // Set up listeners
-        notificationListener.current = addNotificationListeners(
-            handleNotificationReceived,
-            handleNotificationResponse
-        );
-
-        // Cleanup
-        return () => {
-            if (notificationListener.current) {
-                notificationListener.current();
-            }
-        };
-    }, [navigation]);
-
-    const loadPreferences = async () => {
+    // Mark all notifications as read for the current user
+    const markAllRead = useCallback(async () => {
         if (!user?.id) return;
-        const prefs = await getNotificationPreferences(user.id);
-        setPreferences(prefs);
-    };
 
+        const { error } = await supabase
+            .from('notifications')
+            .update({ is_read: true })
+            .eq('user_id', user.id)
+            .eq('is_read', false);
+
+        if (error) {
+            console.error('Error marking notifications as read:', error);
+            return;
+        }
+
+        setUnreadCount(0);
+    }, [user?.id]);
+
+    // Register for push notifications and save token
     const registerForNotifications = useCallback(async (): Promise<boolean> => {
         if (!user?.id) return false;
 
@@ -123,6 +112,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
         return false;
     }, [user?.id]);
 
+    // Merge partial preferences and persist
     const updatePreferences = useCallback(async (newPrefs: Partial<NotificationPreferences>) => {
         if (!user?.id) return;
 
@@ -131,18 +121,92 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
         await saveNotificationPreferences(user.id, updated);
     }, [user?.id, preferences]);
 
-    const refreshScheduledCount = useCallback(async () => {
-        // const notifications = await Notifications.getAllScheduledNotificationsAsync();
-        // setScheduledCount(notifications.length);
-        setScheduledCount(0);
-    }, []);
-
-    // Refresh count periodically
+    // On login: load preferences, attempt push registration, fetch unread count
     useEffect(() => {
-        refreshScheduledCount();
-        const interval = setInterval(refreshScheduledCount, 60000); // Every minute
-        return () => clearInterval(interval);
-    }, [refreshScheduledCount]);
+        if (!user?.id) return;
+
+        const init = async () => {
+            // Load notification preferences from DB
+            const prefs = await getNotificationPreferences(user.id);
+            setPreferences(prefs);
+
+            // Attempt push registration; save token if successful
+            const token = await registerForPushNotificationsAsync();
+            if (token) {
+                setPushToken(token);
+                setIsRegistered(true);
+                await savePushToken(user.id, token);
+            }
+
+            // Fetch initial unread count
+            const { count, error } = await supabase
+                .from('notifications')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_id', user.id)
+                .eq('is_read', false);
+
+            if (!error) {
+                setUnreadCount(count ?? 0);
+            }
+        };
+
+        init();
+    }, [user?.id]);
+
+    // Set up Realtime subscription for INSERT events on notifications table
+    useEffect(() => {
+        if (!user?.id) {
+            // Clean up any existing subscription on logout
+            if (realtimeChannelRef.current) {
+                supabase.removeChannel(realtimeChannelRef.current);
+                realtimeChannelRef.current = null;
+            }
+            return;
+        }
+
+        // Unsubscribe from any previous channel before creating a new one
+        if (realtimeChannelRef.current) {
+            supabase.removeChannel(realtimeChannelRef.current);
+            realtimeChannelRef.current = null;
+        }
+
+        const channel = supabase
+            .channel(`notifications:user:${user.id}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'notifications',
+                    filter: `user_id=eq.${user.id}`,
+                },
+                () => {
+                    setUnreadCount((prev) => prev + 1);
+                }
+            )
+            .subscribe((status) => {
+                if (status === 'SUBSCRIBED') {
+                    console.log('Realtime notifications channel subscribed');
+                }
+            });
+
+        realtimeChannelRef.current = channel;
+
+        return () => {
+            supabase.removeChannel(channel);
+            realtimeChannelRef.current = null;
+        };
+    }, [user?.id]);
+
+    // On logout: reset all state
+    useEffect(() => {
+        if (!user) {
+            setPushToken(null);
+            setPreferences(defaultPreferences);
+            setIsRegistered(false);
+            setUnreadCount(0);
+        }
+    }, [user]);
 
     return (
         <NotificationContext.Provider
@@ -150,10 +214,11 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
                 pushToken,
                 preferences,
                 isRegistered,
-                scheduledCount,
+                unreadCount,
                 registerForNotifications,
                 updatePreferences,
-                refreshScheduledCount,
+                markAllRead,
+                refreshUnreadCount,
             }}
         >
             {children}

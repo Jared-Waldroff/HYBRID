@@ -17,6 +17,7 @@ import { ThemeProvider } from './src/context/ThemeContext';
 import { PostDraftProvider } from './src/context/PostDraftContext';
 import { RevenueCatProvider } from './src/context/RevenueCatContext';
 import { AlertProvider } from './src/components/CustomAlert';
+import { NotificationProvider } from './src/context/NotificationContext';
 import Navigation from './src/navigation';
 
 // Keep the splash screen visible while we fetch resources
@@ -125,12 +126,14 @@ export default function App() {
           <ThemeProvider>
             <AlertProvider>
               <RevenueCatProvider>
-                <PostDraftProvider>
-                  <View style={styles.container}>
-                    <StatusBar style="light" />
-                    <Navigation />
-                  </View>
-                </PostDraftProvider>
+                <NotificationProvider>
+                  <PostDraftProvider>
+                    <View style={styles.container}>
+                      <StatusBar style="light" />
+                      <Navigation />
+                    </View>
+                  </PostDraftProvider>
+                </NotificationProvider>
               </RevenueCatProvider>
             </AlertProvider>
           </ThemeProvider>

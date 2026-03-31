@@ -6,6 +6,7 @@ import * as Haptics from 'expo-haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useAthleteProfile } from '../hooks/useAthleteProfile';
+import { useNotifications } from '../context/NotificationContext';
 import { spacing, typography, MIN_TOUCH_TARGET } from '../theme';
 
 interface AppHeaderProps {
@@ -22,6 +23,7 @@ export default function AppHeader({ title, showProfile = true }: AppHeaderProps)
     const { themeColors, colors: userColors } = useTheme();
     const { user } = useAuth();
     const { profile } = useAthleteProfile();
+    const { unreadCount } = useNotifications();
 
     // Get user initials for fallback avatar
     const getInitials = () => {
@@ -49,11 +51,20 @@ export default function AppHeader({ title, showProfile = true }: AppHeaderProps)
         <View style={[styles.header, { backgroundColor: themeColors.glassBg, borderBottomColor: themeColors.glassBorder }]}>
             {/* Left - Always Bell */}
             <Pressable style={styles.iconButton} onPress={handleBell}>
-                <Feather
-                    name="bell"
-                    size={22}
-                    color={themeColors.textPrimary}
-                />
+                <View>
+                    <Feather
+                        name="bell"
+                        size={22}
+                        color={themeColors.textPrimary}
+                    />
+                    {unreadCount > 0 && (
+                        <View style={[styles.badge, { backgroundColor: userColors.accent_color }]}>
+                            <Text style={styles.badgeText}>
+                                {unreadCount > 99 ? '99+' : unreadCount}
+                            </Text>
+                        </View>
+                    )}
+                </View>
             </Pressable>
 
             {/* Center - Logo/Title */}
@@ -149,6 +160,22 @@ const styles = StyleSheet.create({
     avatarInitials: {
         color: '#fff',
         fontSize: 12,
+        fontWeight: '700',
+    },
+    badge: {
+        position: 'absolute',
+        top: -4,
+        right: -6,
+        minWidth: 18,
+        height: 18,
+        borderRadius: 9,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 4,
+    },
+    badgeText: {
+        color: '#fff',
+        fontSize: 10,
         fontWeight: '700',
     },
 });

@@ -3,7 +3,7 @@
     "name": "HYBRID",
     "slug": "hybrid",
     "scheme": "hybridworkout",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -16,28 +16,54 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.walsansoftware.hybrid",
-      "buildNumber": "11",
+      "buildNumber": "21",
+      "associatedDomains": ["applinks:hybrid.walsansoftware.com"],
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "HYBRID needs access to your photo library to upload photos to your posts and profile.",
         "NSCameraUsageDescription": "HYBRID needs access to your camera to take photos for your posts.",
         "NSCalendarsUsageDescription": "HYBRID needs access to your calendar to sync your workouts.",
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSUserNotificationsUsageDescription": "HYBRID sends you notifications for squad requests, comments, event invites, and workout reminders."
       },
       "config": {
-        "usesNonExemptEncryption": false,
-        "usesAppleSignIn": true
+        "usesNonExemptEncryption": false
       }
     },
     "android": {
       "package": "com.walsansoftware.hybrid",
-      "versionCode": 11,
+      "versionCode": 21,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0a141f"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "hybrid.walsansoftware.com",
+              "pathPrefix": "/join"
+            },
+            {
+              "scheme": "https",
+              "host": "hybrid.walsansoftware.com",
+              "pathPrefix": "/event"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ],
       "permissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_CALENDAR",
+        "android.permission.WRITE_CALENDAR",
+        "android.permission.RECORD_AUDIO",
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.READ_MEDIA_IMAGES",
@@ -61,12 +87,25 @@
         {
           "calendarPermission": "HYBRID needs access to your calendar to sync your workouts."
         }
+      ],
+      "@react-native-community/datetimepicker",
+      [
+        "expo-notifications",
+        {
+          "sounds": ["./assets/sounds/notification.wav"]
+        }
       ]
     ],
     "extra": {
       "eas": {
         "projectId": "ae4e3783-a643-4a7e-95d4-eb3108c0184a"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/ae4e3783-a643-4a7e-95d4-eb3108c0184a"
     }
   }
 }
