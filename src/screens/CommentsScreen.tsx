@@ -13,6 +13,7 @@ import {
     DeviceEventEmitter,
 } from 'react-native';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
@@ -44,6 +45,7 @@ export default function CommentsScreen() {
     const { user } = useAuth();
     const route = useRoute<CommentsScreenRouteProp>();
     const navigation = useNavigation();
+    const insets = useSafeAreaInsets();
     const { postId } = route.params;
 
     const [comments, setComments] = useState<Comment[]>([]);
@@ -189,8 +191,8 @@ export default function CommentsScreen() {
         <ScreenLayout hideHeader>
             <KeyboardAvoidingView
                 style={styles.container}
-                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 57 : 0}
             >
                 {/* Custom Header since we hide default */}
                 <View style={[styles.header, { borderBottomColor: themeColors.glassBorder }]}>
