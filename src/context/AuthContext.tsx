@@ -6,6 +6,7 @@ import React, {
     ReactNode,
 } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { clearPushToken } from '../services/notificationService';
 import { User, Session } from '@supabase/supabase-js';
 import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
@@ -122,12 +123,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
                             'user';
                         const username = baseName.toLowerCase().replace(/[^a-z0-9]/g, '') +
                             Math.floor(Math.random() * 1000);
+                        // Generate a unique invite code for squad invites
+                        const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
 
                         await supabase.from('athlete_profiles').insert({
                             user_id: session.user.id,
                             username: username,
                             display_name: session.user.user_metadata?.name || null,
                             avatar_url: session.user.user_metadata?.avatar_url || null,
+                            invite_code: inviteCode,
                         });
                     }
                 } catch (err: any) {
@@ -162,14 +166,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         if (error) return { data, error };
 
-        // Create athlete profile with username
+        // Create athlete profile with username and invite code
         if (data?.user) {
+            const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
             const { error: profileError } = await supabase
                 .from('athlete_profiles')
                 .upsert(
                     {
                         user_id: data.user.id,
                         username: username.toLowerCase(),
+                        invite_code: inviteCode,
                     },
                     { onConflict: 'user_id' }
                 );
@@ -300,6 +306,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     };
 
     const signOut = async () => {
+        if (user?.id) {
+            await clearPushToken(user.id);
+        }
         const { error } = await supabase.auth.signOut();
         return { error };
     };

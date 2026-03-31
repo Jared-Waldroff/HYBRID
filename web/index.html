@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HYBRID — Join Squad</title>
+    <meta name="apple-itunes-app" content="app-id=6758261099">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+            background: #0a141f;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            text-align: center;
+            padding: 2rem;
+            max-width: 400px;
+        }
+
+        .logo {
+            width: 88px;
+            height: 88px;
+            border-radius: 20px;
+            margin: 0 auto 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 4px 24px rgba(201, 162, 39, 0.2);
+        }
+
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #ffffff;
+        }
+
+        h1 span {
+            color: #c9a227;
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.75);
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: #c9a227;
+            color: #0a141f;
+        }
+
+        .btn-secondary {
+            background: rgba(201, 162, 39, 0.1);
+            color: #c9a227;
+            border: 1px solid rgba(201, 162, 39, 0.25);
+        }
+
+        .btn:active {
+            opacity: 0.85;
+        }
+
+        .footer {
+            margin-top: 2rem;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.8rem;
+        }
+
+        .code-display {
+            background: rgba(201, 162, 39, 0.08);
+            border: 1px solid rgba(201, 162, 39, 0.2);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1.5rem;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 1.1rem;
+            letter-spacing: 0.15em;
+            color: #c9a227;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="logo">
+            <img src="/icon.png" alt="HYBRID">
+        </div>
+        <h1>You've been invited to <span>HYBRID</span></h1>
+        <p class="subtitle" id="message">Open the link on your phone to join the squad.</p>
+
+        <div class="code-display" id="inviteCode" style="display:none;"></div>
+
+        <a href="https://apps.apple.com/app/id6758261099" class="btn btn-primary" id="appStoreBtn">
+            Download on the App Store
+        </a>
+
+        <!-- Uncomment when you publish to Google Play -->
+        <!-- <a href="https://play.google.com/store/apps/details?id=com.walsansoftware.hybrid" class="btn btn-secondary">
+            Get it on Google Play
+        </a> -->
+
+        <p class="footer">
+            After installing and creating your account, the squad invite will be applied automatically.
+        </p>
+    </div>
+
+    <script>
+        (function () {
+            var path = window.location.pathname;
+            var match = path.match(/^\/join\/([A-Za-z0-9_-]+)/);
+
+            if (match) {
+                var code = match[1];
+                document.getElementById('message').textContent =
+                    'Download HYBRID and your squad invite will be applied automatically.';
+                document.getElementById('inviteCode').textContent = 'Invite: ' + code;
+                document.getElementById('inviteCode').style.display = 'block';
+
+                // Store the invite code so the app can retrieve it on first launch.
+                // The app checks AsyncStorage, but we also set localStorage as a signal
+                // for the Smart App Banner flow.
+                try { localStorage.setItem('hybrid_pending_invite', code); } catch (e) {}
+            }
+
+            var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+            if (isMobile && match) {
+                // If we're here, the Universal Link didn't open the app — it's not installed
+                // OR iOS chose to open in Safari. Try the custom scheme as a fallback.
+                // This will silently fail if the app isn't installed (no error shown).
+                var deepLink = 'hybridworkout://join/' + match[1];
+                var clickedStore = false;
+
+                // Try custom scheme first
+                window.location.href = deepLink;
+
+                // If the app doesn't handle it within 1.5s, the user is still on this page.
+                // The download buttons are already visible, so no further action needed.
+            }
+        })();
+    </script>
+</body>
+
+</html>

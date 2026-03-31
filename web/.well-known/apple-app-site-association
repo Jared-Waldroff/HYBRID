@@ -1,0 +1,13 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["7X293FTKZA.com.walsansoftware.hybrid"],
+        "components": [
+          { "/": "/join/*", "comment": "Squad invite links" },
+          { "/": "/event/*", "comment": "Event invite links" }
+        ]
+      }
+    ]
+  }
+}

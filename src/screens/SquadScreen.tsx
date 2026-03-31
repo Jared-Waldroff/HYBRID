@@ -39,6 +39,7 @@ import { useAlert } from '../components/CustomAlert';
 import { spacing, radii, typography } from '../theme';
 import { RootStackParamList } from '../navigation';
 import { SquadStackParamList } from '../navigation';
+import { consumePendingInvite } from '../lib/pendingInvite';
 // Combine or use partial types. 
 // Ideally we want composite nav prop but for simplicity given strict errors: 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList & SquadStackParamList>;
@@ -81,46 +82,58 @@ export default function SquadScreen({ route }: any) {
         }
     }, [route?.params?.initialTab]);
 
-    // Handle Deep Link Invite
+    // Process an invite code — shared by deep link handler and deferred invite handler
+    const processInviteCode = useCallback(async (code: string) => {
+        if (!user) return;
+        try {
+            const { data, error } = await supabase.rpc('get_user_by_invite_code', { code });
+            if (error) throw error;
+            if (data && data.length > 0) {
+                const inviter = data[0];
+                if (inviter.user_id === user.id) {
+                    showAlert({ title: 'Squad', message: 'You cannot join your own squad!' });
+                    return;
+                }
+
+                showAlert({
+                    title: 'Join Squad',
+                    message: `Do you want to join ${inviter.display_name}'s Squad?`,
+                    buttons: [
+                        { text: 'Cancel', style: 'cancel' },
+                        {
+                            text: 'Join',
+                            onPress: () => handleAddSquad(inviter.user_id)
+                        }
+                    ]
+                });
+            } else {
+                showAlert({ title: 'Error', message: 'This invite link is no longer valid.' });
+            }
+        } catch (err) {
+            console.error('Invite check failed:', err);
+            showAlert({ title: 'Error', message: 'Could not verify invite link. Please try again.' });
+        }
+    }, [user]);
+
+    // Handle Deep Link Invite (app was open or universal link routed directly)
     useEffect(() => {
         if (route?.params?.inviteCode && user) {
-            const code = route.params.inviteCode;
-            // Verify code and prompt
-            (async () => {
-                try {
-                    const { data, error } = await supabase.rpc('get_user_by_invite_code', { invite_code_input: code });
-                    if (error) throw error;
-                    if (data && data.length > 0) {
-                        const inviter = data[0]; // { user_id, display_name, ... }
-                        if (inviter.user_id === user.id) {
-                            showAlert({ title: 'Squad', message: 'You cannot join your own squad!' });
-                            return;
-                        }
-
-                        showAlert({
-                            title: 'Join Squad',
-                            message: `Do you want to join ${inviter.display_name}'s Squad?`,
-                            buttons: [
-                                { text: 'Cancel', style: 'cancel' },
-                                {
-                                    text: 'Join',
-                                    onPress: () => handleAddSquad(inviter.user_id)
-                                }
-                            ]
-                        });
-                    } else {
-                        showAlert({ title: 'Error', message: 'Invalid invite code.' });
-                    }
-                } catch (err) {
-                    console.error('Invite check failed:', err);
-                    showAlert({ title: 'Error', message: 'Failed to verify invite link.' });
-                }
-            })();
-            // Clear param to prevent loop? (Navigation preserves params unless replaced)
-            // Maybe navigation.setParams({ inviteCode: undefined })?
-            // navigation.setParams({ inviteCode: undefined });
+            processInviteCode(route.params.inviteCode);
+            // Clear param so it doesn't re-fire on re-renders
+            navigation.setParams({ inviteCode: undefined });
         }
     }, [route?.params?.inviteCode, user]);
+
+    // Handle Deferred Invite (user just signed in/up after tapping an invite link)
+    useEffect(() => {
+        if (!user) return;
+        (async () => {
+            const pendingCode = await consumePendingInvite();
+            if (pendingCode) {
+                processInviteCode(pendingCode);
+            }
+        })();
+    }, [user]);
 
     // Squad state
     const [membersTab, setMembersTab] = useState<'squad' | 'requests'>('squad');
@@ -301,7 +314,7 @@ export default function SquadScreen({ route }: any) {
 
     const shareInviteLink = async () => {
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        const inviteLink = `https://hybrid.app/join/${inviteCode}`;
+        const inviteLink = `https://hybrid.walsansoftware.com/join/${inviteCode}`;
         try {
             await Share.share({
                 message: `Join my Squad on HYBRID! ${inviteLink}`,
@@ -314,7 +327,7 @@ export default function SquadScreen({ route }: any) {
 
     const copyInviteLink = async () => {
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        const inviteLink = `https://hybrid.app/join/${inviteCode}`;
+        const inviteLink = `https://hybrid.walsansoftware.com/join/${inviteCode}`;
         await Clipboard.setStringAsync(inviteLink);
         showAlert({ title: 'Copied!', message: 'Invite link copied to clipboard' });
     };
@@ -841,7 +854,7 @@ export default function SquadScreen({ route }: any) {
                                     <View style={styles.linkSection}>
                                         <View style={styles.qrContainer}>
                                             <QRCode
-                                                value={`https://hybrid.app/join/${inviteCode || 'loading'}`}
+                                                value={`https://hybrid.walsansoftware.com/join/${inviteCode || 'loading'}`}
                                                 size={160}
                                                 backgroundColor="transparent"
                                                 color={themeColors.textPrimary}
@@ -977,7 +990,7 @@ const styles = StyleSheet.create({
     },
     feedContent: {
         padding: spacing.md,
-        paddingBottom: 100,
+        paddingBottom: 20,
     },
     // Events Tab
     eventsContainer: {
@@ -985,7 +998,7 @@ const styles = StyleSheet.create({
     },
     eventsContent: {
         padding: spacing.md,
-        paddingBottom: 100,
+        paddingBottom: 20,
     },
     eventsSection: {
         marginBottom: spacing.lg,
@@ -1021,7 +1034,7 @@ const styles = StyleSheet.create({
     },
     membersContent: {
         padding: spacing.md,
-        paddingBottom: 100,
+        paddingBottom: 20,
     },
     memberItem: {
         flexDirection: 'row',

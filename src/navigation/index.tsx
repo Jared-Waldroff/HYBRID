@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Pressable, Text, Animated, Dimensions } from 'react-native';
-import { NavigationContainer, DarkTheme, getFocusedRouteNameFromRoute, NavigatorScreenParams, LinkingOptions } from '@react-navigation/native';
+import { NavigationContainer, DarkTheme, getFocusedRouteNameFromRoute, NavigatorScreenParams, LinkingOptions, useNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { Feather } from '@expo/vector-icons';
@@ -12,6 +12,8 @@ import AppHeader from '../components/AppHeader';
 import StatusBarGlow from '../components/StatusBarGlow';
 import { StatusBar } from 'expo-status-bar';
 import * as Linking from 'expo-linking';
+import { savePendingInvite, extractInviteCode } from '../lib/pendingInvite';
+import { addNotificationListeners } from '../services/notificationService';
 
 // Screens
 import LoginScreen from '../screens/LoginScreen';
@@ -100,7 +102,7 @@ export type ExercisesStackParamList = {
 };
 
 export type SquadStackParamList = {
-    SquadMain: { initialTab?: 'feed' | 'events' | 'members' };
+    SquadMain: { initialTab?: 'feed' | 'events' | 'members'; inviteCode?: string };
     CreateEvent: undefined;
     CreatePost: { eventId?: string; eventName?: string };
     EventDetail: { id: string };
@@ -246,7 +248,14 @@ function MainTabs() {
             <Tab.Screen
                 name="Home"
                 component={HomeStack}
-                options={{ tabBarLabel: 'Home' }}
+                options={({ route }: any) => {
+                    const routeName = getFocusedRouteNameFromRoute(route);
+                    const isMainScreen = !routeName || routeName === 'HomeMain';
+                    return {
+                        tabBarLabel: 'Home',
+                        swipeEnabled: isMainScreen,
+                    };
+                }}
                 listeners={({ navigation, route }) => ({
                     tabPress: (e: any) => {
                         const state = navigation.getState();
@@ -266,7 +275,14 @@ function MainTabs() {
             <Tab.Screen
                 name="Exercises"
                 component={ExercisesStack}
-                options={{ tabBarLabel: 'Exercises' }}
+                options={({ route }: any) => {
+                    const routeName = getFocusedRouteNameFromRoute(route);
+                    const isMainScreen = !routeName || routeName === 'ExercisesMain';
+                    return {
+                        tabBarLabel: 'Exercises',
+                        swipeEnabled: isMainScreen,
+                    };
+                }}
                 listeners={({ navigation, route }) => ({
                     tabPress: (e: any) => {
                         const state = navigation.getState();
@@ -525,6 +541,59 @@ function AppStackWithHeader() {
 
 export default function Navigation() {
     const { user, loading } = useAuth();
+    const navigationRef = useNavigationContainerRef<RootStackParamList>();
+
+    // Handle notification taps — navigate to the relevant screen
+    useEffect(() => {
+        const cleanup = addNotificationListeners(
+            () => {}, // foreground notification — no action needed
+            (response) => {
+                const data = response.notification.request.content.data;
+                if (!navigationRef.current) return;
+                const nav = navigationRef.current as any;
+
+                if (data?.type === 'squad_request' || data?.type === 'squad_accept') {
+                    nav.navigate('Main', {
+                        screen: 'Squad',
+                        params: { screen: 'SquadMain', params: { initialTab: 'members' } },
+                    });
+                } else if (data?.type === 'comment' && data?.postId) {
+                    nav.navigate('Comments', { postId: data.postId });
+                } else if (data?.type === 'lfg' || data?.type === 'squad_post') {
+                    nav.navigate('Main', { screen: 'Squad' });
+                } else if ((data?.type === 'event_invite' || data?.type === 'event_soon' || data?.type === 'workout_reminder') && data?.eventId) {
+                    nav.navigate('EventDetail', { id: data.eventId });
+                }
+            }
+        );
+        return cleanup;
+    }, []);
+
+    // Capture invite URLs BEFORE auth resolves.
+    // If the user isn't logged in, the linking config can't route to SquadMain
+    // (it's inside AppStack which only renders when user is truthy).
+    // So we intercept the URL here and save it for after auth completes.
+    useEffect(() => {
+        // Handle the URL that launched the app (cold start)
+        Linking.getInitialURL().then((url) => {
+            if (url) {
+                const code = extractInviteCode(url);
+                if (code && !user) {
+                    savePendingInvite(code);
+                }
+            }
+        });
+
+        // Handle URLs received while the app is already running (warm start)
+        const subscription = Linking.addEventListener('url', ({ url }) => {
+            const code = extractInviteCode(url);
+            if (code && !user) {
+                savePendingInvite(code);
+            }
+        });
+
+        return () => subscription.remove();
+    }, [user]);
 
     // Show nothing while loading auth state
     if (loading) {
@@ -532,7 +601,7 @@ export default function Navigation() {
     }
 
     const linking: LinkingOptions<RootStackParamList> = {
-        prefixes: [Linking.createURL('/'), 'https://hybrid.app'],
+        prefixes: [Linking.createURL('/'), 'https://hybrid.walsansoftware.com'],
         config: {
             screens: {
                 Main: {
@@ -566,7 +635,7 @@ export default function Navigation() {
     };
 
     return (
-        <NavigationContainer theme={DarkTheme} linking={linking}>
+        <NavigationContainer ref={navigationRef} theme={DarkTheme} linking={linking}>
             {user ? <AppStackWithHeader /> : <AuthStack />}
         </NavigationContainer>
     );
