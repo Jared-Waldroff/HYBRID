@@ -33,4 +33,15 @@ android/
 # Backend / Database (Not needed in app bundle)
 supabase/
 
+# AI / IDE config
 CLAUDE.md
+.claude/
+.superpowers/
+
+# Web landing page (deployed separately)
+web/
+
+# Environment files
+.env
+.env.local
+.env.*.local

@@ -69,4 +69,6 @@ docs/sql/
 # Supabase (Exclude all backend files)
 supabase/
 
+# AI / IDE config
 CLAUDE.md
+.claude/
