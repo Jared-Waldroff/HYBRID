@@ -46,15 +46,6 @@ Access a comprehensive database of **60+ exercises** organized by muscle group, 
 
 Chat with an intelligent AI coach that understands hybrid athletic training. The coach is trained on methodologies from leading trainers and researchers:
 
-| Methodology | Source |
-|-------------|--------|
-| **80/20 Polarized Training** | Stephen Seiler, Matt Fitzgerald |
-| **VO2 Max Development** | Dr. Peter Attia, Dr. Andy Galpin |
-| **Strength Programming** | Renaissance Periodization (Dr. Mike Israetel) |
-| **Joint Health & Bulletproofing** | Ben Patrick (ATG / Knees Over Toes) |
-| **Longevity Training** | Dr. Peter Attia's 4 Pillars |
-| **HYROX & CrossFit Prep** | Competition-specific programming |
-
 **What makes the AI different:**
 - Asks about your lifestyle, sleep, stress, and goals before recommending workouts
 - Flags poor programming decisions (excessive volume, insufficient recovery)
